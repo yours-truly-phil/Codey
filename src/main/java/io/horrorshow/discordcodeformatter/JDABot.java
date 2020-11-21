@@ -22,7 +22,7 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class JDABot extends ListenerAdapter {
-    private static final String PROP_TOKEN = "${jda.test-token}";
+    private static final String PROP_TOKEN = "${jda.token}";
 
     private static final String STARS = "✨";
     private static final String BASKET = "\uD83D\uDDD1️";
