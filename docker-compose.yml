@@ -1,0 +1,7 @@
+# docker-compose.yml
+version: '3.8'
+services:
+  app:
+    build: .
+    environment:
+      JDA_TOKEN: change-me
