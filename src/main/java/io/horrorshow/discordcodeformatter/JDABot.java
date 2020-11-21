@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import javax.security.auth.login.LoginException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -26,6 +28,8 @@ public class JDABot extends ListenerAdapter {
     private static final String BASKET = "\uD83D\uDDD1️";
 
     private final JavaFormatter javaFormatter;
+
+    private final Map<String, Message> formattedCodeStore = new HashMap<>();
 
     public JDABot(@Autowired @Value(PROP_TOKEN) String token,
                   @Autowired JavaFormatter javaFormatter) throws LoginException {
@@ -100,9 +104,19 @@ public class JDABot extends ListenerAdapter {
                     .queue(message -> {
                         var formatted = formatted(message.getContentRaw());
                         formatted.ifPresentOrElse(
-                                s -> channel.sendMessage(s)
-                                        .queue(m -> m.addReaction(BASKET).queue()),
+                                s -> postFormattedCode(channel, message, s),
                                 () -> message.removeReaction(STARS).queue());
+                    });
+        }
+    }
+
+    private void postFormattedCode(net.dv8tion.jda.api.entities.TextChannel channel, Message message, String s) {
+        if (!formattedCodeStore.containsKey(message.getId())
+                || !formattedCodeStore.get(message.getId()).getContentRaw().equals(s)) {
+            channel.sendMessage(s)
+                    .queue(m -> {
+                        formattedCodeStore.put(message.getId(), m);
+                        m.addReaction(BASKET).queue();
                     });
         }
     }
@@ -114,6 +128,9 @@ public class JDABot extends ListenerAdapter {
                         if (event.getJDA().getSelfUser().getId()
                                 .equals(message.getAuthor().getId())) {
                             message.delete().queue();
+                            formattedCodeStore.values().
+                                    removeIf(storedMsg ->
+                                            message.getId().equals(storedMsg.getId()));
                             log.info("removing message: {}", message.getContentRaw());
                         }
                     });
