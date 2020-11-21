@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -14,9 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import javax.security.auth.login.LoginException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -26,8 +25,6 @@ public class JDABot extends ListenerAdapter {
     private static final String EMOJI = "✨";
 
     private final JavaFormatter javaFormatter;
-
-    private final Map<String, String> prettyPrintedMessages = new HashMap<>();
 
     public JDABot(@Autowired @Value(PROP_TOKEN) String token,
                   @Autowired JavaFormatter javaFormatter) throws LoginException {
@@ -42,30 +39,50 @@ public class JDABot extends ListenerAdapter {
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
-            var dm = new DiscordMessage(event.getMessage().getContentRaw());
-            log.info(dm.getParts().stream()
-                    .map(DiscordMessage.MessagePart::toString)
-                    .collect(Collectors.joining("\n")));
-            boolean isPrettyPrintable = false;
-            StringBuilder sb = new StringBuilder();
-            for (var part : dm.getParts()) {
-                if (part.isCode()) {
-                    var parseRes = javaFormatter.format(part.getText());
-                    if (parseRes.isPresent()) {
-                        isPrettyPrintable = true;
-                        sb.append(codeBlockOf(parseRes.get().getText(), parseRes.get().getLang()));
-                    } else {
-                        sb.append(codeBlockOf(part.getText(), part.getLang()));
-                    }
+            addReactionIfPrettyPrintable(event.getMessage());
+        }
+    }
+
+    @Override
+    public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
+        if (!event.getUser().isBot()) {
+            sendPrettyPrintedMessageIfParsable(event);
+        }
+    }
+
+    @Override
+    public void onGuildMessageUpdate(@NotNull GuildMessageUpdateEvent event) {
+        if (!event.getAuthor().isBot()) {
+            addReactionIfPrettyPrintable(event.getMessage());
+        }
+    }
+
+    private void addReactionIfPrettyPrintable(@NotNull Message message) {
+        formatted(message.getContentRaw())
+                .ifPresentOrElse(s -> message.addReaction(EMOJI).queue(),
+                        () -> message.removeReaction(EMOJI).queue());
+    }
+
+    private Optional<String> formatted(String rawMessage) {
+        StringBuilder sb = new StringBuilder();
+        boolean isFormatted = false;
+        var dm = new DiscordMessage(rawMessage);
+        for (var part : dm.getParts()) {
+            if (part.isCode()) {
+                var parseRes = javaFormatter.format(part.getText());
+                if (parseRes.isPresent()) {
+                    isFormatted = true;
+                    sb.append(codeBlockOf(parseRes.get().getText(), parseRes.get().getLang()));
                 } else {
-                    // not sure if I want to include other stuff in the output other than code
-                    sb.append(part.getText());
+                    sb.append(codeBlockOf(part.getText(), part.getLang()));
                 }
-            }
-            if (isPrettyPrintable) {
-                messagePrettyPrintable(event.getMessage(), sb.toString());
+            } else {
+                sb.append(part.getText());
             }
         }
+
+        if (!isFormatted) return Optional.empty();
+        else return Optional.of(sb.toString());
     }
 
     private String codeBlockOf(String code, String lang) {
@@ -74,21 +91,16 @@ public class JDABot extends ListenerAdapter {
                 "```";
     }
 
-    @Override
-    public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
-        if (!event.getUser().isBot()) {
-            if (EMOJI.equals(event.getReactionEmote().getEmoji())) {
-                if (prettyPrintedMessages.containsKey(event.getMessageId())) {
-                    var formattedMessage = prettyPrintedMessages.get(event.getMessageId());
-                    var channel = event.getChannel();
-                    channel.sendMessage(formattedMessage).queue();
-                }
-            }
+    private void sendPrettyPrintedMessageIfParsable(@NotNull GuildMessageReactionAddEvent event) {
+        if (EMOJI.equals(event.getReactionEmote().getEmoji())) {
+            var channel = event.getChannel();
+            channel.retrieveMessageById(event.getMessageId())
+                    .queue(message -> {
+                        var formatted = formatted(message.getContentRaw());
+                        formatted.ifPresentOrElse(
+                                s -> channel.sendMessage(s).queue(),
+                                () -> message.removeReaction(EMOJI).queue());
+                    });
         }
-    }
-
-    private void messagePrettyPrintable(Message message, String prettyPrinted) {
-        prettyPrintedMessages.put(message.getId(), prettyPrinted);
-        message.addReaction(EMOJI).queue();
     }
 }
