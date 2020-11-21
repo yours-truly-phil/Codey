@@ -3,7 +3,9 @@ package io.horrorshow.discordcodeformatter;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import javax.security.auth.login.LoginException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,14 +23,20 @@ import java.util.stream.Collectors;
 public class JDABot extends ListenerAdapter {
     private static final String PROP_TOKEN = "${jda.token}";
 
+    private static final String EMOJI = "✨";
+
     private final JavaFormatter javaFormatter;
+
+    private final Map<String, String> prettyPrintedMessages = new HashMap<>();
+
+    private final JDA jda;
 
     public JDABot(@Autowired @Value(PROP_TOKEN) String token,
                   @Autowired JavaFormatter javaFormatter) throws LoginException {
         this.javaFormatter = javaFormatter;
         Assert.notNull(token, "Token must not be null, did you forget to set ${%s}?"
                 .formatted(PROP_TOKEN));
-        JDA jda = JDABuilder.createDefault(token).build();
+        jda = JDABuilder.createDefault(token).build();
         jda.setAutoReconnect(true);
         jda.addEventListener(this);
     }
@@ -38,19 +48,48 @@ public class JDABot extends ListenerAdapter {
             log.info(dm.getParts().stream()
                     .map(DiscordMessage.MessagePart::toString)
                     .collect(Collectors.joining("\n")));
+            boolean isPrettyPrintable = false;
             StringBuilder sb = new StringBuilder();
-            dm.getParts().forEach(part -> {
+            for (var part : dm.getParts()) {
                 if (part.isCode()) {
                     sb.append("```").append(part.getLang()).append("\n");
-                    javaFormatter.googleFormat(part.getText())
-                            .ifPresentOrElse(sb::append,
-                                    () -> sb.append(part.getText()));
+                    var format = javaFormatter.googleFormat(part.getText());
+                    if (format.isEmpty()) {
+                        format = javaFormatter.javaParserFormat(part.getText());
+                    }
+                    if (format.isPresent()) {
+                        isPrettyPrintable = true;
+                        sb.append(format.get());
+                    } else {
+                        sb.append(part.getText());
+                    }
                     sb.append("```");
                 } else {
+                    // not sure if I want to include other stuff in the output other than code
                     sb.append(part.getText());
                 }
-            });
-            event.getChannel().sendMessage(sb.toString()).queue();
+            }
+            if (isPrettyPrintable) {
+                messagePrettyPrintable(event.getMessage(), sb.toString());
+            }
         }
+    }
+
+    @Override
+    public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
+        if (!event.getUser().isBot()) {
+            if (EMOJI.equals(event.getReactionEmote().getEmoji())) {
+                if (prettyPrintedMessages.containsKey(event.getMessageId())) {
+                    var formattedMessage = prettyPrintedMessages.get(event.getMessageId());
+                    var channel = event.getChannel();
+                    channel.sendMessage(formattedMessage).queue();
+                }
+            }
+        }
+    }
+
+    private void messagePrettyPrintable(Message message, String prettyPrinted) {
+        prettyPrintedMessages.put(message.getId(), prettyPrinted);
+        message.addReaction(EMOJI).queue();
     }
 }

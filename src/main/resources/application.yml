@@ -1,5 +1,2 @@
 jda:
   token: change-me
-uncrustify:
-  exe: uncrustify-0.72.0_f-win32\uncrustify.exe
-  cfg: uncrustify-0.72.0_f-win32\cfg\sun.cfg
