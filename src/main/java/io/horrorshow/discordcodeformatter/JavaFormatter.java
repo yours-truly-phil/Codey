@@ -46,14 +46,14 @@ public class JavaFormatter {
         parsers.add(s -> javaParse(s, StaticJavaParser::parseVariableDeclarationExpr, ppConf));
     }
 
-    public ParseResult format(String source) {
+    public Optional<ParseResult> format(String source) {
         for (var parser : parsers) {
             var res = parser.apply(source);
             if (res.isPresent()) {
-                return new ParseResult(res.get(), true);
+                return Optional.of(new ParseResult(res.get(), "java"));
             }
         }
-        return new ParseResult(source, false);
+        return Optional.empty();
     }
 
     private Optional<String> javaParse(String source,
@@ -82,6 +82,6 @@ public class JavaFormatter {
     @EqualsAndHashCode
     static class ParseResult {
         private final String text;
-        private final boolean isChanged;
+        private final String lang;
     }
 }

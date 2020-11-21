@@ -51,10 +51,12 @@ public class JDABot extends ListenerAdapter {
             for (var part : dm.getParts()) {
                 if (part.isCode()) {
                     var parseRes = javaFormatter.format(part.getText());
-                    if (parseRes.isChanged()) {
+                    if (parseRes.isPresent()) {
                         isPrettyPrintable = true;
+                        sb.append(codeBlockOf(parseRes.get().getText(), parseRes.get().getLang()));
+                    } else {
+                        sb.append(codeBlockOf(part.getText(), part.getLang()));
                     }
-                    sb.append(codeBlockOf(parseRes.getText(), part.getLang()));
                 } else {
                     // not sure if I want to include other stuff in the output other than code
                     sb.append(part.getText());
