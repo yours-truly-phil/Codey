@@ -20,9 +20,10 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class JDABot extends ListenerAdapter {
-    private static final String PROP_TOKEN = "${jda.token}";
+    private static final String PROP_TOKEN = "${jda.test-token}";
 
-    private static final String EMOJI = "✨";
+    private static final String STARS = "✨";
+    private static final String BASKET = "\uD83D\uDDD1️";
 
     private final JavaFormatter javaFormatter;
 
@@ -47,6 +48,7 @@ public class JDABot extends ListenerAdapter {
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
         if (!event.getUser().isBot()) {
             sendPrettyPrintedMessageIfParsable(event);
+            removeOwnMessage(event);
         }
     }
 
@@ -59,8 +61,8 @@ public class JDABot extends ListenerAdapter {
 
     private void addReactionIfPrettyPrintable(@NotNull Message message) {
         formatted(message.getContentRaw())
-                .ifPresentOrElse(s -> message.addReaction(EMOJI).queue(),
-                        () -> message.removeReaction(EMOJI).queue());
+                .ifPresentOrElse(s -> message.addReaction(STARS).queue(),
+                        () -> message.removeReaction(STARS).queue());
     }
 
     private Optional<String> formatted(String rawMessage) {
@@ -92,14 +94,28 @@ public class JDABot extends ListenerAdapter {
     }
 
     private void sendPrettyPrintedMessageIfParsable(@NotNull GuildMessageReactionAddEvent event) {
-        if (EMOJI.equals(event.getReactionEmote().getEmoji())) {
+        if (STARS.equals(event.getReactionEmote().getEmoji())) {
             var channel = event.getChannel();
             channel.retrieveMessageById(event.getMessageId())
                     .queue(message -> {
                         var formatted = formatted(message.getContentRaw());
                         formatted.ifPresentOrElse(
-                                s -> channel.sendMessage(s).queue(),
-                                () -> message.removeReaction(EMOJI).queue());
+                                s -> channel.sendMessage(s)
+                                        .queue(m -> m.addReaction(BASKET).queue()),
+                                () -> message.removeReaction(STARS).queue());
+                    });
+        }
+    }
+
+    private void removeOwnMessage(GuildMessageReactionAddEvent event) {
+        if (BASKET.equals(event.getReactionEmote().getEmoji())) {
+            event.getChannel().retrieveMessageById(event.getMessageId())
+                    .queue(message -> {
+                        if (event.getJDA().getSelfUser().getId()
+                                .equals(message.getAuthor().getId())) {
+                            message.delete().queue();
+                            log.info("removing message: {}", message.getContentRaw());
+                        }
                     });
         }
     }
