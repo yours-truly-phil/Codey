@@ -18,27 +18,35 @@ class JavaFormatterTest {
 
     @Test
     void java_parser_hello_world() {
-        var res = javaFormatter.javaParserFormat("""
+        var res = javaFormatter.format("""
                 interface A{static void main(String[] a){System.out.println("Hello, World!");}}""");
-        assertThat(res).isPresent().get()
-                .isEqualTo("""
-                        interface A {
-                                                 
-                          static void main(String[] a) {
-                            System.out.println("Hello, World!");
-                          }
-                        }
-                        """);
+        assertThat(res.isChanged()).isTrue();
+        assertThat(res.getText()).isEqualTo("""
+                interface A {
+                  static void main(String[] a) {
+                    System.out.println("Hello, World!");
+                  }
+                }
+                """);
     }
 
     @Test
     void java_parser_single_method() {
-        var res = javaFormatter.javaParserFormat("""
+        var res = javaFormatter.format("""
                 public static void main(String[] args){System.out.println("Hello, World!");}""");
-        assertThat(res).isPresent().get()
-                .isEqualTo("""
-                        public static void main(String[] args) {
-                          System.out.println("Hello, World!");
-                        }""");
+        assertThat(res.isChanged()).isTrue();
+        assertThat(res.getText()).isEqualTo("""
+                public static void main(String[] args) {
+                  System.out.println("Hello, World!");
+                }""");
+    }
+
+    @Test
+    void doesnt_change_non_code() {
+        var text = """
+                This isn't code ;)""";
+        var res = javaFormatter.format(text);
+        assertThat(res.isChanged()).isFalse();
+        assertThat(res.getText()).isEqualTo(text);
     }
 }

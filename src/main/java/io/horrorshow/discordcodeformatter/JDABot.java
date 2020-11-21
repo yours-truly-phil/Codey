@@ -29,14 +29,12 @@ public class JDABot extends ListenerAdapter {
 
     private final Map<String, String> prettyPrintedMessages = new HashMap<>();
 
-    private final JDA jda;
-
     public JDABot(@Autowired @Value(PROP_TOKEN) String token,
                   @Autowired JavaFormatter javaFormatter) throws LoginException {
         this.javaFormatter = javaFormatter;
         Assert.notNull(token, "Token must not be null, did you forget to set ${%s}?"
                 .formatted(PROP_TOKEN));
-        jda = JDABuilder.createDefault(token).build();
+        JDA jda = JDABuilder.createDefault(token).build();
         jda.setAutoReconnect(true);
         jda.addEventListener(this);
     }
@@ -52,18 +50,11 @@ public class JDABot extends ListenerAdapter {
             StringBuilder sb = new StringBuilder();
             for (var part : dm.getParts()) {
                 if (part.isCode()) {
-                    sb.append("```").append(part.getLang()).append("\n");
-                    var format = javaFormatter.googleFormat(part.getText());
-                    if (format.isEmpty()) {
-                        format = javaFormatter.javaParserFormat(part.getText());
-                    }
-                    if (format.isPresent()) {
+                    var parseRes = javaFormatter.format(part.getText());
+                    if (parseRes.isChanged()) {
                         isPrettyPrintable = true;
-                        sb.append(format.get());
-                    } else {
-                        sb.append(part.getText());
                     }
-                    sb.append("```");
+                    sb.append(codeBlockOf(parseRes.getText(), part.getLang()));
                 } else {
                     // not sure if I want to include other stuff in the output other than code
                     sb.append(part.getText());
@@ -73,6 +64,12 @@ public class JDABot extends ListenerAdapter {
                 messagePrettyPrintable(event.getMessage(), sb.toString());
             }
         }
+    }
+
+    private String codeBlockOf(String code, String lang) {
+        return "```" + lang + "\n" +
+                code +
+                "```";
     }
 
     @Override
