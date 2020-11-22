@@ -54,19 +54,28 @@ public class JDABot extends ListenerAdapter {
         if (!event.getUser().isBot()) {
             event.getChannel()
                     .retrieveMessageById(event.getMessageId())
-                    .queue(message -> {
-                        handleUserMessage(event, message);
-                    });
+                    .queue(message -> handleMessageWithNewReaction(event, message));
         }
     }
 
-    private void handleUserMessage(@NotNull GuildMessageReactionAddEvent event, Message message) {
-        if (!message.getAuthor().isBot()) {
-            createFormattedMessageIfParsable(event);
+    @Override
+    public void onGuildMessageUpdate(@NotNull GuildMessageUpdateEvent event) {
+        if (!event.getAuthor().isBot()) {
+            addReactionIfPrettyPrintable(event.getMessage());
+        }
+    }
+
+    private void handleMessageWithNewReaction(@NotNull GuildMessageReactionAddEvent event, Message message) {
+        if (!message.getAuthor().isBot()
+                && STARS.equals(event.getReactionEmote().getEmoji())) {
+
+            formatted(message.getContentRaw()).ifPresentOrElse(
+                    s -> postFormattedCode(message.getTextChannel(), message, s),
+                    () -> message.removeReaction(STARS).queue());
         }
         if (BASKET.equals(event.getReactionEmote().getEmoji())
-                && event.getJDA().getSelfUser().getId()
-                .equals(message.getAuthor().getId())) {
+                && event.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
+
             removeFormattedMessage(message);
         }
     }
@@ -76,13 +85,6 @@ public class JDABot extends ListenerAdapter {
         formattedCodeStore.values().
                 removeIf(storedMsg ->
                         message.getId().equals(storedMsg.getId()));
-    }
-
-    @Override
-    public void onGuildMessageUpdate(@NotNull GuildMessageUpdateEvent event) {
-        if (!event.getAuthor().isBot()) {
-            addReactionIfPrettyPrintable(event.getMessage());
-        }
     }
 
     private void addReactionIfPrettyPrintable(@NotNull Message message) {
@@ -117,19 +119,6 @@ public class JDABot extends ListenerAdapter {
         return "```" + lang + "\n" +
                 code +
                 "```";
-    }
-
-    private void createFormattedMessageIfParsable(@NotNull GuildMessageReactionAddEvent event) {
-        if (STARS.equals(event.getReactionEmote().getEmoji())) {
-            var channel = event.getChannel();
-            channel.retrieveMessageById(event.getMessageId())
-                    .queue(message -> {
-                        var formatted = formatted(message.getContentRaw());
-                        formatted.ifPresentOrElse(
-                                s -> postFormattedCode(channel, message, s),
-                                () -> message.removeReaction(STARS).queue());
-                    });
-        }
     }
 
     private void postFormattedCode(TextChannel channel, Message message, String s) {
