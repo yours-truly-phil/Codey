@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
@@ -51,9 +52,30 @@ public class JDABot extends ListenerAdapter {
     @Override
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
         if (!event.getUser().isBot()) {
-            sendPrettyPrintedMessageIfParsable(event);
-            removeOwnMessage(event);
+            event.getChannel()
+                    .retrieveMessageById(event.getMessageId())
+                    .queue(message -> {
+                        handleUserMessage(event, message);
+                    });
         }
+    }
+
+    private void handleUserMessage(@NotNull GuildMessageReactionAddEvent event, Message message) {
+        if (!message.getAuthor().isBot()) {
+            createFormattedMessageIfParsable(event);
+        }
+        if (BASKET.equals(event.getReactionEmote().getEmoji())
+                && event.getJDA().getSelfUser().getId()
+                .equals(message.getAuthor().getId())) {
+            removeFormattedMessage(message);
+        }
+    }
+
+    private void removeFormattedMessage(Message message) {
+        message.delete().queue();
+        formattedCodeStore.values().
+                removeIf(storedMsg ->
+                        message.getId().equals(storedMsg.getId()));
     }
 
     @Override
@@ -97,7 +119,7 @@ public class JDABot extends ListenerAdapter {
                 "```";
     }
 
-    private void sendPrettyPrintedMessageIfParsable(@NotNull GuildMessageReactionAddEvent event) {
+    private void createFormattedMessageIfParsable(@NotNull GuildMessageReactionAddEvent event) {
         if (STARS.equals(event.getReactionEmote().getEmoji())) {
             var channel = event.getChannel();
             channel.retrieveMessageById(event.getMessageId())
@@ -110,29 +132,13 @@ public class JDABot extends ListenerAdapter {
         }
     }
 
-    private void postFormattedCode(net.dv8tion.jda.api.entities.TextChannel channel, Message message, String s) {
+    private void postFormattedCode(TextChannel channel, Message message, String s) {
         if (!formattedCodeStore.containsKey(message.getId())
                 || !formattedCodeStore.get(message.getId()).getContentRaw().equals(s)) {
             channel.sendMessage(s)
                     .queue(m -> {
                         formattedCodeStore.put(message.getId(), m);
                         m.addReaction(BASKET).queue();
-                    });
-        }
-    }
-
-    private void removeOwnMessage(GuildMessageReactionAddEvent event) {
-        if (BASKET.equals(event.getReactionEmote().getEmoji())) {
-            event.getChannel().retrieveMessageById(event.getMessageId())
-                    .queue(message -> {
-                        if (event.getJDA().getSelfUser().getId()
-                                .equals(message.getAuthor().getId())) {
-                            message.delete().queue();
-                            formattedCodeStore.values().
-                                    removeIf(storedMsg ->
-                                            message.getId().equals(storedMsg.getId()));
-                            log.info("removing message: {}", message.getContentRaw());
-                        }
                     });
         }
     }
