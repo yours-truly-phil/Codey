@@ -34,7 +34,7 @@ public class DiscordMessage {
             "puppet", "purebasic", "q", "qml", "r", "reasonml", "re", "roboconf", "sas", "scala",
             "scheme", "scilab", "smali", "smalltalk", "sml", "sqf", "stan", "stata", "st", "step",
             "stylus", "taggerscript", "tcl", "thrift", "tp", "twig", "ts", "vala", "v", "vb", "vbscript",
-            "verilog", "vhdl", "vim", "xl", "xquery", "zephir"
+            "verilog", "vhdl", "vim", "xl", "xquery", "zephir", "befunge", "zsh"
     };
 
     static {
