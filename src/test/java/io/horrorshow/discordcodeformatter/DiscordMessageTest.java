@@ -51,4 +51,91 @@ class DiscordMessageTest {
                                                                 
                                 Hello, I'm a code block"""));
     }
+
+    @Test
+    void multiline_code_starting_at_first_line() {
+        var raw = """
+                ```boolean contained = Arrays.binarySearch(sortedStringArray, "str", (o1, o2) -> {
+                    if (o1.startsWith(o2))
+                        return 0;
+                    if (o2.startsWith(o1))
+                        return 0;
+                    return o1.compareTo(o2);
+                }) >= 0;```""";
+        assertThat(new DiscordMessage(raw).getParts())
+                .containsExactly(new DiscordMessage.MessagePart(true, null,
+                        """
+                                boolean contained = Arrays.binarySearch(sortedStringArray, "str", (o1, o2) -> {
+                                    if (o1.startsWith(o2))
+                                        return 0;
+                                    if (o2.startsWith(o1))
+                                        return 0;
+                                    return o1.compareTo(o2);
+                                }) >= 0;"""));
+    }
+
+    @Test
+    void code_starting_in_first_line_with_language_set() {
+        var raw = """
+                ```cpp int i = 0;```""";
+        assertThat(new DiscordMessage(raw).getParts())
+                .containsExactly(new DiscordMessage.MessagePart(true, "cpp",
+                        " int i = 0;"));
+    }
+
+    @Test
+    void extract_code_block_content_without_new_line_no_given_language() {
+        assertThat(new DiscordMessage("```test```").getParts())
+                .containsExactly(new DiscordMessage.MessagePart(true, null, "test"));
+    }
+
+    @Test
+    void recognize_code_block_without_language_content_in_first_line() {
+        var raw = """
+                ```@ToString
+                @EqualsAndHashCode
+                @AllArgsConstructor
+                @Getter
+                public static class MessagePart {
+                    private final boolean isCode;
+                    private final String lang;
+                    private final String text;
+                }```""";
+        assertThat(new DiscordMessage(raw).getParts())
+                .containsExactly(new DiscordMessage.MessagePart(true, null,
+                        """
+                                @ToString
+                                @EqualsAndHashCode
+                                @AllArgsConstructor
+                                @Getter
+                                public static class MessagePart {
+                                    private final boolean isCode;
+                                    private final String lang;
+                                    private final String text;
+                                }"""));
+    }
+
+    @Test
+    void starts_with_any_find_matches() {
+        var testString = "xyz";
+        var arr = new String[]{"a", "b", "c", "d", "e", "x", "y", "z"};
+        assertThat(DiscordMessage.startsWithAnyOf(testString, arr))
+                .isEqualTo(5);
+    }
+
+    @Test
+    void starts_with_any_no_match() {
+        var testString = "asdölfkjlakjdf";
+        var arr = new String[]{"s", "v", "ö"};
+        assertThat(DiscordMessage.startsWithAnyOf(testString, arr))
+                .isEqualTo(-1);
+    }
+
+    @Test
+    void starts_with_teststring_shorter_than_matches() {
+        var testString = "d";
+        var arr = new String[]{"a", "du", "ef"};
+        assertThat(DiscordMessage.startsWithAnyOf(testString, arr))
+                .isEqualTo(-1);
+    }
 }

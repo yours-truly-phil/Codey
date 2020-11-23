@@ -19,6 +19,7 @@
     <jda.version>4.2.0_168</jda.version>
     <google-java-format.version>1.9</google-java-format.version>
     <assertj.version>3.18.1</assertj.version>
+    <javaparser.version>3.15.1</javaparser.version>
   </properties>
 
   <repositories>
@@ -44,16 +45,15 @@
       <artifactId>google-java-format</artifactId>
       <version>${google-java-format.version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>com.github.javaparser</groupId>
+      <artifactId>javaparser-symbol-solver-core</artifactId>
+      <version>${javaparser.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>com.github.javaparser</groupId>
-      <artifactId>javaparser-symbol-solver-core</artifactId>
-      <version>3.15.1</version>
     </dependency>
 
     <dependency>
