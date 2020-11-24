@@ -110,11 +110,10 @@ public class JDABot extends ListenerAdapter {
         final String contentRaw = message.getContentRaw();
 
         var dm = new DiscordMessage(contentRaw);
-        formatted(dm).ifPresentOrElse(s -> {
-                    message.addReaction(STARS).queue();
-                    compileCodeBlocks(message, dm);
-                },
+        formatted(dm).ifPresentOrElse(s -> message.addReaction(STARS).queue(),
                 () -> message.removeReaction(STARS).queue());
+
+        compileCodeBlocks(message, dm);
 
         if (CLEAR_CACHE_CMD.equals(contentRaw.trim())) {
             this.compilationResults.clear();
