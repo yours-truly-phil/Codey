@@ -28,6 +28,7 @@ public class JDABot extends ListenerAdapter {
     private static final String STARS = "✨";
     private static final String BASKET = "\uD83D\uDDD1️";
     private static final String PLAY = "▶️";
+    private static final String CLEAR_CACHE_CMD = "$cf-clear-cache";
 
     private final JavaFormatter javaFormatter;
     private final WandboxApi wandboxApi;
@@ -106,12 +107,19 @@ public class JDABot extends ListenerAdapter {
     }
 
     private void handleMessage(@NotNull Message message) {
-        var dm = new DiscordMessage(message.getContentRaw());
+        final String contentRaw = message.getContentRaw();
+
+        var dm = new DiscordMessage(contentRaw);
         formatted(dm).ifPresentOrElse(s -> {
                     message.addReaction(STARS).queue();
                     compileCodeBlocks(message, dm);
                 },
                 () -> message.removeReaction(STARS).queue());
+
+        if (CLEAR_CACHE_CMD.equals(contentRaw.trim())) {
+            this.compilationResults.clear();
+            this.formattedCodeStore.clear();
+        }
     }
 
     private void compileCodeBlocks(@NotNull Message message, DiscordMessage dm) {
