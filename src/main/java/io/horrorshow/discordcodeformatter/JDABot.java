@@ -73,20 +73,20 @@ public class JDABot extends ListenerAdapter {
 
     private void handleMessageWithNewReaction(@NotNull GuildMessageReactionAddEvent event,
                                               Message message) {
+        final String emoji = event.getReactionEmote().getEmoji();
         if (!message.getAuthor().isBot()) {
-            final String emoji = event.getReactionEmote().getEmoji();
             if (STARS.equals(emoji)) {
                 var dm = new DiscordMessage(message.getContentRaw());
                 formatted(dm).ifPresentOrElse(
                         s -> postFormattedCode(message.getTextChannel(), message, s),
                         () -> message.removeReaction(STARS).queue());
-            } else if (BASKET.equals(emoji)
-                    && event.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
-
-                removeFormattedMessage(message);
             } else if (PLAY.equals(emoji)) {
                 printOnceCompilationResultIfPresent(message);
             }
+        }
+        if (BASKET.equals(emoji)
+                && event.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
+            removeFormattedMessage(message);
         }
     }
 
@@ -95,7 +95,7 @@ public class JDABot extends ListenerAdapter {
             message.getChannel()
                     .sendMessage(compilationResults
                             .getOrDefault(message.getId(), "no result"))
-                    .queue();
+                    .queue(sentMsg -> sentMsg.addReaction(BASKET).queue());
             compilationResults.remove(message.getId());
         }
     }
