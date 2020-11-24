@@ -27,14 +27,19 @@ public class JDABot extends ListenerAdapter {
 
     private static final String STARS = "✨";
     private static final String BASKET = "\uD83D\uDDD1️";
+    private static final String PLAY = "▶️";
 
     private final JavaFormatter javaFormatter;
+    private final WandboxApi wandboxApi;
 
     private final Map<String, Message> formattedCodeStore = new HashMap<>();
+    private final Map<String, String> compilationResults = new HashMap<>();
 
     public JDABot(@Autowired @Value(PROP_TOKEN) String token,
-                  @Autowired JavaFormatter javaFormatter) throws LoginException {
+                  @Autowired JavaFormatter javaFormatter,
+                  @Autowired WandboxApi wandboxApi) throws LoginException {
         this.javaFormatter = javaFormatter;
+        this.wandboxApi = wandboxApi;
         Assert.notNull(token, "Token must not be null, did you forget to set ${%s}?"
                 .formatted(PROP_TOKEN));
         JDA jda = JDABuilder.createDefault(token).build();
@@ -45,7 +50,7 @@ public class JDABot extends ListenerAdapter {
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
-            addReactionIfPrettyPrintable(event.getMessage());
+            handleMessage(event.getMessage());
         }
     }
 
@@ -61,15 +66,15 @@ public class JDABot extends ListenerAdapter {
     @Override
     public void onGuildMessageUpdate(@NotNull GuildMessageUpdateEvent event) {
         if (!event.getAuthor().isBot()) {
-            addReactionIfPrettyPrintable(event.getMessage());
+            handleMessage(event.getMessage());
         }
     }
 
     private void handleMessageWithNewReaction(@NotNull GuildMessageReactionAddEvent event, Message message) {
         if (!message.getAuthor().isBot()
                 && STARS.equals(event.getReactionEmote().getEmoji())) {
-
-            formatted(message.getContentRaw()).ifPresentOrElse(
+            var dm = new DiscordMessage(message.getContentRaw());
+            formatted(dm).ifPresentOrElse(
                     s -> postFormattedCode(message.getTextChannel(), message, s),
                     () -> message.removeReaction(STARS).queue());
         }
@@ -83,20 +88,32 @@ public class JDABot extends ListenerAdapter {
     private void removeFormattedMessage(Message message) {
         message.delete().queue();
         formattedCodeStore.values().
-                removeIf(storedMsg ->
-                        message.getId().equals(storedMsg.getId()));
+                removeIf(storedMsg -> message.getId().equals(storedMsg.getId()));
     }
 
-    private void addReactionIfPrettyPrintable(@NotNull Message message) {
-        formatted(message.getContentRaw())
-                .ifPresentOrElse(s -> message.addReaction(STARS).queue(),
-                        () -> message.removeReaction(STARS).queue());
+    private void handleMessage(@NotNull Message message) {
+        var dm = new DiscordMessage(message.getContentRaw());
+        formatted(dm).ifPresentOrElse(s -> message.addReaction(STARS).queue(),
+                () -> message.removeReaction(STARS).queue());
+
+        compileCodeBlocks(message, dm);
     }
 
-    private Optional<String> formatted(String rawMessage) {
+    private void compileCodeBlocks(@NotNull Message message, DiscordMessage dm) {
+        for (var part : dm.getParts()) {
+            if (part.isCode()) {
+                wandboxApi.compile(part.getText(), part.getLang(),
+                        wandboxOutput -> {
+                            compilationResults.put(message.getId(), wandboxOutput.getText());
+                            message.addReaction(PLAY).queue();
+                        });
+            }
+        }
+    }
+
+    private Optional<String> formatted(DiscordMessage dm) {
         StringBuilder sb = new StringBuilder();
         boolean isFormatted = false;
-        var dm = new DiscordMessage(rawMessage);
         for (var part : dm.getParts()) {
             if (part.isCode()) {
                 var parseRes = javaFormatter.format(part.getText());

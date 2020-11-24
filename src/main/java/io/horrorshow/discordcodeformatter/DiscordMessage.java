@@ -42,7 +42,6 @@ public class DiscordMessage {
         MAX_LENGTH_LANG = Arrays.stream(LANGUAGES).map(String::length).max(Integer::compareTo).get();
     }
 
-
     @Getter
     private final List<MessagePart> parts = new ArrayList<>();
 
