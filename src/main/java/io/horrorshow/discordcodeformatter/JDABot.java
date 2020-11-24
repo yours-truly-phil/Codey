@@ -107,22 +107,23 @@ public class JDABot extends ListenerAdapter {
 
     private void handleMessage(@NotNull Message message) {
         var dm = new DiscordMessage(message.getContentRaw());
-        formatted(dm).ifPresentOrElse(s -> message.addReaction(STARS).queue(),
+        formatted(dm).ifPresentOrElse(s -> {
+                    message.addReaction(STARS).queue();
+                    compileCodeBlocks(message, dm);
+                },
                 () -> message.removeReaction(STARS).queue());
-
-        compileCodeBlocks(message, dm);
     }
 
     private void compileCodeBlocks(@NotNull Message message, DiscordMessage dm) {
-        for (var part : dm.getParts()) {
-            if (part.isCode()) {
-                wandboxApi.compile(part.getText(), part.getLang(),
-                        wandboxOutput -> {
-                            compilationResults.put(message.getId(), wandboxOutput.getText());
-                            message.addReaction(PLAY).queue();
-                        });
-            }
-        }
+        dm.getParts().stream()
+                .filter(DiscordMessage.MessagePart::isCode)
+                .findFirst()
+                .ifPresent(part ->
+                        wandboxApi.compile(part.getText(), part.getLang(),
+                                wandboxOutput -> {
+                                    compilationResults.put(message.getId(), wandboxOutput.getText());
+                                    message.addReaction(PLAY).queue();
+                                }));
     }
 
     private Optional<String> formatted(DiscordMessage dm) {
