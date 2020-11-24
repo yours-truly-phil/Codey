@@ -70,18 +70,32 @@ public class JDABot extends ListenerAdapter {
         }
     }
 
-    private void handleMessageWithNewReaction(@NotNull GuildMessageReactionAddEvent event, Message message) {
-        if (!message.getAuthor().isBot()
-                && STARS.equals(event.getReactionEmote().getEmoji())) {
-            var dm = new DiscordMessage(message.getContentRaw());
-            formatted(dm).ifPresentOrElse(
-                    s -> postFormattedCode(message.getTextChannel(), message, s),
-                    () -> message.removeReaction(STARS).queue());
-        }
-        if (BASKET.equals(event.getReactionEmote().getEmoji())
-                && event.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
+    private void handleMessageWithNewReaction(@NotNull GuildMessageReactionAddEvent event,
+                                              Message message) {
+        if (!message.getAuthor().isBot()) {
+            final String emoji = event.getReactionEmote().getEmoji();
+            if (STARS.equals(emoji)) {
+                var dm = new DiscordMessage(message.getContentRaw());
+                formatted(dm).ifPresentOrElse(
+                        s -> postFormattedCode(message.getTextChannel(), message, s),
+                        () -> message.removeReaction(STARS).queue());
+            } else if (BASKET.equals(emoji)
+                    && event.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
 
-            removeFormattedMessage(message);
+                removeFormattedMessage(message);
+            } else if (PLAY.equals(emoji)) {
+                printOnceCompilationResultIfPresent(message);
+            }
+        }
+    }
+
+    private void printOnceCompilationResultIfPresent(Message message) {
+        if (compilationResults.containsKey(message.getId())) {
+            message.getChannel()
+                    .sendMessage(compilationResults
+                            .getOrDefault(message.getId(), "no result"))
+                    .queue();
+            compilationResults.remove(message.getId());
         }
     }
 
