@@ -67,6 +67,9 @@ public class WandboxApi {
     @Async
     public void compile(String codeBlock, String lang, Consumer<WandboxResponse> callback) {
         try {
+            if ("java".equalsIgnoreCase(lang)) {
+                codeBlock = codeBlock.replaceAll("public class ", "class ");
+            }
             var compiler = COMPILER.getOrDefault(lang, lang);
             var request = new WandboxRequest(codeBlock, compiler);
             var response = restTemplate

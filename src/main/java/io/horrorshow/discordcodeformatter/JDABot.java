@@ -79,17 +79,23 @@ public class JDABot extends ListenerAdapter {
         final String emoji = event.getReactionEmote().getEmoji();
         if (!message.getAuthor().isBot()) {
             if (STARS.equals(emoji)) {
+                log.info("request format code by {}: {}",
+                        event.getUser().getName(), message.getContentRaw());
                 var dm = new DiscordMessage(message.getContentRaw());
                 formatted(dm).ifPresentOrElse(
                         s -> postFormattedCode(message.getTextChannel(), message, s),
                         () -> message.removeReaction(STARS).queue());
             } else if (PLAY.equals(emoji)) {
+                log.info("request print compilation result by {}: {}",
+                        event.getUser().getName(), message.getContentRaw());
                 printOnceCompilationResultIfPresent(message);
             }
         }
         if (BASKET.equals(emoji)
                 && event.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
             removeFormattedMessage(message);
+            log.info("removed formatted message by {}: {}",
+                    event.getUser().getName(), message.getContentRaw());
         }
     }
 
