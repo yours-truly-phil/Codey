@@ -127,10 +127,28 @@ public class JDABot extends ListenerAdapter {
                 .findFirst()
                 .ifPresent(part ->
                         wandboxApi.compile(part.getText(), part.getLang(),
-                                wandboxOutput -> {
-                                    compilationResults.put(message.getId(), wandboxOutput.getText());
+                                wandboxResponse -> {
+                                    compilationResults.put(message.getId(), formatWandboxResponse(wandboxResponse));
                                     message.addReaction(PLAY).queue();
                                 }));
+    }
+
+    private String formatWandboxResponse(WandboxApi.WandboxResponse wandboxResponse) {
+        StringBuilder sb = new StringBuilder();
+        if (wandboxResponse.getStatus() != null && !wandboxResponse.getStatus().equals("0")) {
+            sb.append("```status code: ").append(wandboxResponse.getStatus()).append("```\n");
+        }
+        if (wandboxResponse.getCompiler_error() != null) {
+            sb.append("```").append(wandboxResponse.getCompiler_error()).append("```\n");
+        } else if (wandboxResponse.getCompiler_message() != null) {
+            sb.append("```").append(wandboxResponse.getCompiler_message()).append("```\n");
+        }
+        if (wandboxResponse.getProgram_message() != null) {
+            sb.append("```").append(wandboxResponse.getProgram_message()).append("```\n");
+        } else if (wandboxResponse.getProgram_output() != null) {
+            sb.append("```").append(wandboxResponse.getProgram_output()).append("```\n");
+        }
+        return sb.toString();
     }
 
     private Optional<String> formatted(DiscordMessage dm) {

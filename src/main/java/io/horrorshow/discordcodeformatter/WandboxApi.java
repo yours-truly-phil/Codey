@@ -30,7 +30,7 @@ public class WandboxApi {
         COMPILER.put("d", "dmd-head");
         COMPILER.put("rust", "rust-head");
         COMPILER.put("py", "pypy-head");
-        COMPILER.put("python", "cpython-head");
+        COMPILER.put("python", "pypy-head");
         COMPILER.put("ruby", "ruby-head");
         COMPILER.put("scala", "scala-2.13.x");
         COMPILER.put("groovy", "groovy-head");
@@ -65,13 +65,13 @@ public class WandboxApi {
     }
 
     @Async
-    public void compile(String codeBlock, String lang, Consumer<WandboxOutput> callback) {
+    public void compile(String codeBlock, String lang, Consumer<WandboxResponse> callback) {
         try {
             var compiler = COMPILER.getOrDefault(lang, lang);
             var request = new WandboxRequest(codeBlock, compiler);
             var response = restTemplate
-                    .postForObject("https://wandbox.org/api/compile.json", request, String.class);
-            callback.accept(new WandboxOutput(response));
+                    .postForObject("https://wandbox.org/api/compile.json", request, WandboxResponse.class);
+            callback.accept(response);
         } catch (RestClientException e) {
             log.debug("compilation unsuccessful {}", e.getMessage());
         }
@@ -82,5 +82,15 @@ public class WandboxApi {
     static class WandboxRequest {
         private final String code;
         private final String compiler;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Data
+    static class WandboxResponse {
+        private String program_message;
+        private String program_output;
+        private String status;
+        private String compiler_error;
+        private String compiler_message;
     }
 }
