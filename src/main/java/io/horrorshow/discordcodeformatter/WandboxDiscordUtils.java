@@ -12,7 +12,7 @@ public class WandboxDiscordUtils {
         StringBuilder sb = new StringBuilder();
         if (wandboxResponse.getStatus() != null
                 && !wandboxResponse.getStatus().equals("0")) {
-            sb.append("```status code: ")
+            sb.append("```\nstatus code: ")
                     .append(wandboxResponse.getStatus())
                     .append("```\n");
         }
@@ -37,11 +37,11 @@ public class WandboxDiscordUtils {
 
     private static void appendAOrBTruncated(String a, String b, StringBuilder sb) {
         if (a != null) {
-            sb.append("```");
+            sb.append("```\n");
             sb.append(truncateMessage(a, getRemainingChars(sb)));
             sb.append("```\n");
         } else if (b != null) {
-            sb.append("```");
+            sb.append("```\n");
             sb.append(truncateMessage(b, getRemainingChars(sb)));
             sb.append("```\n");
         }
