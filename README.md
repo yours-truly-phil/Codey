@@ -1,6 +1,6 @@
 # DiscordCodeFormatter
 
-![code_formatter_demo.gif](code_formatter_demo.gif)
+![images/code_formatter_demo.gif](images/code_formatter_demo.gif)
 
 ## discord invite link to invite the bot to your server
 
