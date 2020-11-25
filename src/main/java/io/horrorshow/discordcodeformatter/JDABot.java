@@ -17,6 +17,7 @@ import org.springframework.util.Assert;
 
 import javax.security.auth.login.LoginException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -24,6 +25,8 @@ import java.util.Optional;
 @Slf4j
 public class JDABot extends ListenerAdapter {
     private static final String PROP_TOKEN = "${jda.token}";
+
+    private static final int CHAR_LIMIT = 2000;
 
     private static final String STARS = "✨";
     private static final String BASKET = "\uD83D\uDDD1️";
@@ -34,7 +37,7 @@ public class JDABot extends ListenerAdapter {
     private final WandboxApi wandboxApi;
 
     private final Map<String, Message> formattedCodeStore = new HashMap<>();
-    private final Map<String, String> compilationResults = new HashMap<>();
+    private final Map<String, List<String>> compilationResults = new HashMap<>();
 
     public JDABot(@Autowired @Value(PROP_TOKEN) String token,
                   @Autowired JavaFormatter javaFormatter,
@@ -92,10 +95,11 @@ public class JDABot extends ListenerAdapter {
 
     private void printOnceCompilationResultIfPresent(Message message) {
         if (compilationResults.containsKey(message.getId())) {
-            message.getChannel()
-                    .sendMessage(compilationResults
-                            .getOrDefault(message.getId(), "no result"))
-                    .queue(sentMsg -> sentMsg.addReaction(BASKET).queue());
+            for (var msg : compilationResults.getOrDefault(message.getId(),
+                    List.of("compilation result unavailable"))) {
+                message.getChannel().sendMessage(msg)
+                        .queue(sentMsg -> sentMsg.addReaction(BASKET).queue());
+            }
             compilationResults.remove(message.getId());
         }
     }
@@ -128,27 +132,10 @@ public class JDABot extends ListenerAdapter {
                 .ifPresent(part ->
                         wandboxApi.compile(part.getText(), part.getLang(),
                                 wandboxResponse -> {
-                                    compilationResults.put(message.getId(), formatWandboxResponse(wandboxResponse));
+                                    compilationResults.put(message.getId(),
+                                            WandboxDiscordUtils.formatWandboxResponse(wandboxResponse));
                                     message.addReaction(PLAY).queue();
                                 }));
-    }
-
-    private String formatWandboxResponse(WandboxApi.WandboxResponse wandboxResponse) {
-        StringBuilder sb = new StringBuilder();
-        if (wandboxResponse.getStatus() != null && !wandboxResponse.getStatus().equals("0")) {
-            sb.append("```status code: ").append(wandboxResponse.getStatus()).append("```\n");
-        }
-        if (wandboxResponse.getCompiler_error() != null) {
-            sb.append("```").append(wandboxResponse.getCompiler_error()).append("```\n");
-        } else if (wandboxResponse.getCompiler_message() != null) {
-            sb.append("```").append(wandboxResponse.getCompiler_message()).append("```\n");
-        }
-        if (wandboxResponse.getProgram_message() != null) {
-            sb.append("```").append(wandboxResponse.getProgram_message()).append("```\n");
-        } else if (wandboxResponse.getProgram_output() != null) {
-            sb.append("```").append(wandboxResponse.getProgram_output()).append("```\n");
-        }
-        return sb.toString();
     }
 
     private Optional<String> formatted(DiscordMessage dm) {
