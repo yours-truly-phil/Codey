@@ -2,6 +2,7 @@ package io.horrorshow.discordcodeformatter;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 @Service
+@Slf4j
 public class WandboxApi {
 
     private static final Map<String, String> COMPILER = new HashMap<>();
@@ -71,7 +73,7 @@ public class WandboxApi {
                     .postForObject("https://wandbox.org/api/compile.json", request, String.class);
             callback.accept(new WandboxOutput(response));
         } catch (RestClientException e) {
-            callback.accept(new WandboxOutput(e.getMessage()));
+            log.debug("compilation unsuccessful {}", e.getMessage());
         }
     }
 
