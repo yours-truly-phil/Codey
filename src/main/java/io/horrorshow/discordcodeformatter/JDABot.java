@@ -39,7 +39,8 @@ public class JDABot extends ListenerAdapter {
 
     public JDABot(@Autowired @Value(PROP_TOKEN) String token,
                   @Autowired JavaFormatter javaFormatter,
-                  @Autowired WandboxApi wandboxApi) throws LoginException {
+                  @Autowired WandboxApi wandboxApi,
+                  @Autowired CodingCompetition codingCompetition) throws LoginException {
         this.javaFormatter = javaFormatter;
         this.wandboxApi = wandboxApi;
         Assert.notNull(token, "Token must not be null, did you forget to set ${%s}?"
@@ -47,6 +48,7 @@ public class JDABot extends ListenerAdapter {
         JDA jda = JDABuilder.createDefault(token).build();
         jda.setAutoReconnect(true);
         jda.addEventListener(this);
+        jda.addEventListener(codingCompetition);
     }
 
     @Override
