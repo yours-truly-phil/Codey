@@ -26,18 +26,16 @@ import java.util.Optional;
 public class JDABot extends ListenerAdapter {
     private static final String PROP_TOKEN = "${jda.token}";
 
-    private static final int CHAR_LIMIT = 2000;
-
     private static final String STARS = "✨";
     private static final String BASKET = "\uD83D\uDDD1️";
     private static final String PLAY = "▶️";
     private static final String CLEAR_CACHE_CMD = "$cf-clear-cache";
-
     private final JavaFormatter javaFormatter;
     private final WandboxApi wandboxApi;
-
     private final Map<String, Message> formattedCodeStore = new HashMap<>();
     private final Map<String, List<String>> compilationResults = new HashMap<>();
+    @Value("${bot.compiler.rmresult}")
+    private boolean removeCompilationResultAfterPost = false;
 
     public JDABot(@Autowired @Value(PROP_TOKEN) String token,
                   @Autowired JavaFormatter javaFormatter,
@@ -103,10 +101,18 @@ public class JDABot extends ListenerAdapter {
         if (compilationResults.containsKey(message.getId())) {
             for (var msg : compilationResults.getOrDefault(message.getId(),
                     List.of("compilation result unavailable"))) {
+                log.debug("print compilation result");
                 message.getChannel().sendMessage(msg)
                         .queue(sentMsg -> sentMsg.addReaction(BASKET).queue());
             }
-            compilationResults.remove(message.getId());
+            if (removeCompilationResultAfterPost) {
+                compilationResults.remove(message.getId());
+            }
+        } else {
+            log.debug("compilation result not present");
+            message.getChannel()
+                    .sendMessage("compilation result removed from cache, " +
+                            "repost message with code block.").queue();
         }
     }
 

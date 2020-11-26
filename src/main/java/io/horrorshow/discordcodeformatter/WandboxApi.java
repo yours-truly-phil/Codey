@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -59,21 +60,31 @@ public class WandboxApi {
     }
 
     private final RestTemplate restTemplate;
+    private final String wandboxUrl;
 
-    public WandboxApi(@Autowired RestTemplate restTemplate) {
+    public WandboxApi(@Autowired RestTemplate restTemplate,
+                      @Value("${wandbox.url}") String wandboxUrl) {
         this.restTemplate = restTemplate;
+        this.wandboxUrl = wandboxUrl;
     }
 
     @Async
     public void compile(String codeBlock, String lang, Consumer<WandboxResponse> callback) {
+        compile(codeBlock, lang, "", "", callback);
+    }
+
+    @Async
+    public void compile(String codeBlock, String lang,
+                        String stdin, String runtimeOptions,
+                        Consumer<WandboxResponse> callback) {
         try {
             if ("java".equalsIgnoreCase(lang)) {
                 codeBlock = codeBlock.replaceAll("public class ", "class ");
             }
             var compiler = COMPILER.getOrDefault(lang, lang);
-            var request = new WandboxRequest(codeBlock, compiler);
+            var request = new WandboxRequest(codeBlock, compiler, stdin, runtimeOptions);
             var response = restTemplate
-                    .postForObject("https://wandbox.org/api/compile.json", request, WandboxResponse.class);
+                    .postForObject(wandboxUrl, request, WandboxResponse.class);
             callback.accept(response);
         } catch (RestClientException e) {
             log.debug("compilation unsuccessful {}", e.getMessage());
@@ -85,6 +96,8 @@ public class WandboxApi {
     static class WandboxRequest {
         private final String code;
         private final String compiler;
+        private final String stdin;
+        private final String runtime_option_raw;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
