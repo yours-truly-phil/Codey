@@ -34,6 +34,7 @@ public class JDABot extends ListenerAdapter {
     private final WandboxApi wandboxApi;
     private final Map<String, Message> formattedCodeStore = new HashMap<>();
     private final Map<String, List<String>> compilationResults = new HashMap<>();
+    private final CodingCompetition codingCompetition;
     @Value("${bot.compiler.rmresult}")
     private boolean removeCompilationResultAfterPost = false;
 
@@ -43,6 +44,7 @@ public class JDABot extends ListenerAdapter {
                   @Autowired CodingCompetition codingCompetition) throws LoginException {
         this.javaFormatter = javaFormatter;
         this.wandboxApi = wandboxApi;
+        this.codingCompetition = codingCompetition;
         Assert.notNull(token, "Token must not be null, did you forget to set ${%s}?"
                 .formatted(PROP_TOKEN));
         JDA jda = JDABuilder.createDefault(token).build();
@@ -143,13 +145,18 @@ public class JDABot extends ListenerAdapter {
         dm.getParts().stream()
                 .filter(DiscordMessage.MessagePart::isCode)
                 .findFirst()
-                .ifPresent(part ->
-                        wandboxApi.compile(part.getText(), part.getLang(),
-                                wandboxResponse -> {
-                                    compilationResults.put(message.getId(),
-                                            WandboxDiscordUtils.formatWandboxResponse(wandboxResponse));
-                                    message.addReaction(PLAY).queue();
-                                }));
+                .ifPresent(part -> {
+
+                    codingCompetition.onCodeBlockReceived(part, message);
+
+                    wandboxApi.compile(part.getText(), part.getLang(),
+                            wandboxResponse -> {
+                                compilationResults.put(message.getId(),
+                                        WandboxDiscordUtils.formatWandboxResponse(wandboxResponse));
+                                message.addReaction(PLAY).queue();
+
+                            });
+                });
     }
 
     private Optional<String> formatted(DiscordMessage dm) {

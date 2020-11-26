@@ -2,6 +2,7 @@ package io.horrorshow.discordcodeformatter;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ public class CodingCompetition extends ListenerAdapter {
                                 
                 Sample:
                 `Input: 4`
-                `Output: 8`
+                `Output: 16`
                                 
                 ```java
                 import java.util.Scanner;
@@ -44,9 +45,9 @@ public class CodingCompetition extends ListenerAdapter {
                 }```""";
 
         sampleChallenge.testList.addAll(List.of(
-                new ChallengeTest("4", "8"),
+                new ChallengeTest("4", "16\n"),
                 new ChallengeTest(String.valueOf(Integer.MAX_VALUE),
-                        String.valueOf((long) Integer.MAX_VALUE * (long) Integer.MAX_VALUE))));
+                        "%s\n".formatted(String.valueOf((long) Integer.MAX_VALUE * (long) Integer.MAX_VALUE)))));
     }
 
     private final WandboxApi wandboxApi;
@@ -63,6 +64,19 @@ public class CodingCompetition extends ListenerAdapter {
             event.getChannel().sendMessage(sampleChallenge.getDescription())
                     .queue();
         }
+    }
+
+    public void onCodeBlockReceived(DiscordMessage.MessagePart codeblock,
+                                    @NotNull Message message) {
+        wandboxApi.compile(codeblock.getText(), codeblock.getLang(),
+                sampleChallenge.testList.get(0).input, "",
+                wandboxResponse -> {
+                    if ("0".equals(wandboxResponse.getStatus())
+                            && sampleChallenge.testList.get(0).expected
+                            .equals(wandboxResponse.getProgram_output())) {
+                        message.getChannel().sendMessage("Congratz!!").queue();
+                    }
+                });
     }
 
     @Data
