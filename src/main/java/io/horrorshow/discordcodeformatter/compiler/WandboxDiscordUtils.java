@@ -1,4 +1,6 @@
-package io.horrorshow.discordcodeformatter;
+package io.horrorshow.discordcodeformatter.compiler;
+
+import io.horrorshow.discordcodeformatter.compiler.api.WandboxResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,7 +8,7 @@ import java.util.List;
 public class WandboxDiscordUtils {
     private static final int CHAR_LIMIT = 2000;
 
-    public static List<String> formatWandboxResponse(WandboxApi.WandboxResponse wandboxResponse) {
+    public static List<String> formatWandboxResponse(WandboxResponse wandboxResponse) {
         List<String> result = new ArrayList<>();
 
         StringBuilder sb = new StringBuilder();

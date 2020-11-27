@@ -1,4 +1,4 @@
-package io.horrorshow.discordcodeformatter;
+package io.horrorshow.discordcodeformatter.formatter;
 
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
@@ -6,9 +6,6 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.printer.PrettyPrinterConfiguration;
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -75,13 +72,5 @@ public class JavaFormatter {
         } catch (FormatterException e) {
             return Optional.empty();
         }
-    }
-
-    @AllArgsConstructor
-    @Getter
-    @EqualsAndHashCode
-    static class ParseResult {
-        private final String text;
-        private final String lang;
     }
 }

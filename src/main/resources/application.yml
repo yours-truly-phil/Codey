@@ -1,7 +1,4 @@
 jda:
   token: change-me
-bot:
-  compiler:
-    rmresult: false
 wandbox:
   url: https://wandbox.org/api/compile.json

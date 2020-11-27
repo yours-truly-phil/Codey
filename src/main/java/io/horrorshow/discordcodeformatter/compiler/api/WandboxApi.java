@@ -1,7 +1,5 @@
-package io.horrorshow.discordcodeformatter;
+package io.horrorshow.discordcodeformatter.compiler.api;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -89,24 +87,5 @@ public class WandboxApi {
         } catch (RestClientException e) {
             log.debug("compilation unsuccessful {}", e.getMessage());
         }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    @Data
-    static class WandboxRequest {
-        private final String code;
-        private final String compiler;
-        private final String stdin;
-        private final String runtime_option_raw;
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    @Data
-    static class WandboxResponse {
-        private String program_message;
-        private String program_output;
-        private String status;
-        private String compiler_error;
-        private String compiler_message;
     }
 }

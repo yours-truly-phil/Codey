@@ -1,9 +1,6 @@
-package io.horrorshow.discordcodeformatter;
+package io.horrorshow.discordcodeformatter.discordutil;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -45,7 +42,12 @@ public class DiscordMessage {
     @Getter
     private final List<MessagePart> parts = new ArrayList<>();
 
-    public DiscordMessage(String raw) {
+    private DiscordMessage(List<MessagePart> parts) {
+        this.parts.addAll(parts);
+    }
+
+    public static DiscordMessage of(String raw) {
+        List<MessagePart> parts = new ArrayList<>();
         var m = matchCodeblocks.matcher(raw);
         int lastEnd = 0;
         while (m.find()) {
@@ -64,6 +66,7 @@ public class DiscordMessage {
         if (lastEnd < raw.length()) {
             parts.add(new MessagePart(false, null, raw.substring(lastEnd)));
         }
+        return new DiscordMessage(parts);
     }
 
     public static int startsWithAnyOf(String testString, String[] arr) {
@@ -89,7 +92,7 @@ public class DiscordMessage {
     }
 
     @NotNull
-    private MessagePart getMessagePart(String rawCodeBlock) {
+    private static MessagePart getMessagePart(String rawCodeBlock) {
         var content = rawCodeBlock.substring("```".length(),
                 rawCodeBlock.lastIndexOf("```"));
         var langIdx = startsWithAnyOf(content, LANGUAGES);
@@ -99,15 +102,5 @@ public class DiscordMessage {
         }
         return new MessagePart(true, (lang.isEmpty()) ? null : lang,
                 content.substring(lang.length()));
-    }
-
-    @ToString
-    @EqualsAndHashCode
-    @AllArgsConstructor
-    @Getter
-    public static class MessagePart {
-        private final boolean isCode;
-        private final String lang;
-        private final String text;
     }
 }

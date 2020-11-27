@@ -1,5 +1,7 @@
 package io.horrorshow.discordcodeformatter;
 
+import io.horrorshow.discordcodeformatter.discordutil.DiscordMessage;
+import io.horrorshow.discordcodeformatter.discordutil.MessagePart;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -13,8 +15,8 @@ class DiscordMessageTest {
                 Cheers :)
                                 
                 try `lol lol`""";
-        assertThat(new DiscordMessage(msg).getParts())
-                .containsExactly(new DiscordMessage.MessagePart(false, null, msg));
+        assertThat(DiscordMessage.of(msg).getParts())
+                .containsExactly(new MessagePart(false, null, msg));
     }
 
     @Test
@@ -26,16 +28,16 @@ class DiscordMessageTest {
                 I'm inside the code block
                 hooray!```
                 I come after the code block""";
-        assertThat(new DiscordMessage(msg).getParts())
-                .containsExactly(new DiscordMessage.MessagePart(false, null, """
+        assertThat(DiscordMessage.of(msg).getParts())
+                .containsExactly(new MessagePart(false, null, """
                                 Hello, what's going on,
                                 now comes a code block:
                                 """),
-                        new DiscordMessage.MessagePart(true, "java", """
+                        new MessagePart(true, "java", """
                                                                 
                                 I'm inside the code block
                                 hooray!"""),
-                        new DiscordMessage.MessagePart(false, null, """
+                        new MessagePart(false, null, """
                                                                 
                                 I come after the code block"""));
     }
@@ -45,8 +47,8 @@ class DiscordMessageTest {
         var raw = """
                 ```java
                 Hello, I'm a code block```""";
-        assertThat(new DiscordMessage(raw).getParts())
-                .containsExactly(new DiscordMessage.MessagePart(true, "java",
+        assertThat(DiscordMessage.of(raw).getParts())
+                .containsExactly(new MessagePart(true, "java",
                         """
                                                                 
                                 Hello, I'm a code block"""));
@@ -62,8 +64,8 @@ class DiscordMessageTest {
                         return 0;
                     return o1.compareTo(o2);
                 }) >= 0;```""";
-        assertThat(new DiscordMessage(raw).getParts())
-                .containsExactly(new DiscordMessage.MessagePart(true, null,
+        assertThat(DiscordMessage.of(raw).getParts())
+                .containsExactly(new MessagePart(true, null,
                         """
                                 boolean contained = Arrays.binarySearch(sortedStringArray, "str", (o1, o2) -> {
                                     if (o1.startsWith(o2))
@@ -78,15 +80,15 @@ class DiscordMessageTest {
     void code_starting_in_first_line_with_language_set() {
         var raw = """
                 ```cpp int i = 0;```""";
-        assertThat(new DiscordMessage(raw).getParts())
-                .containsExactly(new DiscordMessage.MessagePart(true, "cpp",
+        assertThat(DiscordMessage.of(raw).getParts())
+                .containsExactly(new MessagePart(true, "cpp",
                         " int i = 0;"));
     }
 
     @Test
     void extract_code_block_content_without_new_line_no_given_language() {
-        assertThat(new DiscordMessage("```test```").getParts())
-                .containsExactly(new DiscordMessage.MessagePart(true, null, "test"));
+        assertThat(DiscordMessage.of("```test```").getParts())
+                .containsExactly(new MessagePart(true, null, "test"));
     }
 
     @Test
@@ -101,8 +103,8 @@ class DiscordMessageTest {
                     private final String lang;
                     private final String text;
                 }```""";
-        assertThat(new DiscordMessage(raw).getParts())
-                .containsExactly(new DiscordMessage.MessagePart(true, null,
+        assertThat(DiscordMessage.of(raw).getParts())
+                .containsExactly(new MessagePart(true, null,
                         """
                                 @ToString
                                 @EqualsAndHashCode
