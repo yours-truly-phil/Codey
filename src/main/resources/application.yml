@@ -2,3 +2,5 @@ jda:
   token: change-me
 wandbox:
   url: https://wandbox.org/api/compile.json
+challenge:
+  path: problem_statements
