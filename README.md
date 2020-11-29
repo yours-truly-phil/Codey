@@ -1,4 +1,8 @@
-# DiscordCodeFormatter
+# Codey
+
+Compile and run code inside discord message.
+
+Reformat and fix indentation of java code. 
 
 ![images/code_formatter_demo.gif](images/code_formatter_demo.gif)
 
@@ -11,7 +15,7 @@ https://discord.com/api/oauth2/authorize?client_id=779383631255961640&permission
 ## run
 
 * replace `change-me` in `application.yml` when running with `spring-boot:run` or add the parameter `jda.token` with your bots token to your run configuration in your IDE.
-* run the main method in class `io.horrorshow.discordcodeformatter.DiscordCodeFormatterApplication` or the maven task `spring-boot:run`
+* run the main method in class `CodeyApplication` or the maven task `spring-boot:run`
 
 ## Build and run in docker
 
