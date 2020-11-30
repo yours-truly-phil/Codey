@@ -61,10 +61,13 @@ public class CodingCompetition extends ListenerAdapter {
         var context = JAXBContext.newInstance(Problem.class);
         var um = context.createUnmarshaller();
 
-        try (Stream<Path> stream = Files.walk(Paths.get(challengePath), 1)) {
+        var path = Paths.get(challengePath);
+        log.info("looking for challenges in {}", path.toAbsolutePath().toString());
+        try (Stream<Path> stream = Files.walk(path, 1)) {
             var files = stream.filter(file -> !Files.isDirectory(file))
                     .map(Path::toFile)
                     .collect(Collectors.toList());
+            log.info("found {} files in {}", files.size(), path.toString());
             for (File file : files) {
                 problemList.add((Problem) um.unmarshal(file));
             }
@@ -152,11 +155,15 @@ public class CodingCompetition extends ListenerAdapter {
     }
 
     private void onCreateChallenge(TextChannel channel) {
-        var randProblem = problemList.get(random.nextInt(problemList.size()));
-        var challenge = new Challenge(randProblem, channel, this);
-        challenges.put(channel, challenge);
-        channel.sendMessage("*New Challenge! Good luck*\n\n%s"
-                .formatted(challenge)).queue();
+        if (problemList.isEmpty()) {
+            channel.sendMessage("No challenges found").queue();
+        } else {
+            var randProblem = problemList.get(random.nextInt(problemList.size()));
+            var challenge = new Challenge(randProblem, channel, this);
+            challenges.put(channel, challenge);
+            channel.sendMessage("*New Challenge! Good luck*\n\n%s"
+                    .formatted(challenge)).queue();
+        }
     }
 
     private void onShowChallenge(TextChannel channel) {

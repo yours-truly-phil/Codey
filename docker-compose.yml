@@ -5,3 +5,5 @@ services:
     build: .
     environment:
       JDA_TOKEN: change-me
+    volumes:
+      - ./problem_statements:/application/problem_statements
