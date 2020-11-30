@@ -3,22 +3,26 @@ package io.horrorshow.codey.discordutil;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.util.function.Consumer;
 
 @Service
 @Slf4j
-public class RemoveMessageListener extends ListenerAdapter {
+public class DiscordUtils extends ListenerAdapter {
 
     public static final String BASKET = "\uD83D\uDDD1️";
 
     private final MessageStore messageStore;
 
-    public RemoveMessageListener(@Autowired JDA jda,
-                                 @Autowired MessageStore messageStore) {
+    public DiscordUtils(@Autowired JDA jda,
+                        @Autowired MessageStore messageStore) {
         this.messageStore = messageStore;
 
         jda.addEventListener(this);
@@ -48,5 +52,19 @@ public class RemoveMessageListener extends ListenerAdapter {
         message.delete().queue();
         messageStore.getFormattedCodeStore().values()
                 .removeIf(storedMsg -> message.getId().equals(storedMsg.getId()));
+    }
+
+    @Async
+    public void sendRemovableMessage(String text, TextChannel channel,
+                                     Consumer<Message> messageConsumer) {
+        channel.sendMessage(text)
+                .queue(message -> {
+                    message.addReaction(BASKET)
+                            .queue(unused -> messageConsumer.accept(message));
+                });
+    }
+
+    public void sendRemovableMessage(String text, TextChannel channel) {
+        channel.sendMessage(text).queue(message -> message.addReaction(BASKET).queue());
     }
 }

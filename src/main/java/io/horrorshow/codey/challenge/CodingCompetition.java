@@ -4,6 +4,7 @@ import io.horrorshow.codey.api.WandboxApi;
 import io.horrorshow.codey.challenge.xml.Problem;
 import io.horrorshow.codey.challenge.xml.TestCase;
 import io.horrorshow.codey.discordutil.DiscordMessageParser;
+import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
@@ -46,11 +47,14 @@ public class CodingCompetition extends ListenerAdapter {
     private final Map<TextChannel, Challenge> challenges = new HashMap<>();
 
     private final Random random = new Random();
+    private final DiscordUtils utils;
 
     public CodingCompetition(@Autowired JDA jda,
                              @Autowired WandboxApi wandboxApi,
-                             @Autowired @Value("${challenge.path}") String challengePath) throws IOException, JAXBException {
+                             @Autowired @Value("${challenge.path}") String challengePath,
+                             @Autowired DiscordUtils utils) throws IOException, JAXBException {
         this.wandboxApi = wandboxApi;
+        this.utils = utils;
 
         jda.addEventListener(this);
 
@@ -106,7 +110,7 @@ public class CodingCompetition extends ListenerAdapter {
         if (VERIFY.equals(event.getReactionEmote().getEmoji())) {
             getActiveChallenge(channel).ifPresentOrElse(challenge ->
                             challengePresent(event, channel, challenge)
-                    , () -> channel.sendMessage("No active challenge").queue());
+                    , () -> utils.sendRemovableMessage("No active challenge", channel));
         }
     }
 
@@ -119,15 +123,14 @@ public class CodingCompetition extends ListenerAdapter {
                         .filter(MessagePart::isCode)
                         .forEach(part ->
                                 runTests(part.getText(), part.getLang(), challenge,
-                                        result -> channel.sendMessage(result).queue())));
+                                        result -> utils.sendRemovableMessage(result, channel))));
     }
 
     @Async
     public void runTests(String text, String lang, Challenge challenge, Consumer<String> resultCb) {
-        challenge.getChannel()
-                .sendMessage("verifying for challenge "
-                        + challenge.getProblem().getName()
-                        + " code: ```" + lang + text + "```").queue();
+        utils.sendRemovableMessage("verifying for challenge "
+                + challenge.getProblem().getName()
+                + " code: ```" + lang + text + "```", challenge.getChannel());
 
         // TODO create incoming Test results handling class that represents a result
         // it waits for incoming x amount of time for all wandbox responses
@@ -156,13 +159,13 @@ public class CodingCompetition extends ListenerAdapter {
 
     private void onCreateChallenge(TextChannel channel) {
         if (problemList.isEmpty()) {
-            channel.sendMessage("No challenges found").queue();
+            utils.sendRemovableMessage("No challenges found", channel);
         } else {
             var randProblem = problemList.get(random.nextInt(problemList.size()));
             var challenge = new Challenge(randProblem, channel, this);
             challenges.put(channel, challenge);
-            channel.sendMessage("*New Challenge! Good luck*\n\n%s"
-                    .formatted(challenge)).queue();
+            utils.sendRemovableMessage("*New Challenge! Good luck*\n\n%s"
+                    .formatted(challenge), channel);
         }
     }
 
@@ -170,17 +173,17 @@ public class CodingCompetition extends ListenerAdapter {
         if (challenges.containsKey(channel)) {
             var challenge = challenges.get(channel);
             switch (challenge.getState()) {
-                case ACTIVE -> channel.sendMessage("Challenge ACTIVE:%n%s"
-                        .formatted(challenge)).queue();
-                case DONE -> channel.sendMessage("Challenge DONE").queue();
+                case ACTIVE -> utils.sendRemovableMessage("Challenge ACTIVE:%n%s"
+                        .formatted(challenge), channel);
+                case DONE -> utils.sendRemovableMessage("Challenge DONE", channel);
             }
         } else {
-            channel.sendMessage("No challenge in this channel available").queue();
+            utils.sendRemovableMessage("No challenge in this channel available", channel);
         }
     }
 
     public void onChallengeTimeUp(Challenge challenge) {
-        challenge.getChannel().sendMessage("Time is up for challenge:%n%s"
-                .formatted(challenge)).queue();
+        utils.sendRemovableMessage("Time is up for challenge:%n%s"
+                .formatted(challenge), challenge.getChannel());
     }
 }

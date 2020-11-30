@@ -1,6 +1,7 @@
 package io.horrorshow.codey.formatter;
 
 import io.horrorshow.codey.discordutil.DiscordMessageParser;
+import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessageStore;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
@@ -16,8 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-import static io.horrorshow.codey.discordutil.RemoveMessageListener.BASKET;
-
 @Service
 @Slf4j
 public class DiscordCodeFormatter extends ListenerAdapter {
@@ -26,12 +25,16 @@ public class DiscordCodeFormatter extends ListenerAdapter {
 
     private final JavaFormatter javaFormatter;
     private final MessageStore messageStore;
+    private final DiscordUtils utils;
 
     public DiscordCodeFormatter(@Autowired JDA jda,
                                 @Autowired JavaFormatter javaFormatter,
-                                @Autowired MessageStore messageStore) {
+                                @Autowired MessageStore messageStore,
+                                @Autowired DiscordUtils utils) {
         this.javaFormatter = javaFormatter;
         this.messageStore = messageStore;
+        this.utils = utils;
+
         jda.addEventListener(this);
     }
 
@@ -107,13 +110,15 @@ public class DiscordCodeFormatter extends ListenerAdapter {
     }
 
     private void postFormattedCode(TextChannel channel, Message message, String s) {
-        if (!messageStore.getFormattedCodeStore().containsKey(message.getId())
-                || !messageStore.getFormattedCodeStore().get(message.getId()).getContentRaw().equals(s)) {
-            channel.sendMessage(s)
-                    .queue(m -> {
-                        messageStore.getFormattedCodeStore().put(message.getId(), m);
-                        m.addReaction(BASKET).queue();
-                    });
+        if (noDuplicatePost(message, s)) {
+            utils.sendRemovableMessage(s, channel,
+                    m -> messageStore.getFormattedCodeStore().put(message.getId(), m));
         }
+    }
+
+    private boolean noDuplicatePost(Message message, String s) {
+        return !messageStore.getFormattedCodeStore().containsKey(message.getId())
+                || !messageStore.getFormattedCodeStore().get(
+                message.getId()).getContentRaw().equals(s);
     }
 }

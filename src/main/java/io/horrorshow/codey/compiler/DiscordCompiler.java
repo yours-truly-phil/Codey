@@ -2,6 +2,7 @@ package io.horrorshow.codey.compiler;
 
 import io.horrorshow.codey.api.WandboxApi;
 import io.horrorshow.codey.discordutil.DiscordMessageParser;
+import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
@@ -18,8 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.horrorshow.codey.discordutil.RemoveMessageListener.BASKET;
-
 @Service
 @Slf4j
 public class DiscordCompiler extends ListenerAdapter {
@@ -29,10 +28,13 @@ public class DiscordCompiler extends ListenerAdapter {
     private final WandboxApi wandboxApi;
 
     private final Map<String, List<String>> compilationResults = new HashMap<>();
+    private final DiscordUtils utils;
 
     public DiscordCompiler(@Autowired JDA jda,
-                           @Autowired WandboxApi wandboxApi) {
+                           @Autowired WandboxApi wandboxApi,
+                           @Autowired DiscordUtils utils) {
         this.wandboxApi = wandboxApi;
+        this.utils = utils;
 
         jda.addEventListener(this);
     }
@@ -68,14 +70,12 @@ public class DiscordCompiler extends ListenerAdapter {
             for (var msg : compilationResults.getOrDefault(message.getId(),
                     List.of("compilation result unavailable"))) {
                 log.debug("print compilation result");
-                message.getChannel().sendMessage(msg)
-                        .queue(sentMsg -> sentMsg.addReaction(BASKET).queue());
+                utils.sendRemovableMessage(msg, message.getTextChannel());
             }
         } else {
             log.debug("compilation result not present");
-            message.getChannel()
-                    .sendMessage("compilation result removed from cache, " +
-                            "repost message with code block.").queue();
+            utils.sendRemovableMessage("compilation result removed from cache, " +
+                    "repost message with code block.", message.getTextChannel());
         }
     }
 
@@ -94,7 +94,6 @@ public class DiscordCompiler extends ListenerAdapter {
                             compilationResults.put(message.getId(),
                                     WandboxDiscordUtils.formatWandboxResponse(wandboxResponse));
                             message.addReaction(PLAY).queue();
-
                         }));
     }
 }
