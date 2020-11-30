@@ -18,11 +18,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.horrorshow.codey.discordutil.RemoveMessageListener.BASKET;
+
 @Service
 @Slf4j
 public class DiscordCompiler extends ListenerAdapter {
 
-    private static final String BASKET = "\uD83D\uDDD1️";
     private static final String PLAY = "▶️";
 
     private final WandboxApi wandboxApi;

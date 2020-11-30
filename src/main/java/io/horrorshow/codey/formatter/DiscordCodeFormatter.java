@@ -16,12 +16,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import static io.horrorshow.codey.discordutil.RemoveMessageListener.BASKET;
+
 @Service
 @Slf4j
 public class DiscordCodeFormatter extends ListenerAdapter {
 
     private static final String STARS = "✨";
-    private static final String BASKET = "\uD83D\uDDD1️";
 
     private final JavaFormatter javaFormatter;
     private final MessageStore messageStore;

@@ -2,19 +2,36 @@
 <codey:problem xmlns:codey="http://codey.horrorshow.io/codey">
   <codey:name>Anagram</codey:name>
   <codey:description>Write a function to check whether two given strings
-    are anagram of each other or not. An anagram of a string is another string
-    that contains the same characters, only the order of characters can be
-    different. For example, "abcd" and "dabc" are an anagram of each other.
+are anagram of each other or not. An anagram of a string is another string
+that contains the same characters, only the order of characters can be
+different. For example, "abcd" and "dabc" are an anagram of each other.
 
-    There will be two strings supplied by System.in separated by " ".
-    Print `true` if they are an anagram of each other, else print `false`.
+There will be two strings supplied by System.in separated by " ".
+Print `true` if they are an anagram of each other, else print `false`.
 
-    ```
-    Example Input: "abcd dabc"
-    Expected Result: "true"
-    ```
+```
+Example Input: "abcd dabc"
+Expected Result: "true"
+```
   </codey:description>
-  <codey:minutes>1</codey:minutes>
+  <codey:minutes>5</codey:minutes>
+  <codey:template>```java
+import java.util.Scanner;
+
+public class G {
+
+  public static void isAnagram(String a, String b) {
+
+    // your code here
+
+    System.out.println("print true or false");
+  }
+
+  public static void main(String[] args) {
+    var s = new Scanner(System.in).nextLine().split(" ");
+    isAnagram(s[0], s[1]);
+  }
+}```</codey:template>
   <codey:testcases>
     <codey:testcase>
       <codey:input>abcd dabc</codey:input>

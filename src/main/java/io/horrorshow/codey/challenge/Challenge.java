@@ -47,6 +47,7 @@ public class Challenge {
     public String toString() {
         return "*" + problem.getName() + "* [" + state.toString() + "]" + "\n" +
                 "start: " + df.format(startTime) + " end: " + df.format(endTime) + "\n" +
-                problem.getDescription();
+                problem.getDescription() + "\n" +
+                problem.getTemplate();
     }
 }

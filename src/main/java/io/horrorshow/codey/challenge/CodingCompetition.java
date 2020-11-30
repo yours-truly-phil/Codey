@@ -2,14 +2,19 @@ package io.horrorshow.codey.challenge;
 
 import io.horrorshow.codey.api.WandboxApi;
 import io.horrorshow.codey.challenge.xml.Problem;
+import io.horrorshow.codey.challenge.xml.TestCase;
+import io.horrorshow.codey.discordutil.DiscordMessageParser;
+import io.horrorshow.codey.discordutil.MessagePart;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.xml.bind.JAXBContext;
@@ -20,6 +25,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,6 +36,8 @@ public class CodingCompetition extends ListenerAdapter {
 
     private static final String CREATE_CHALLENGE = "$create";
     private static final String SHOW_CHALLENGE = "$show";
+
+    private static final String VERIFY = "\uD83C\uDF00";
 
     private final WandboxApi wandboxApi;
 
@@ -73,14 +82,81 @@ public class CodingCompetition extends ListenerAdapter {
         } else if (SHOW_CHALLENGE.equals(raw)) {
             onShowChallenge(channel);
         }
+
+        getActiveChallenge(channel).flatMap(challenge -> DiscordMessageParser.of(raw)
+                .getParts().stream()
+                .filter(MessagePart::isCode)
+                .findAny())
+                .ifPresent(p -> event.getMessage().addReaction(VERIFY).queue());
+    }
+
+    private Optional<Challenge> getActiveChallenge(TextChannel channel) {
+        return Optional.ofNullable(challenges.get(channel))
+                .filter(challenge -> challenge.getState() == State.ACTIVE);
+    }
+
+    @Override
+    public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
+        if (event.getUser().isBot()) return;
+
+        var channel = event.getChannel();
+        if (VERIFY.equals(event.getReactionEmote().getEmoji())) {
+            getActiveChallenge(channel).ifPresentOrElse(challenge ->
+                            challengePresent(event, channel, challenge)
+                    , () -> channel.sendMessage("No active challenge").queue());
+        }
+    }
+
+    private void challengePresent(@NotNull GuildMessageReactionAddEvent event,
+                                  TextChannel channel,
+                                  Challenge challenge) {
+        channel.retrieveMessageById(event.getMessageId())
+                .queue(message -> DiscordMessageParser.of(message.getContentRaw())
+                        .getParts().stream()
+                        .filter(MessagePart::isCode)
+                        .forEach(part ->
+                                runTests(part.getText(), part.getLang(), challenge,
+                                        result -> channel.sendMessage(result).queue())));
+    }
+
+    @Async
+    public void runTests(String text, String lang, Challenge challenge, Consumer<String> resultCb) {
+        challenge.getChannel()
+                .sendMessage("verifying for challenge "
+                        + challenge.getProblem().getName()
+                        + " code: ```" + lang + text + "```").queue();
+
+        // TODO create incoming Test results handling class that represents a result
+        // it waits for incoming x amount of time for all wandbox responses
+        // and has info about testcases, what failed, name, problem, etc
+        // which should also prevent false positives
+        var noTestsPass = new AtomicInteger(0);
+        var noResults = new AtomicInteger(0);
+        final List<TestCase> caseList = challenge.getProblem().getTestcases().getTestcase();
+        for (var test : caseList) {
+            wandboxApi.compile(text, lang, test.getInput(), "",
+                    response -> {
+                        log.info("Actual: '{}' Expected: '{}'",
+                                response.getProgram_output().trim(), test.getOutput());
+                        var i = noResults.incrementAndGet();
+                        if (test.getOutput().equals(response.getProgram_output().trim())) {
+                            var testsPass = noTestsPass.incrementAndGet();
+                            if (testsPass == caseList.size()) {
+                                resultCb.accept("Congratz! All " + noTestsPass + " tests pass");
+                            }
+                        } else if (i == caseList.size()) {
+                            resultCb.accept("you loose, only " + noTestsPass.get() + "/" + i + " test cases correct");
+                        }
+                    });
+        }
     }
 
     private void onCreateChallenge(TextChannel channel) {
         var randProblem = problemList.get(random.nextInt(problemList.size()));
-        var randChallenge = new Challenge(randProblem, channel, this);
-        challenges.put(channel, randChallenge);
-        channel.sendMessage("started Challenge:\n%s"
-                .formatted(randProblem.getName())).queue();
+        var challenge = new Challenge(randProblem, channel, this);
+        challenges.put(channel, challenge);
+        channel.sendMessage("*New Challenge! Good luck*\n\n%s"
+                .formatted(challenge)).queue();
     }
 
     private void onShowChallenge(TextChannel channel) {

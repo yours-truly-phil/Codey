@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class RemoveMessageListener extends ListenerAdapter {
 
-    private static final String BASKET = "\uD83D\uDDD1️";
+    public static final String BASKET = "\uD83D\uDDD1️";
 
     private final MessageStore messageStore;
 

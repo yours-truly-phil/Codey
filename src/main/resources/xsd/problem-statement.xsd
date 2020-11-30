@@ -10,6 +10,7 @@
         <element name="name" type="string"/>
         <element name="description" type="string"/>
         <element name="minutes" type="int"/>
+        <element name="template" type="string"/>
         <element name="testcases" type="codey:TextCases"/>
       </sequence>
     </complexType>
