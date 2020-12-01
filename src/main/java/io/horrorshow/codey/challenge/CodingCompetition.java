@@ -2,7 +2,6 @@ package io.horrorshow.codey.challenge;
 
 import io.horrorshow.codey.api.WandboxApi;
 import io.horrorshow.codey.challenge.xml.Problem;
-import io.horrorshow.codey.challenge.xml.TestCase;
 import io.horrorshow.codey.discordutil.DiscordMessageParser;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
@@ -15,12 +14,10 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 @Service
 @Slf4j
@@ -96,44 +93,13 @@ public class CodingCompetition extends ListenerAdapter {
                 .queue(message -> DiscordMessageParser.of(message.getContentRaw())
                         .getParts().stream()
                         .filter(MessagePart::isCode)
-                        .forEach(part ->
-                                runTests(part.getText(), part.getLang(), challenge,
-                                        result -> utils.sendRemovableMessage(result, channel))));
-    }
-
-    @Async
-    public void runTests(String text, String lang, Challenge challenge, Consumer<String> resultCb) {
-        utils.sendRemovableMessage("verifying for challenge "
-                + challenge.getProblem().getName()
-                + " code: ```" + lang + text + "```", challenge.getChannel());
-
-        // TODO create incoming Test results handling class that represents a result
-        // it waits for incoming x amount of time for all wandbox responses
-        // and has info about testcases, what failed, name, problem, etc
-        // which should also prevent false positives
-        var noTestsPass = new AtomicInteger(0);
-        var noResults = new AtomicInteger(0);
-        final List<TestCase> caseList = challenge.getProblem().getTestcases().getTestcase();
-        for (var test : caseList) {
-            wandboxApi.compile(text, lang, test.getInput(), "",
-                    response -> {
-                        var actual = response.getProgram_output();
-                        log.info("Actual: '{}' Expected: '{}'",
-                                (response.getProgram_output() != null)
-                                        ? response.getProgram_output().trim()
-                                        : "null", test.getOutput());
-                        var i = noResults.incrementAndGet();
-                        if (actual != null && test.getOutput().equals(actual.trim())) {
-                            var testsPass = noTestsPass.incrementAndGet();
-                            if (testsPass == caseList.size()) {
-                                resultCb.accept("Congratz! All " + noTestsPass + " tests pass");
-                            }
-                        } else if (i == caseList.size()) {
-                            resultCb.accept("you lose, only " + noTestsPass.get() + "/" + i
-                                    + " test cases correct");
-                        }
-                    });
-        }
+                        .forEach(part -> {
+                                    var entry = ChallengeEntry.create(wandboxApi, challenge, message, part);
+                                    challenge.getEntries().add(entry);
+                                    utils.sendRemovableMessage("%d/%d test cases passed"
+                                            .formatted(entry.getNoTestsPass(), challenge.getTestsTotal()), channel);
+                                }
+                        ));
     }
 
     private void onCreateChallenge(TextChannel channel) {
@@ -162,7 +128,19 @@ public class CodingCompetition extends ListenerAdapter {
     }
 
     public void onChallengeTimeUp(Challenge challenge) {
-        utils.sendRemovableMessage("Time is up for challenge:%n%s"
-                .formatted(challenge), challenge.getChannel());
+        var sb = new StringBuilder();
+        sb.append("Time is up for challenge:\n")
+                .append(challenge);
+        for (var entry : challenge.getEntries()) {
+            sb.append("Entry by ")
+                    .append(entry.getMessage().getAuthor().getName())
+                    .append(" %d/%d ".formatted(entry.getNoTestsPass(),
+                            challenge.getProblem().getTestcases().getTestcase().size()))
+                    .append("tests passed at ")
+                    .append(entry.getMessage().getTimeCreated().
+                            format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                    .append("\n");
+        }
+        utils.sendRemovableMessage(sb.toString(), challenge.getChannel());
     }
 }

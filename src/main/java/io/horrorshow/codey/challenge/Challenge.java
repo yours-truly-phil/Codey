@@ -6,8 +6,7 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 @Getter
 public class Challenge {
@@ -18,6 +17,7 @@ public class Challenge {
     private final CodingCompetition codingCompetition;
     private final DateTimeFormatter df = DateTimeFormatter.ofPattern("HH:mm");
     private State state = State.ACTIVE;
+    private final List<ChallengeEntry> entries = Collections.synchronizedList(new ArrayList<>());
 
     public Challenge(Problem problem,
                      TextChannel channel,
@@ -37,10 +37,13 @@ public class Challenge {
         }, problem.getMinutes() * 60 * 1000);
     }
 
+    public int getTestsTotal() {
+        return problem.getTestcases().getTestcase().size();
+    }
+
     private void timeIsUp() {
         state = State.DONE;
         codingCompetition.onChallengeTimeUp(this);
-        channel.sendMessage("time is up!").queue();
     }
 
     @Override

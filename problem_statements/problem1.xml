@@ -14,7 +14,7 @@ Example Input: "abcd dabc"
 Expected Result: "true"
 ```
   </codey:description>
-  <codey:minutes>5</codey:minutes>
+  <codey:minutes>1</codey:minutes>
   <codey:template>```java
 import java.util.Scanner;
 

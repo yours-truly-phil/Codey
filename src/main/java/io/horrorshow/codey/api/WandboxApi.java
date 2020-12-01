@@ -67,25 +67,30 @@ public class WandboxApi {
     }
 
     @Async
-    public void compile(String codeBlock, String lang, Consumer<WandboxResponse> callback) {
-        compile(codeBlock, lang, "", "", callback);
+    public void compileAsync(String codeBlock, String lang, Consumer<WandboxResponse> callback) {
+        compileAsync(codeBlock, lang, "", "", callback);
     }
 
     @Async
-    public void compile(String codeBlock, String lang,
-                        String stdin, String runtimeOptions,
-                        Consumer<WandboxResponse> callback) {
+    public void compileAsync(String codeBlock, String lang,
+                             String stdin, String runtimeOptions,
+                             Consumer<WandboxResponse> callback) {
         try {
-            if ("java".equalsIgnoreCase(lang)) {
-                codeBlock = codeBlock.replaceAll("public class ", "class ");
-            }
-            var compiler = COMPILER.getOrDefault(lang, lang);
-            var request = new WandboxRequest(codeBlock, compiler, stdin, runtimeOptions);
-            var response = restTemplate
-                    .postForObject(wandboxUrl, request, WandboxResponse.class);
-            callback.accept(response);
+            callback.accept(compile(codeBlock, lang, stdin, runtimeOptions));
         } catch (RestClientException e) {
-            log.debug("compilation unsuccessful {}", e.getMessage());
+            log.error("exception compiling in lang '{}' stdin '{}' runtimeArgs '{}' code: {}",
+                    lang, stdin, runtimeOptions, codeBlock, e);
         }
+    }
+
+    public WandboxResponse compile(String codeBlock, String lang, String stdin, String runtimeOptions)
+            throws RestClientException {
+        if ("java".equalsIgnoreCase(lang)) {
+            codeBlock = codeBlock.replaceAll("public class ", "class ");
+        }
+        var compiler = COMPILER.getOrDefault(lang, lang);
+        var request = new WandboxRequest(codeBlock, compiler, stdin, runtimeOptions);
+        return restTemplate
+                .postForObject(wandboxUrl, request, WandboxResponse.class);
     }
 }
