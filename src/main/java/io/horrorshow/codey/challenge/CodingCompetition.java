@@ -18,18 +18,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -42,7 +35,7 @@ public class CodingCompetition extends ListenerAdapter {
 
     private final WandboxApi wandboxApi;
 
-    private final List<Problem> problemList = new ArrayList<>();
+    private final List<Problem> problemList;
 
     private final Map<TextChannel, Challenge> challenges = new HashMap<>();
 
@@ -52,31 +45,32 @@ public class CodingCompetition extends ListenerAdapter {
     public CodingCompetition(@Autowired JDA jda,
                              @Autowired WandboxApi wandboxApi,
                              @Autowired @Value("${challenge.path}") String challengePath,
-                             @Autowired DiscordUtils utils) throws IOException, JAXBException {
+                             @Autowired DiscordUtils utils,
+                             @Autowired ChallengeRepository challengeRepository) throws IOException, JAXBException {
         this.wandboxApi = wandboxApi;
         this.utils = utils;
 
         jda.addEventListener(this);
 
-        loadProblemList(challengePath);
+        problemList = challengeRepository.findAllProblems(challengePath);
     }
 
-    private void loadProblemList(String challengePath) throws JAXBException, IOException {
-        var context = JAXBContext.newInstance(Problem.class);
-        var um = context.createUnmarshaller();
-
-        var path = Paths.get(challengePath);
-        log.info("looking for challenges in {}", path.toAbsolutePath().toString());
-        try (Stream<Path> stream = Files.walk(path, 1)) {
-            var files = stream.filter(file -> !Files.isDirectory(file))
-                    .map(Path::toFile)
-                    .collect(Collectors.toList());
-            log.info("found {} files in {}", files.size(), path.toString());
-            for (File file : files) {
-                problemList.add((Problem) um.unmarshal(file));
-            }
-        }
-    }
+//    private void loadProblemList(String challengePath) throws JAXBException, IOException {
+//        var context = JAXBContext.newInstance(Problem.class);
+//        var um = context.createUnmarshaller();
+//
+//        var path = Paths.get(challengePath);
+//        log.info("looking for challenges in {}", path.toAbsolutePath().toString());
+//        try (Stream<Path> stream = Files.walk(path, 1)) {
+//            var files = stream.filter(file -> !Files.isDirectory(file))
+//                    .map(Path::toFile)
+//                    .collect(Collectors.toList());
+//            log.info("found {} files in {}", files.size(), path.toString());
+//            for (File file : files) {
+//                problemList.add((Problem) um.unmarshal(file));
+//            }
+//        }
+//    }
 
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
@@ -142,16 +136,20 @@ public class CodingCompetition extends ListenerAdapter {
         for (var test : caseList) {
             wandboxApi.compile(text, lang, test.getInput(), "",
                     response -> {
+                        var actual = response.getProgram_output();
                         log.info("Actual: '{}' Expected: '{}'",
-                                response.getProgram_output().trim(), test.getOutput());
+                                (response.getProgram_output() != null)
+                                        ? response.getProgram_output().trim()
+                                        : "null", test.getOutput());
                         var i = noResults.incrementAndGet();
-                        if (test.getOutput().equals(response.getProgram_output().trim())) {
+                        if (actual != null && test.getOutput().equals(actual.trim())) {
                             var testsPass = noTestsPass.incrementAndGet();
                             if (testsPass == caseList.size()) {
                                 resultCb.accept("Congratz! All " + noTestsPass + " tests pass");
                             }
                         } else if (i == caseList.size()) {
-                            resultCb.accept("you loose, only " + noTestsPass.get() + "/" + i + " test cases correct");
+                            resultCb.accept("you lose, only " + noTestsPass.get() + "/" + i
+                                    + " test cases correct");
                         }
                     });
         }
