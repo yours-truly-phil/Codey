@@ -1,8 +1,8 @@
 # Codey
 
-Compile and run code inside discord message.
-
-Reformat and fix indentation of java code. 
+Discord bot to run competitive programming challenges, 
+apply code formatting fixes, compile and run code, all 
+without leaving discord and just a single click away.
 
 ![images/code_formatter_demo.gif](images/code_formatter_demo.gif)
 
