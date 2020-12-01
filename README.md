@@ -4,7 +4,7 @@ Discord bot to run competitive programming challenges,
 apply code formatting fixes, compile and run code, all 
 without leaving discord and just a single click away.
 
-![images/code_formatter_demo.gif](images/code_formatter_demo.gif)
+![Codey Demo](docs/demo.gif)
 
 ## discord invite link to invite the bot to your server
 
