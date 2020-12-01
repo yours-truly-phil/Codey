@@ -18,8 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.xml.bind.JAXBException;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -46,7 +44,7 @@ public class CodingCompetition extends ListenerAdapter {
                              @Autowired WandboxApi wandboxApi,
                              @Autowired @Value("${challenge.path}") String challengePath,
                              @Autowired DiscordUtils utils,
-                             @Autowired ChallengeRepository challengeRepository) throws IOException, JAXBException {
+                             @Autowired ChallengeRepository challengeRepository) {
         this.wandboxApi = wandboxApi;
         this.utils = utils;
 
@@ -54,23 +52,6 @@ public class CodingCompetition extends ListenerAdapter {
 
         problemList = challengeRepository.findAllProblems(challengePath);
     }
-
-//    private void loadProblemList(String challengePath) throws JAXBException, IOException {
-//        var context = JAXBContext.newInstance(Problem.class);
-//        var um = context.createUnmarshaller();
-//
-//        var path = Paths.get(challengePath);
-//        log.info("looking for challenges in {}", path.toAbsolutePath().toString());
-//        try (Stream<Path> stream = Files.walk(path, 1)) {
-//            var files = stream.filter(file -> !Files.isDirectory(file))
-//                    .map(Path::toFile)
-//                    .collect(Collectors.toList());
-//            log.info("found {} files in {}", files.size(), path.toString());
-//            for (File file : files) {
-//                problemList.add((Problem) um.unmarshal(file));
-//            }
-//        }
-//    }
 
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
