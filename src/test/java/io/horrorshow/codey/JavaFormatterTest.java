@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JavaFormatterTest {
 
-    JavaFormatter javaFormatter = new JavaFormatter();
+    final JavaFormatter javaFormatter = new JavaFormatter();
 
     @Test
     void java_parser_hello_world() {

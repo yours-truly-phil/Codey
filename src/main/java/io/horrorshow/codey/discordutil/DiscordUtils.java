@@ -58,10 +58,8 @@ public class DiscordUtils extends ListenerAdapter {
     public void sendRemovableMessage(String text, TextChannel channel,
                                      Consumer<Message> messageConsumer) {
         channel.sendMessage(text)
-                .queue(message -> {
-                    message.addReaction(BASKET)
-                            .queue(unused -> messageConsumer.accept(message));
-                });
+                .queue(message -> message.addReaction(BASKET)
+                        .queue(unused -> messageConsumer.accept(message)));
     }
 
     public void sendRemovableMessage(String text, TextChannel channel) {

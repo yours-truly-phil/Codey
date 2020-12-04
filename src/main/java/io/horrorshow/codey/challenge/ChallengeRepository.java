@@ -42,7 +42,7 @@ public class ChallengeRepository {
                 try {
                     problemList.add((Problem) problemUnmarshaller.unmarshal(file));
                 } catch (JAXBException e) {
-                    log.error("Problem unmarshallling file {}", file, e);
+                    log.error("Problem unmarshalling file {}", file, e);
                 }
             }
         } catch (IOException e) {

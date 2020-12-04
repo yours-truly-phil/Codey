@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SuppressWarnings("SpellCheckingInspection")
 class DiscordMessageParserTest {
     @Test
     void parse_no_code_blocks() {

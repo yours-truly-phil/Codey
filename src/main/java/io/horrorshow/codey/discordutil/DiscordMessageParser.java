@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 public class DiscordMessageParser {
     private static final Pattern matchCodeblocks = Pattern.compile("```[\\s\\S]*?(```)");
     private static final int MAX_LENGTH_LANG;
+    @SuppressWarnings("SpellCheckingInspection")
     private static final String[] LANGUAGES = {
             "java", "xml", "html", "bash", "cpp", "c++", "c", "cs", "css", "md", "markdown",
             "diff", "ruby", "go", "http", "toml", "ini", "java", "js", "javascript", "json",

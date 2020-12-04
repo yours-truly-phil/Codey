@@ -16,8 +16,8 @@ public class Challenge {
     private final LocalDateTime endTime;
     private final CodingCompetition codingCompetition;
     private final DateTimeFormatter df = DateTimeFormatter.ofPattern("HH:mm");
-    private State state = State.ACTIVE;
     private final List<ChallengeEntry> entries = Collections.synchronizedList(new ArrayList<>());
+    private State state = State.ACTIVE;
 
     public Challenge(Problem problem,
                      TextChannel channel,
@@ -34,7 +34,7 @@ public class Challenge {
             public void run() {
                 timeIsUp();
             }
-        }, problem.getMinutes() * 60 * 1000);
+        }, (long) problem.getMinutes() * 60 * 1000);
     }
 
     public int getTestsTotal() {
