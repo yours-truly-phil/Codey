@@ -22,7 +22,7 @@ import java.util.Optional;
 @Slf4j
 public class DiscordCodeFormatter extends ListenerAdapter {
 
-    private static final String STARS = "✨";
+    public static final String STARS = "✨";
 
     private final JavaFormatter javaFormatter;
     private final MessageStore messageStore;
