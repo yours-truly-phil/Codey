@@ -1,6 +1,7 @@
 package io.horrorshow.codey.formatter;
 
-import io.horrorshow.codey.discordutil.DiscordMessageParser;
+import com.google.common.annotations.VisibleForTesting;
+import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessageStore;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +68,7 @@ public class DiscordCodeFormatter extends ListenerAdapter {
     private void starsReaction(Message message) {
         if (message.getAuthor().isBot()) return;
 
-        var dm = DiscordMessageParser.of(message.getContentRaw());
+        var dm = DiscordMessage.of(message.getContentRaw());
         formatted(dm).ifPresentOrElse(
                 s -> postFormattedCode(message.getTextChannel(), message, s),
                 () -> message.removeReaction(STARS).queue());
@@ -76,12 +77,13 @@ public class DiscordCodeFormatter extends ListenerAdapter {
     private void handleMessage(Message message) {
         final String contentRaw = message.getContentRaw();
 
-        var dm = DiscordMessageParser.of(contentRaw);
+        var dm = DiscordMessage.of(contentRaw);
         formatted(dm).ifPresentOrElse(s -> message.addReaction(STARS).queue(),
                 () -> message.removeReaction(STARS).queue());
     }
 
-    private Optional<String> formatted(DiscordMessageParser dm) {
+    @VisibleForTesting
+    Optional<String> formatted(DiscordMessage dm) {
         StringBuilder sb = new StringBuilder();
         boolean isFormatted = false;
         for (var part : dm.getParts()) {

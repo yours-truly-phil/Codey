@@ -1,7 +1,7 @@
 package io.horrorshow.codey.compiler;
 
 import io.horrorshow.codey.api.WandboxApi;
-import io.horrorshow.codey.discordutil.DiscordMessageParser;
+import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
 import lombok.extern.slf4j.Slf4j;
@@ -81,11 +81,11 @@ public class DiscordCompiler extends ListenerAdapter {
 
     private void handleMessage(Message message) {
         var contentRaw = message.getContentRaw();
-        var dm = DiscordMessageParser.of(contentRaw);
+        var dm = DiscordMessage.of(contentRaw);
         compileCodeBlocks(message, dm);
     }
 
-    private void compileCodeBlocks(@NotNull Message message, DiscordMessageParser dm) {
+    private void compileCodeBlocks(@NotNull Message message, DiscordMessage dm) {
         dm.getParts().stream()
                 .filter(MessagePart::isCode)
                 .findFirst()

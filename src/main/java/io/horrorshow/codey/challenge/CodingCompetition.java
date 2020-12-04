@@ -2,7 +2,7 @@ package io.horrorshow.codey.challenge;
 
 import io.horrorshow.codey.api.WandboxApi;
 import io.horrorshow.codey.challenge.xml.Problem;
-import io.horrorshow.codey.discordutil.DiscordMessageParser;
+import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +62,7 @@ public class CodingCompetition extends ListenerAdapter {
             onShowChallenge(channel);
         }
 
-        getActiveChallenge(channel).flatMap(challenge -> DiscordMessageParser.of(raw)
+        getActiveChallenge(channel).flatMap(challenge -> DiscordMessage.of(raw)
                 .getParts().stream()
                 .filter(MessagePart::isCode)
                 .findAny())
@@ -90,7 +90,7 @@ public class CodingCompetition extends ListenerAdapter {
                                   TextChannel channel,
                                   Challenge challenge) {
         channel.retrieveMessageById(event.getMessageId())
-                .queue(message -> DiscordMessageParser.of(message.getContentRaw())
+                .queue(message -> DiscordMessage.of(message.getContentRaw())
                         .getParts().stream()
                         .filter(MessagePart::isCode)
                         .forEach(part -> {

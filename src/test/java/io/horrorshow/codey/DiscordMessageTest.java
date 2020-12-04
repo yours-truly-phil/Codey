@@ -1,13 +1,13 @@
 package io.horrorshow.codey;
 
-import io.horrorshow.codey.discordutil.DiscordMessageParser;
+import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.MessagePart;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("SpellCheckingInspection")
-class DiscordMessageParserTest {
+class DiscordMessageTest {
     @Test
     void parse_no_code_blocks() {
         var msg = """
@@ -16,7 +16,7 @@ class DiscordMessageParserTest {
                 Cheers :)
                                 
                 try `lol lol`""";
-        assertThat(DiscordMessageParser.of(msg).getParts())
+        assertThat(DiscordMessage.of(msg).getParts())
                 .containsExactly(new MessagePart(false, null, msg));
     }
 
@@ -29,7 +29,7 @@ class DiscordMessageParserTest {
                 I'm inside the code block
                 hooray!```
                 I come after the code block""";
-        assertThat(DiscordMessageParser.of(msg).getParts())
+        assertThat(DiscordMessage.of(msg).getParts())
                 .containsExactly(new MessagePart(false, null, """
                                 Hello, what's going on,
                                 now comes a code block:
@@ -48,7 +48,7 @@ class DiscordMessageParserTest {
         var raw = """
                 ```java
                 Hello, I'm a code block```""";
-        assertThat(DiscordMessageParser.of(raw).getParts())
+        assertThat(DiscordMessage.of(raw).getParts())
                 .containsExactly(new MessagePart(true, "java",
                         """
                                                                 
@@ -65,7 +65,7 @@ class DiscordMessageParserTest {
                         return 0;
                     return o1.compareTo(o2);
                 }) >= 0;```""";
-        assertThat(DiscordMessageParser.of(raw).getParts())
+        assertThat(DiscordMessage.of(raw).getParts())
                 .containsExactly(new MessagePart(true, null,
                         """
                                 boolean contained = Arrays.binarySearch(sortedStringArray, "str", (o1, o2) -> {
@@ -81,14 +81,14 @@ class DiscordMessageParserTest {
     void code_starting_in_first_line_with_language_set() {
         var raw = """
                 ```cpp int i = 0;```""";
-        assertThat(DiscordMessageParser.of(raw).getParts())
+        assertThat(DiscordMessage.of(raw).getParts())
                 .containsExactly(new MessagePart(true, "cpp",
                         " int i = 0;"));
     }
 
     @Test
     void extract_code_block_content_without_new_line_no_given_language() {
-        assertThat(DiscordMessageParser.of("```test```").getParts())
+        assertThat(DiscordMessage.of("```test```").getParts())
                 .containsExactly(new MessagePart(true, null, "test"));
     }
 
@@ -104,7 +104,7 @@ class DiscordMessageParserTest {
                     private final String lang;
                     private final String text;
                 }```""";
-        assertThat(DiscordMessageParser.of(raw).getParts())
+        assertThat(DiscordMessage.of(raw).getParts())
                 .containsExactly(new MessagePart(true, null,
                         """
                                 @ToString
@@ -122,7 +122,7 @@ class DiscordMessageParserTest {
     void starts_with_any_find_matches() {
         var testString = "xyz";
         var arr = new String[]{"a", "b", "c", "d", "e", "x", "y", "z"};
-        assertThat(DiscordMessageParser.startsWithAnyOf(testString, arr))
+        assertThat(DiscordMessage.startsWithAnyOf(testString, arr))
                 .isEqualTo(5);
     }
 
@@ -130,7 +130,7 @@ class DiscordMessageParserTest {
     void starts_with_any_no_match() {
         var testString = "asdölfkjlakjdf";
         var arr = new String[]{"s", "v", "ö"};
-        assertThat(DiscordMessageParser.startsWithAnyOf(testString, arr))
+        assertThat(DiscordMessage.startsWithAnyOf(testString, arr))
                 .isEqualTo(-1);
     }
 
@@ -138,7 +138,7 @@ class DiscordMessageParserTest {
     void starts_with_teststring_shorter_than_matches() {
         var testString = "d";
         var arr = new String[]{"a", "du", "ef"};
-        assertThat(DiscordMessageParser.startsWithAnyOf(testString, arr))
+        assertThat(DiscordMessage.startsWithAnyOf(testString, arr))
                 .isEqualTo(-1);
     }
 }
