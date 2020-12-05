@@ -11,12 +11,13 @@ import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Service
 @Slf4j
 public class WandboxApi {
 
-    private static final Map<String, String> COMPILER = new HashMap<>();
+    public static final Map<String, String> COMPILER = new HashMap<>();
 
     static {
         COMPILER.put("java", "openjdk-head");
@@ -60,10 +61,17 @@ public class WandboxApi {
     private final RestTemplate restTemplate;
     private final String wandboxUrl;
 
+    private final Map<String, Function<String, String>> langSpecificFunctions =
+            Map.of("java", this::fixJavaCode);
+
     public WandboxApi(@Autowired RestTemplate restTemplate,
                       @Value("${wandbox.url}") String wandboxUrl) {
         this.restTemplate = restTemplate;
         this.wandboxUrl = wandboxUrl;
+    }
+
+    private String fixJavaCode(String s) {
+        return s.replaceAll("public class ", "class ");
     }
 
     @Async
@@ -85,12 +93,17 @@ public class WandboxApi {
 
     public WandboxResponse compile(String codeBlock, String lang, String stdin, String runtimeOptions)
             throws RestClientException {
-        if ("java".equalsIgnoreCase(lang)) {
-            codeBlock = codeBlock.replaceAll("public class ", "class ");
-        }
+        codeBlock = applyLanguageSpecificFixes(codeBlock, lang);
         var compiler = COMPILER.getOrDefault(lang, lang);
         var request = new WandboxRequest(codeBlock, compiler, stdin, runtimeOptions);
         return restTemplate
                 .postForObject(wandboxUrl, request, WandboxResponse.class);
+    }
+
+    private String applyLanguageSpecificFixes(String codeBlock, String lang) {
+        if (langSpecificFunctions.containsKey(lang.toLowerCase())) {
+            codeBlock = langSpecificFunctions.get(lang.toLowerCase()).apply(codeBlock);
+        }
+        return codeBlock;
     }
 }
