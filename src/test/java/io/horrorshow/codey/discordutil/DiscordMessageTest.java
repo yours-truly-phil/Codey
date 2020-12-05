@@ -1,7 +1,5 @@
-package io.horrorshow.codey;
+package io.horrorshow.codey.discordutil;
 
-import io.horrorshow.codey.discordutil.DiscordMessage;
-import io.horrorshow.codey.discordutil.MessagePart;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

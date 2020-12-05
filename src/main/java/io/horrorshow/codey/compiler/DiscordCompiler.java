@@ -23,7 +23,7 @@ import java.util.Map;
 @Slf4j
 public class DiscordCompiler extends ListenerAdapter {
 
-    private static final String PLAY = "▶️";
+    public static final String PLAY = "▶️";
 
     private final WandboxApi wandboxApi;
 

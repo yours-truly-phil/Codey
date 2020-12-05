@@ -1,6 +1,5 @@
-package io.horrorshow.codey;
+package io.horrorshow.codey.formatter;
 
-import io.horrorshow.codey.formatter.JavaFormatter;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
