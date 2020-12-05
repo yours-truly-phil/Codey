@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WandboxDiscordUtils {
-    private static final int CHAR_LIMIT = 2000;
+    public static final int CHAR_LIMIT = 2000;
 
     public static List<String> formatWandboxResponse(WandboxResponse wandboxResponse) {
         List<String> result = new ArrayList<>();
