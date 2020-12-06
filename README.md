@@ -1,5 +1,8 @@
 # Codey
 
+[![MavenBuild Actions Status]
+(https://github.com/Philtard/Codey/workflows/maven-build/badge.svg)](https://github.com/Philtard/Codey/actions)
+
 Discord bot to run competitive programming challenges, 
 apply code formatting fixes, compile and run code, all 
 without leaving discord and just a single click away.
