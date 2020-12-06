@@ -2,6 +2,7 @@ package io.horrorshow.codey.challenge;
 
 import io.horrorshow.codey.challenge.xml.Problem;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.xml.bind.JAXBContext;
@@ -26,27 +27,32 @@ public class ChallengeRepository {
     private final Unmarshaller problemUnmarshaller
             = jaxbProblemContext.createUnmarshaller();
 
-    public ChallengeRepository() throws JAXBException {
+    private final ChallengeConfiguration config;
+
+    public ChallengeRepository(@Autowired ChallengeConfiguration config) throws JAXBException {
+        this.config = config;
     }
 
-    public List<Problem> findAllProblems(String directory) {
+    public List<Problem> findAllProblems() {
         List<Problem> problemList = new ArrayList<>();
-        var path = Paths.get(directory);
-        log.debug("looking for challenges in {}", path.toAbsolutePath().toString());
-        try (Stream<Path> stream = Files.walk(path, 1)) {
-            var files = stream.filter(file -> !Files.isDirectory(file))
-                    .map(Path::toFile)
-                    .collect(Collectors.toList());
-            log.debug("found {} files in {}", files.size(), path.toString());
-            for (File file : files) {
-                try {
-                    problemList.add((Problem) problemUnmarshaller.unmarshal(file));
-                } catch (JAXBException e) {
-                    log.error("Problem unmarshalling file {}", file, e);
+        for (var p : config.getPaths()) {
+            var path = Paths.get(p);
+            log.debug("looking for challenges in {}", path.toAbsolutePath().toString());
+            try (Stream<Path> stream = Files.walk(path, 1)) {
+                var files = stream.filter(file -> !Files.isDirectory(file))
+                        .map(Path::toFile)
+                        .collect(Collectors.toList());
+                log.debug("found {} files in {}", files.size(), path.toString());
+                for (File file : files) {
+                    try {
+                        problemList.add((Problem) problemUnmarshaller.unmarshal(file));
+                    } catch (JAXBException e) {
+                        log.error("Problem unmarshalling file {}", file, e);
+                    }
                 }
+            } catch (IOException e) {
+                log.error("error walking path {}", path, e);
             }
-        } catch (IOException e) {
-            log.error("error walking path {}", path, e);
         }
         return problemList;
     }

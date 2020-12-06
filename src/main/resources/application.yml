@@ -3,4 +3,8 @@ jda:
 wandbox:
   url: https://wandbox.org/api/compile.json
 challenge:
-  path: problem_statements
+  paths:
+    - problem_statements
+  roles:
+    - CodeyRole
+    - CodeyBoss

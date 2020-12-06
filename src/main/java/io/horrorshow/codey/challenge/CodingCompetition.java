@@ -13,7 +13,6 @@ import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
@@ -36,23 +35,35 @@ public class CodingCompetition extends ListenerAdapter {
 
     private final Random random = new Random();
     private final DiscordUtils utils;
+    private final ChallengeConfiguration config;
 
     public CodingCompetition(@Autowired JDA jda,
                              @Autowired WandboxApi wandboxApi,
-                             @Autowired @Value("${challenge.path}") String challengePath,
+                             @Autowired ChallengeConfiguration config,
                              @Autowired DiscordUtils utils,
                              @Autowired ChallengeRepository challengeRepository) {
+
         this.wandboxApi = wandboxApi;
         this.utils = utils;
+        this.config = config;
 
         jda.addEventListener(this);
 
-        problemList = challengeRepository.findAllProblems(challengePath);
+        problemList = challengeRepository.findAllProblems();
     }
 
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
         if (event.getAuthor().isBot()) return;
+
+        if (event.getMessage().getMentionedUsersBag().contains(event.getJDA().getSelfUser()) &&
+                Objects.requireNonNull(event.getGuild()
+                        .getMember(event.getAuthor()))
+                        .getRoles().stream()
+                        .anyMatch(role -> config.getRoles().contains(role.getName()))) {
+
+            utils.sendRemovableMessage("someone with Codey's Boss role mentioned me!", event.getChannel());
+        }
 
         final var raw = event.getMessage().getContentRaw();
         final var channel = event.getChannel();
