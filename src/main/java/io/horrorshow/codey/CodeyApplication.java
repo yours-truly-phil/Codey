@@ -1,9 +1,9 @@
 package io.horrorshow.codey;
 
+import io.horrorshow.codey.discordutil.JDAConfiguration;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -18,8 +18,6 @@ import java.util.concurrent.Executor;
 @SpringBootApplication
 @EnableAsync(proxyTargetClass = true)
 public class CodeyApplication {
-
-    private static final String PROP_TOKEN = "${jda.token}";
 
     public static void main(String[] args) {
         SpringApplication.run(CodeyApplication.class, args);
@@ -42,8 +40,8 @@ public class CodeyApplication {
     }
 
     @Bean
-    public JDA jda(@Autowired @Value(PROP_TOKEN) String token) throws LoginException {
-        JDA jda = JDABuilder.createDefault(token).build();
+    public JDA jda(@Autowired JDAConfiguration configuration) throws LoginException {
+        JDA jda = JDABuilder.createDefault(configuration.getToken()).build();
         jda.setAutoReconnect(true);
         return jda;
     }
