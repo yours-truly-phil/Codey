@@ -15,11 +15,15 @@ class WandboxApiTest {
     @Mock
     RestTemplate restTemplate;
     WandboxApi wandboxApi;
+    WandboxConfiguration config;
 
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
-        wandboxApi = new WandboxApi(restTemplate, "WandboxURL");
+        config = new WandboxConfiguration();
+        config.setUrl("WandboxURL");
+        config.getCompiler().put("java", "java-compiler");
+        wandboxApi = new WandboxApi(restTemplate, config);
     }
 
     @Test
@@ -36,12 +40,12 @@ class WandboxApiTest {
                         System.out.println("Hello, World!");
                     }
                 }""";
-        var expectedGenRequest = new WandboxRequest(expectedCode, WandboxApi.COMPILER.get("java"),
+        var expectedGenRequest = new WandboxRequest(expectedCode, config.getCompiler().get("java"),
                 null, null);
         var expResponse = new WandboxResponse();
         when(restTemplate
                 .postForObject(
-                        eq("WandboxURL"), eq(expectedGenRequest), eq(WandboxResponse.class)))
+                        eq(config.getUrl()), eq(expectedGenRequest), eq(WandboxResponse.class)))
                 .thenReturn(expResponse);
 
         var result = wandboxApi.compile(codeBlock, "java", null, null);

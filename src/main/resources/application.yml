@@ -1,10 +1,47 @@
 jda:
   token: change-me
-wandbox:
-  url: https://wandbox.org/api/compile.json
 challenge:
   paths:
     - problem_statements
   roles:
     - CodeyRole
     - CodeyBoss
+wandbox:
+  url: https://wandbox.org/api/compile.json
+  compiler:
+    java: openjdk-head
+    c: gcc-head-c
+    cpp: gcc-head
+    cs: mono-head
+    erlang: erlang-head
+    elixir: elixir-head
+    haskell: ghc-head
+    d: dmd-head
+    rust: rust-head
+    py: pypy-head
+    python: pypy-head
+    ruby: ruby-head
+    scala: scala-2.13.x
+    groovy: groovy-head
+    javascript: nodejs-head
+    js: nodejs-head
+    coffee: coffeescript-head
+    swift: swift-head
+    perl: perl-head
+    php: php-head
+    lua: luajit-head
+    sqlite: sqlite-head
+    pascal: fpc-head
+    lisp: sbcl-head
+    vim: vim-head
+    ocaml: ocaml-head
+    go: go-head
+    bash: bash
+    pony: pony-head
+    crystal: crystal-head
+    nim: nim-head
+    openssl: openssl-head
+    fs: fsharp-head
+    cmake: cmake-head
+    r: r-head
+    ts: typescript-3.9.5

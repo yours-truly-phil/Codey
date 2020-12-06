@@ -1,6 +1,7 @@
 package io.horrorshow.codey.compiler;
 
 import io.horrorshow.codey.api.WandboxApi;
+import io.horrorshow.codey.api.WandboxConfiguration;
 import io.horrorshow.codey.api.WandboxRequest;
 import io.horrorshow.codey.api.WandboxResponse;
 import io.horrorshow.codey.discordutil.DiscordUtils;
@@ -26,8 +27,6 @@ import static org.mockito.Mockito.*;
 
 class DiscordCompilerTest {
 
-    private static final String WB_URL = "wandbox-url";
-
     @Mock
     JDA jda;
     @Mock
@@ -36,6 +35,7 @@ class DiscordCompilerTest {
     DiscordUtils utils;
     DiscordCompiler discordCompiler;
     MessageStore messageStore;
+    WandboxConfiguration config;
 
     @Captor
     ArgumentCaptor<Consumer<Message>> consumerArgumentCaptor;
@@ -43,7 +43,9 @@ class DiscordCompilerTest {
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
-        wandboxApi = new WandboxApi(restTemplate, WB_URL);
+        config = new WandboxConfiguration();
+        config.setUrl("WandboxURL");
+        wandboxApi = new WandboxApi(restTemplate, config);
         messageStore = new MessageStore();
         utils = new DiscordUtils(jda, messageStore);
         discordCompiler = new DiscordCompiler(jda, wandboxApi, utils);
@@ -95,7 +97,7 @@ class DiscordCompilerTest {
         var wandboxResponse = new WandboxResponse();
         wandboxResponse.setStatus("0");
         when(restTemplate.postForObject(
-                eq(WB_URL), any(WandboxRequest.class), eq(WandboxResponse.class)))
+                eq(config.getUrl()), any(WandboxRequest.class), eq(WandboxResponse.class)))
                 .thenReturn(wandboxResponse);
 
         discordCompiler.onGuildMessageReceived(event);
@@ -122,7 +124,7 @@ class DiscordCompilerTest {
         var wandboxResponse = new WandboxResponse();
         wandboxResponse.setStatus("0");
         when(restTemplate.postForObject(
-                eq(WB_URL), any(WandboxRequest.class), eq(WandboxResponse.class)))
+                eq(config.getUrl()), any(WandboxRequest.class), eq(WandboxResponse.class)))
                 .thenReturn(wandboxResponse);
 
         discordCompiler.onGuildMessageUpdate(event);
@@ -155,7 +157,7 @@ class DiscordCompilerTest {
         wandboxResponse.setProgram_message("program message");
         wandboxResponse.setProgram_output("program output");
         when(restTemplate.postForObject(
-                eq(WB_URL), any(WandboxRequest.class), eq(WandboxResponse.class)))
+                eq(config.getUrl()), any(WandboxRequest.class), eq(WandboxResponse.class)))
                 .thenReturn(wandboxResponse);
         discordCompiler.onGuildMessageReceived(msgReceivedEvent);
 
