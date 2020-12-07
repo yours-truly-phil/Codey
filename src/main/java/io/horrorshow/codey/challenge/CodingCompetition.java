@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -62,7 +61,8 @@ public class CodingCompetition extends ListenerAdapter {
                         .getRoles().stream()
                         .anyMatch(role -> config.getRoles().contains(role.getName()))) {
 
-            utils.sendRemovableMessage("someone with Codey's Boss role mentioned me!", event.getChannel());
+            utils.sendRemovableMessage("someone with Codey's Boss role mentioned me!",
+                    event.getChannel());
         }
 
         final var raw = event.getMessage().getContentRaw();
@@ -93,7 +93,7 @@ public class CodingCompetition extends ListenerAdapter {
         if (VERIFY.equals(event.getReactionEmote().getEmoji())) {
             getActiveChallenge(channel).ifPresentOrElse(challenge ->
                             challengePresent(event, channel, challenge)
-                    , () -> utils.sendRemovableMessage("No active challenge", channel));
+                    , () -> utils.sendRemovableMessage(DiscordFormat.noActiveChallenge(), channel));
         }
     }
 
@@ -107,8 +107,7 @@ public class CodingCompetition extends ListenerAdapter {
                         .forEach(part -> {
                                     var entry = ChallengeEntry.create(wandboxApi, challenge, message, part);
                                     challenge.getEntries().add(entry);
-                                    utils.sendRemovableMessage("%d/%d test cases passed"
-                                            .formatted(entry.getNoTestsPass(), challenge.getTestsTotal()), channel);
+                                    utils.sendRemovableMessage(DiscordFormat.testResults(challenge, entry), channel);
                                 }
                         ));
     }
@@ -120,8 +119,7 @@ public class CodingCompetition extends ListenerAdapter {
             var randProblem = problemList.get(random.nextInt(problemList.size()));
             var challenge = new Challenge(randProblem, channel, this);
             challenges.put(channel, challenge);
-            utils.sendRemovableMessage("*New Challenge! Good luck*\n\n%s"
-                    .formatted(challenge), channel);
+            utils.sendRemovableMessage(DiscordFormat.presentNewChallenge(challenge), channel);
         }
     }
 
@@ -129,29 +127,15 @@ public class CodingCompetition extends ListenerAdapter {
         if (challenges.containsKey(channel)) {
             var challenge = challenges.get(channel);
             switch (challenge.getState()) {
-                case ACTIVE -> utils.sendRemovableMessage("Challenge ACTIVE:%n%s"
-                        .formatted(challenge), channel);
-                case DONE -> utils.sendRemovableMessage("Challenge DONE", channel);
+                case ACTIVE -> utils.sendRemovableMessage(DiscordFormat.showCurChallenge(challenge), channel);
+                case DONE -> utils.sendRemovableMessage(DiscordFormat.challengeDone(challenge), channel);
             }
         } else {
-            utils.sendRemovableMessage("No challenge in this channel available", channel);
+            utils.sendRemovableMessage(DiscordFormat.noChallengeInChannelMsg(), channel);
         }
     }
 
     public void onChallengeTimeUp(Challenge challenge) {
-        var sb = new StringBuilder();
-        sb.append("Time is up for challenge:\n")
-                .append(challenge);
-        for (var entry : challenge.getEntries()) {
-            sb.append("Entry by ")
-                    .append(entry.getMessage().getAuthor().getName())
-                    .append(" %d/%d ".formatted(entry.getNoTestsPass(),
-                            challenge.getProblem().getTestcases().getTestcase().size()))
-                    .append("tests passed at ")
-                    .append(entry.getMessage().getTimeCreated().
-                            format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
-                    .append("\n");
-        }
-        utils.sendRemovableMessage(sb.toString(), challenge.getChannel());
+        utils.sendRemovableMessage(DiscordFormat.challengeFinishedMsg(challenge), challenge.getChannel());
     }
 }

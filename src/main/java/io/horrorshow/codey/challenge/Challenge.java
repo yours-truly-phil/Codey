@@ -48,9 +48,9 @@ public class Challenge {
 
     @Override
     public String toString() {
-        return "*" + problem.getName() + "* [" + state.toString() + "]" + "\n" +
-                "start: " + df.format(startTime) + " end: " + df.format(endTime) + "\n" +
-                problem.getDescription() + "\n" +
-                problem.getTemplate();
+        return "*%s* [%s]\nstart: %s end: %s\n%s\n%s"
+                .formatted(problem.getName(), state.toString(),
+                        df.format(startTime), df.format(endTime),
+                        problem.getDescription(), problem.getTemplate());
     }
 }
