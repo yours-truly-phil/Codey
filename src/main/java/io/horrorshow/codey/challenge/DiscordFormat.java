@@ -22,7 +22,7 @@ public class DiscordFormat {
     }
 
     public static String challengeDone(Challenge challenge) {
-        return "Challenge DONE";
+        return "Challenge %s DONE".formatted(challenge.getProblem().getName());
     }
 
     public static String showCurChallenge(Challenge challenge) {
@@ -45,5 +45,9 @@ public class DiscordFormat {
                     .append("\n");
         }
         return sb.toString();
+    }
+
+    public static String noChallengesFound() {
+        return "no challenges found";
     }
 }

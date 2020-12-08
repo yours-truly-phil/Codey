@@ -114,7 +114,7 @@ public class CodingCompetition extends ListenerAdapter {
 
     private void onCreateChallenge(TextChannel channel) {
         if (problemList.isEmpty()) {
-            utils.sendRemovableMessage("No challenges found", channel);
+            utils.sendRemovableMessage(DiscordFormat.noChallengesFound(), channel);
         } else {
             var randProblem = problemList.get(random.nextInt(problemList.size()));
             var challenge = new Challenge(randProblem, channel, this);
