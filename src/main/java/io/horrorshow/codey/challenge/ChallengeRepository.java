@@ -35,7 +35,7 @@ public class ChallengeRepository {
 
     public List<Problem> findAllProblems() {
         List<Problem> problemList = new ArrayList<>();
-        for (var p : config.getPaths()) {
+        for (var p : config.getPathsToProblemStatements()) {
             var path = Paths.get(p);
             log.debug("looking for challenges in {}", path.toAbsolutePath().toString());
             try (Stream<Path> stream = Files.walk(path, 1)) {
