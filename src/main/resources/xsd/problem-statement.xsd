@@ -1,7 +1,8 @@
 <schema xmlns="http://www.w3.org/2001/XMLSchema"
         xmlns:codey="http://codey.horrorshow.io/codey"
-        targetNamespace="http://codey.horrorshow.io/codey" elementFormDefault="qualified"
-        attributeFormDefault="qualified" version="0.0.1-SNAPSHOT"
+        targetNamespace="http://codey.horrorshow.io/codey"
+        attributeFormDefault="qualified" elementFormDefault="qualified"
+        version="0.0.1-SNAPSHOT"
         xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" vc:minVersion="1.1">
 
   <element name="problem">
@@ -10,12 +11,19 @@
         <element name="name" type="string"/>
         <element name="description" type="string"/>
         <element name="minutes" type="int"/>
-        <element name="template" type="string"/>
+        <element name="template" type="codey:CodeTemplate"/>
         <element name="testcases" type="codey:TextCases"/>
       </sequence>
     </complexType>
   </element>
 
+  <complexType name="CodeTemplate">
+    <simpleContent>
+      <extension base="string">
+        <attribute name="lang" use="required" type="string"/>
+      </extension>
+    </simpleContent>
+  </complexType>
   <complexType name="TextCases">
     <sequence>
       <element name="testcase" type="codey:TestCase" minOccurs="0" maxOccurs="unbounded"/>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<problem xmlns="http://codey.horrorshow.io/codey">
-  <name>Anagram</name>
-  <description>Write a function to check whether two given strings
+<c:problem xmlns:c="http://codey.horrorshow.io/codey">
+  <c:name>Anagram</c:name>
+  <c:description>Write a function to check whether two given strings
 are anagram of each other or not. An anagram of a string is another string
 that contains the same characters, only the order of characters can be
 different. For example, "abcd" and "dabc" are an anagram of each other.
@@ -13,10 +13,9 @@ Print `true` if they are an anagram of each other, else print `false`.
 Example Input: "abcd dabc"
 Expected Result: "true"
 ```
-  </description>
-  <minutes>1</minutes>
-  <template>```java
-import java.util.Scanner;
+  </c:description>
+  <c:minutes>1</c:minutes>
+  <c:template c:lang="java">import java.util.Scanner;
 
 public class G {
 
@@ -31,15 +30,16 @@ public class G {
     var s = new Scanner(System.in).nextLine().split(" ");
     isAnagram(s[0], s[1]);
   }
-}```</template>
-  <testcases>
-    <testcase>
-      <input>abcd dabc</input>
-      <output>true</output>
-    </testcase>
-    <testcase>
-      <input>a b</input>
-      <output>false</output>
-    </testcase>
-  </testcases>
-</problem>
+}
+  </c:template>
+  <c:testcases>
+    <c:testcase>
+      <c:input>abcd dabc</c:input>
+      <c:output>true</c:output>
+    </c:testcase>
+    <c:testcase>
+      <c:input>a b</c:input>
+      <c:output>false</c:output>
+    </c:testcase>
+  </c:testcases>
+</c:problem>
