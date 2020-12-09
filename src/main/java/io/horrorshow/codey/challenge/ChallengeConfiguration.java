@@ -11,6 +11,6 @@ import java.util.List;
 @Configuration
 @ConfigurationProperties(prefix = "challenge")
 public class ChallengeConfiguration {
-    private List<String> pathsToProblemStatements = new ArrayList<>();
-    private List<String> discordChallengeAdminRoles = new ArrayList<>();
+    private List<String> paths = new ArrayList<>();
+    private List<String> roles = new ArrayList<>();
 }

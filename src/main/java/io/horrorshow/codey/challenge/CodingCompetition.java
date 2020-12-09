@@ -59,7 +59,7 @@ public class CodingCompetition extends ListenerAdapter {
                 Objects.requireNonNull(event.getGuild()
                         .getMember(event.getAuthor()))
                         .getRoles().stream()
-                        .anyMatch(role -> config.getDiscordChallengeAdminRoles()
+                        .anyMatch(role -> config.getRoles()
                                 .contains(role.getName()))) {
 
             utils.sendRemovableMessage("someone with Codey's Boss role mentioned me!",
