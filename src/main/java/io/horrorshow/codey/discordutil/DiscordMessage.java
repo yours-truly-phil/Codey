@@ -82,7 +82,7 @@ public class DiscordMessage {
             mid = (low + high) / 2;
 
             if (s.startsWith(arr[mid])) {
-                return mid;
+                return checkIfLongerMatchAvailable(s, arr, mid);
             } else if (s.compareTo(arr[mid]) < 0) {
                 high = mid - 1;
             } else {
@@ -90,6 +90,13 @@ public class DiscordMessage {
             }
         }
         return -1;
+    }
+
+    private static int checkIfLongerMatchAvailable(String s, String[] arr, int mid) {
+        while (mid + 1 < arr.length && s.startsWith(arr[mid + 1])) {
+            mid++;
+        }
+        return mid;
     }
 
     @NotNull

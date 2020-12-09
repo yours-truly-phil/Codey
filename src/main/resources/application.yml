@@ -19,7 +19,7 @@ wandbox:
     d: dmd-head
     rust: rust-head
     py: pypy-head
-    python: pypy-head
+    python: cpython-3.8.0
     ruby: ruby-head
     scala: scala-2.13.x
     groovy: groovy-head

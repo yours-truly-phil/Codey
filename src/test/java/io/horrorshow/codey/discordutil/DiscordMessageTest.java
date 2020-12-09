@@ -139,4 +139,12 @@ class DiscordMessageTest {
         assertThat(DiscordMessage.startsWithAnyOf(testString, arr))
                 .isEqualTo(-1);
     }
+
+    @Test
+    void starts_with_finds_longest_match_when_multiple_matches() {
+        var testString = "python this is python";
+        var arr = new String[]{"a", "b", "c", "py", "python"};
+        assertThat(DiscordMessage.startsWithAnyOf(testString, arr))
+                .isEqualTo(4);
+    }
 }

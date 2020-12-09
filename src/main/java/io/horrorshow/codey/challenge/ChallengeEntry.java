@@ -54,7 +54,6 @@ public class ChallengeEntry implements Comparable<ChallengeEntry> {
         return count;
     }
 
-
     private void compileAndRunTests(WandboxApi wandboxApi) {
         var caseList = challenge.getProblem().getTestcases().getTestcase();
         for (var test : caseList) {
