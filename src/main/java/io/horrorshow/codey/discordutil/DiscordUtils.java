@@ -43,8 +43,8 @@ public class DiscordUtils extends ListenerAdapter {
         if (BASKET.equals(emoji)
                 && event.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
             removeMessage(message);
-            log.info("removed formatted message by {}: {}",
-                    event.getUser().getName(), message.getContentRaw());
+            log.info("{} removed formatted message by {}: {}",
+                    event.getUser().getName(), message.getAuthor().getName(), message.getContentRaw());
         }
     }
 
