@@ -9,9 +9,9 @@
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>io.horrorshow</groupId>
-  <artifactId>discord-code-formatter</artifactId>
+  <artifactId>codey</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>discord-code-formatter</name>
+  <name>Codey</name>
   <description>Formats code inside code blocks in discord messages.</description>
 
   <properties>
