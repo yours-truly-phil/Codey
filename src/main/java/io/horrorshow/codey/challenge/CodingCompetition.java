@@ -1,6 +1,5 @@
 package io.horrorshow.codey.challenge;
 
-import io.horrorshow.codey.api.WandboxApi;
 import io.horrorshow.codey.challenge.xml.Problem;
 import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
@@ -26,8 +25,6 @@ public class CodingCompetition extends ListenerAdapter {
 
     private static final String VERIFY = "\uD83C\uDF00";
 
-    private final WandboxApi wandboxApi;
-
     private final List<Problem> problemList;
 
     private final Map<TextChannel, Challenge> challenges = new HashMap<>();
@@ -35,16 +32,17 @@ public class CodingCompetition extends ListenerAdapter {
     private final Random random = new Random();
     private final DiscordUtils utils;
     private final ChallengeConfiguration config;
+    private final TestRunner testRunner;
 
     public CodingCompetition(@Autowired JDA jda,
-                             @Autowired WandboxApi wandboxApi,
                              @Autowired ChallengeConfiguration config,
                              @Autowired DiscordUtils utils,
-                             @Autowired ChallengeRepository challengeRepository) {
+                             @Autowired ChallengeRepository challengeRepository,
+                             @Autowired TestRunner testRunner) {
 
-        this.wandboxApi = wandboxApi;
         this.utils = utils;
         this.config = config;
+        this.testRunner = testRunner;
 
         jda.addEventListener(this);
 
@@ -93,20 +91,20 @@ public class CodingCompetition extends ListenerAdapter {
         var channel = event.getChannel();
         if (VERIFY.equals(event.getReactionEmote().getEmoji())) {
             getActiveChallenge(channel).ifPresentOrElse(challenge ->
-                            challengePresent(event, channel, challenge)
+                            verifyUserEntry(event, channel, challenge)
                     , () -> utils.sendRemovableMessage(DiscordFormat.noActiveChallenge(), channel));
         }
     }
 
-    private void challengePresent(@NotNull GuildMessageReactionAddEvent event,
-                                  TextChannel channel,
-                                  Challenge challenge) {
+    private void verifyUserEntry(@NotNull GuildMessageReactionAddEvent event,
+                                 TextChannel channel,
+                                 Challenge challenge) {
         channel.retrieveMessageById(event.getMessageId())
                 .queue(message -> DiscordMessage.of(message.getContentRaw())
                         .getParts().stream()
                         .filter(MessagePart::isCode)
                         .forEach(part -> {
-                                    var entry = ChallengeEntry.create(wandboxApi, challenge, message, part);
+                                    var entry = ChallengeEntry.create(testRunner, challenge, message, part);
                                     challenge.getEntries().add(entry);
                                     utils.sendRemovableMessage(DiscordFormat.testResults(challenge, entry), channel);
                                 }
