@@ -26,10 +26,11 @@ public class ChallengeEntry implements Comparable<ChallengeEntry> {
         this.codeBlock = codeBlock;
     }
 
-    public static ChallengeEntry create(TestRunner testRunner, Challenge challenge,
-                                        Message message, MessagePart codeBlock) {
+    public static ChallengeEntry createWithTestRun(TestRunner testRunner, Challenge challenge,
+                                                   Message message, MessagePart codeBlock) {
         var entry = new ChallengeEntry(challenge, message, codeBlock);
-        entry.testResults.putAll(testRunner.runTests(challenge.getProblem(), codeBlock.getText(), codeBlock.getLang()));
+        entry.testResults.putAll(testRunner
+                .runTests(challenge.getProblem(), codeBlock.getText(), codeBlock.getLang()));
         return entry;
     }
 

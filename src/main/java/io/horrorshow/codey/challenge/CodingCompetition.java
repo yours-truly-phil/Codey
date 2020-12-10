@@ -6,6 +6,7 @@ import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
@@ -22,6 +23,7 @@ public class CodingCompetition extends ListenerAdapter {
 
     private static final String CREATE_CHALLENGE = "$create";
     private static final String SHOW_CHALLENGE = "$show";
+    private static final String DBG = "$dbg";
 
     private static final String VERIFY = "\uD83C\uDF00";
 
@@ -49,6 +51,13 @@ public class CodingCompetition extends ListenerAdapter {
         problemList = challengeRepository.findAllProblems();
     }
 
+    private boolean isElevatedAuthor(Message message) {
+        return Objects.requireNonNull(message.getGuild().getMember(message.getAuthor()))
+                .getRoles().stream()
+                .anyMatch(role -> config.getRoles()
+                        .contains(role.getName()));
+    }
+
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
         if (event.getAuthor().isBot()) return;
@@ -70,6 +79,8 @@ public class CodingCompetition extends ListenerAdapter {
             onCreateChallenge(channel);
         } else if (SHOW_CHALLENGE.equals(raw)) {
             onShowChallenge(channel);
+        } else if (DBG.equals(raw) && isElevatedAuthor(event.getMessage())) {
+            onDbg(event);
         }
 
         getActiveChallenge(channel).flatMap(challenge -> DiscordMessage.of(raw)
@@ -104,7 +115,7 @@ public class CodingCompetition extends ListenerAdapter {
                         .getParts().stream()
                         .filter(MessagePart::isCode)
                         .forEach(part -> {
-                                    var entry = ChallengeEntry.create(testRunner, challenge, message, part);
+                                    var entry = ChallengeEntry.createWithTestRun(testRunner, challenge, message, part);
                                     challenge.getEntries().add(entry);
                                     utils.sendRemovableMessage(DiscordFormat.testResults(challenge, entry), channel);
                                 }
@@ -136,5 +147,11 @@ public class CodingCompetition extends ListenerAdapter {
 
     public void onChallengeTimeUp(Challenge challenge) {
         utils.sendRemovableMessage(DiscordFormat.challengeFinishedMsg(challenge), challenge.getChannel());
+    }
+
+    private void onDbg(GuildMessageReceivedEvent event) {
+        var img = DiscordFormat
+                .drawSomeAvatarsToSeeHowThatLooksLike(challenges.get(event.getChannel()));
+        utils.drawRemovableImage(img, "test.png", event.getChannel());
     }
 }

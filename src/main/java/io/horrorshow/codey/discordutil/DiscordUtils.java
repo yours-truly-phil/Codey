@@ -11,6 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.function.Consumer;
 
 @Service
@@ -26,6 +30,13 @@ public class DiscordUtils extends ListenerAdapter {
         this.messageStore = messageStore;
 
         jda.addEventListener(this);
+    }
+
+    public static byte[] imgAsBytes(BufferedImage image) throws IOException {
+        var baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", baos);
+        baos.flush();
+        return baos.toByteArray();
     }
 
     @Override
@@ -64,5 +75,14 @@ public class DiscordUtils extends ListenerAdapter {
 
     public void sendRemovableMessage(String text, TextChannel channel) {
         channel.sendMessage(text).queue(message -> message.addReaction(BASKET).queue());
+    }
+
+    public void drawRemovableImage(BufferedImage image, String title, TextChannel channel) {
+        try {
+            channel.sendFile(imgAsBytes(image), title)
+                    .queue(message -> message.addReaction(BASKET).queue());
+        } catch (IOException e) {
+            log.error("Problem drawing removable image", e);
+        }
     }
 }
