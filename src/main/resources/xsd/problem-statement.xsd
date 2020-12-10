@@ -12,12 +12,20 @@
         <element name="description" type="string"/>
         <element name="minutes" type="int"/>
         <element name="template" type="codey:CodeTemplate"/>
+        <element name="solution" type="codey:Solution"/>
         <element name="testcases" type="codey:TextCases"/>
       </sequence>
     </complexType>
   </element>
 
   <complexType name="CodeTemplate">
+    <simpleContent>
+      <extension base="string">
+        <attribute name="lang" use="required" type="string"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+  <complexType name="Solution">
     <simpleContent>
       <extension base="string">
         <attribute name="lang" use="required" type="string"/>

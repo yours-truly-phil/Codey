@@ -19,19 +19,37 @@ Expected Result: "true"
 
 public class G {
 
-  public static void isAnagram(String a, String b) {
+  public static boolean isAnagram(String a, String b) {
 
     // your code here
 
-    System.out.println("print true or false");
+    return false; // return true if b is anagram of a, else false
   }
 
   public static void main(String[] args) {
     var s = new Scanner(System.in).nextLine().split(" ");
-    isAnagram(s[0], s[1]);
+    System.out.println(isAnagram(s[0], s[1]));
   }
-}
-  </c:template>
+}</c:template>
+  <c:solution c:lang="java">import java.util.Scanner;
+import java.util.Arrays;
+
+public class A {
+  public static boolean isAnagram(String a, String b) {
+    if (a == null || b == null) return false;
+    if (a.length() != b.length()) return false;
+    char[] arr = a.toCharArray();
+    char[] brr = b.toCharArray();
+    Arrays.sort(arr);
+    Arrays.sort(brr);
+    return Arrays.equals(arr, brr);
+  }
+
+  public static void main(String[] args) {
+    var s = new Scanner(System.in).nextLine().split(" ");
+    System.out.println(isAnagram(s[0], s[1]));
+  }
+}</c:solution>
   <c:testcases>
     <c:testcase>
       <c:input>abcd dabc</c:input>
