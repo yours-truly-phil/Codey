@@ -1,0 +1,9 @@
+POST https://wandbox.org/api/compile.json
+Content-Type: application/json
+
+{
+    "code": "interface A { public static void main(String[] args) { System.out.println(\"Hello, World!\"); } }",
+    "compiler": "openjdk-head",
+    "stdin": "",
+    "runtime_option_raw": ""
+}
