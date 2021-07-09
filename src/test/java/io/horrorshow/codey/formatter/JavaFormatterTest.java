@@ -13,7 +13,7 @@ class JavaFormatterTest {
         var res = javaFormatter.format("""
                 interface A{static void main(String[] a){System.out.println("Hello, World!");}}""");
         assertThat(res).isPresent();
-        assertThat(res.get().getText()).isEqualTo("""
+        assertThat(res.get().text()).isEqualTo("""
                 interface A {
                   static void main(String[] a) {
                     System.out.println("Hello, World!");
@@ -27,7 +27,7 @@ class JavaFormatterTest {
         var res = javaFormatter.format("""
                 public static void main(String[] args){System.out.println("Hello, World!");}""");
         assertThat(res).isPresent();
-        assertThat(res.get().getText()).isEqualTo("""
+        assertThat(res.get().text()).isEqualTo("""
                 public static void main(String[] args) {
                   System.out.println("Hello, World!");
                 }""");

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+
 @Service
 @Slf4j
 public class JavaFormatter {
@@ -24,6 +25,11 @@ public class JavaFormatter {
     private final List<Function<String, Optional<String>>> parsers = new ArrayList<>();
 
     private final Formatter googleFormatter = new Formatter();
+
+    record CodeSnippet(String text, String lang) {
+
+    }
+
 
     public JavaFormatter() {
         ppConf.setIndentSize(2);
@@ -43,6 +49,7 @@ public class JavaFormatter {
         parsers.add(s -> javaParse(s, StaticJavaParser::parseVariableDeclarationExpr, ppConf));
     }
 
+
     public Optional<CodeSnippet> format(String source) {
         for (var parser : parsers) {
             var res = parser.apply(source);
@@ -53,9 +60,10 @@ public class JavaFormatter {
         return Optional.empty();
     }
 
+
     private Optional<String> javaParse(String source,
-                                       Function<String, Node> javaParserFun,
-                                       PrettyPrinterConfiguration ppCfg) {
+            Function<String, Node> javaParserFun,
+            PrettyPrinterConfiguration ppCfg) {
         try {
             var prettyResult = javaParserFun.apply(source).toString(ppCfg)
                     .replaceAll("\\r\\n", "\n")
@@ -65,6 +73,7 @@ public class JavaFormatter {
             return Optional.empty();
         }
     }
+
 
     public Optional<String> googleFormat(String source) {
         try {

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+
 @Service
 @Slf4j
 public class DiscordCodeFormatter extends ListenerAdapter {
@@ -28,10 +29,11 @@ public class DiscordCodeFormatter extends ListenerAdapter {
     private final MessageStore messageStore;
     private final DiscordUtils utils;
 
+
     public DiscordCodeFormatter(@Autowired JDA jda,
-                                @Autowired JavaFormatter javaFormatter,
-                                @Autowired MessageStore messageStore,
-                                @Autowired DiscordUtils utils) {
+            @Autowired JavaFormatter javaFormatter,
+            @Autowired MessageStore messageStore,
+            @Autowired DiscordUtils utils) {
         this.javaFormatter = javaFormatter;
         this.messageStore = messageStore;
         this.utils = utils;
@@ -39,23 +41,32 @@ public class DiscordCodeFormatter extends ListenerAdapter {
         jda.addEventListener(this);
     }
 
+
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
-        if (event.getAuthor().isBot()) return;
+        if (event.getAuthor().isBot()) {
+            return;
+        }
 
         handleMessage(event.getMessage());
     }
+
 
     @Override
     public void onGuildMessageUpdate(@NotNull GuildMessageUpdateEvent event) {
-        if (event.getAuthor().isBot()) return;
+        if (event.getAuthor().isBot()) {
+            return;
+        }
 
         handleMessage(event.getMessage());
     }
 
+
     @Override
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
-        if (event.getUser().isBot()) return;
+        if (event.getUser().isBot()) {
+            return;
+        }
 
         final String emoji = event.getReactionEmote().getEmoji();
         if (STARS.equals(emoji)) {
@@ -65,14 +76,18 @@ public class DiscordCodeFormatter extends ListenerAdapter {
         }
     }
 
+
     private void starsReaction(Message message) {
-        if (message.getAuthor().isBot()) return;
+        if (message.getAuthor().isBot()) {
+            return;
+        }
 
         var dm = DiscordMessage.of(message.getContentRaw());
         formatted(dm).ifPresentOrElse(
                 s -> postFormattedCode(message.getTextChannel(), message, s),
                 () -> message.removeReaction(STARS).queue());
     }
+
 
     private void handleMessage(Message message) {
         final String contentRaw = message.getContentRaw();
@@ -81,6 +96,7 @@ public class DiscordCodeFormatter extends ListenerAdapter {
         formatted(dm).ifPresentOrElse(s -> message.addReaction(STARS).queue(),
                 () -> message.removeReaction(STARS).queue());
     }
+
 
     @VisibleForTesting
     Optional<String> formatted(DiscordMessage dm) {
@@ -91,8 +107,8 @@ public class DiscordCodeFormatter extends ListenerAdapter {
                 var parseRes = javaFormatter.format(part.getText());
                 if (parseRes.isPresent()) {
                     isFormatted = true;
-                    sb.append(codeBlockOf(parseRes.get().getText(),
-                            parseRes.get().getLang()));
+                    sb.append(codeBlockOf(parseRes.get().text(),
+                            parseRes.get().lang()));
                 } else {
                     sb.append(codeBlockOf(part.getText(), part.getLang()));
                 }
@@ -101,15 +117,20 @@ public class DiscordCodeFormatter extends ListenerAdapter {
             }
         }
 
-        if (!isFormatted) return Optional.empty();
-        else return Optional.of(sb.toString());
+        if (!isFormatted) {
+            return Optional.empty();
+        } else {
+            return Optional.of(sb.toString());
+        }
     }
+
 
     private String codeBlockOf(String code, String lang) {
         return "```" + lang + "\n" +
-                code +
-                "```";
+               code +
+               "```";
     }
+
 
     private void postFormattedCode(TextChannel channel, Message message, String s) {
         if (noDuplicatePost(message, s)) {
@@ -118,9 +139,10 @@ public class DiscordCodeFormatter extends ListenerAdapter {
         }
     }
 
+
     private boolean noDuplicatePost(Message message, String s) {
         return !messageStore.getFormattedCodeStore().containsKey(message.getId())
-                || !messageStore.getFormattedCodeStore().get(
+               || !messageStore.getFormattedCodeStore().get(
                 message.getId()).getContentRaw().equals(s);
     }
 }
