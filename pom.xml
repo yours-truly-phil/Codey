@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.4.0</version>
+    <version>2.5.0</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>io.horrorshow</groupId>
@@ -17,7 +17,7 @@
   <properties>
     <java.version>15</java.version>
     <jda.version>4.2.0_168</jda.version>
-    <google-java-format.version>1.9</google-java-format.version>
+    <google-java-format.version>1.10.0</google-java-format.version>
     <assertj.version>3.18.1</assertj.version>
     <javaparser.version>3.15.1</javaparser.version>
     <jaxb2.version>2.5.0</jaxb2.version>

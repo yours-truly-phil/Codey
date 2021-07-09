@@ -37,12 +37,12 @@ public class ChallengeRepository {
         List<Problem> problemList = new ArrayList<>();
         for (var p : config.getPaths()) {
             var path = Paths.get(p);
-            log.debug("looking for challenges in {}", path.toAbsolutePath().toString());
+            log.debug("looking for challenges in {}", path.toAbsolutePath());
             try (Stream<Path> stream = Files.walk(path, 1)) {
                 var files = stream.filter(file -> !Files.isDirectory(file))
                         .map(Path::toFile)
                         .collect(Collectors.toList());
-                log.debug("found {} files in {}", files.size(), path.toString());
+                log.debug("found {} files in {}", files.size(), path);
                 for (File file : files) {
                     try {
                         problemList.add((Problem) problemUnmarshaller.unmarshal(file));

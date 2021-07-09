@@ -48,10 +48,10 @@ class DiscordCodeFormatterTest {
         var dm = DiscordMessage.of("""
                 Hello
                 ```java
-                public class A 
-                { 
-                public static void main(String[] args) 
-                { 
+                public class A
+                {
+                public static void main(String[] args)
+                {
                 System.out.println("Hello, World!");
                 }
                 }```
@@ -114,7 +114,7 @@ class DiscordCodeFormatterTest {
         when(message.getAuthor().isBot()).thenReturn(false);
         when(message.getContentRaw()).thenReturn("""
                 ```java
-                public class A { public static void main(String[] args) 
+                public class A { public static void main(String[] args)
                 { System.out.println("Hello, World!");}}```""");
         when(message.getTextChannel()).thenReturn(channel);
         when(message.getId()).thenReturn("messageId");
@@ -144,7 +144,7 @@ class DiscordCodeFormatterTest {
         when(event.getMessage()).thenReturn(message);
         when(message.getContentRaw()).thenReturn("""
                 ```java
-                public class A { public static void main(String[] args) 
+                public class A { public static void main(String[] args)
                 { System.out.println("Hello, World!");}}```""");
 
         formatter.onGuildMessageReceived(event);
@@ -160,7 +160,7 @@ class DiscordCodeFormatterTest {
         when(event.getMessage()).thenReturn(message);
         when(message.getContentRaw()).thenReturn("""
                 ```java
-                public class A { public static void main(String[] args) 
+                public class A { public static void main(String[] args)
                 { System.out.println("Hello, World!");}}```""");
 
         formatter.onGuildMessageUpdate(event);
