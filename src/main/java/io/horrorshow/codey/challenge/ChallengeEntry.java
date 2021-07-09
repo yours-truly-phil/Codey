@@ -30,7 +30,7 @@ public class ChallengeEntry implements Comparable<ChallengeEntry> {
                                                    Message message, MessagePart codeBlock) {
         var entry = new ChallengeEntry(challenge, message, codeBlock);
         entry.testResults.putAll(testRunner
-                .runTests(challenge.getProblem(), codeBlock.getText(), codeBlock.getLang()));
+                .runTests(challenge.getProblem(), codeBlock.text(), codeBlock.lang()));
         return entry;
     }
 

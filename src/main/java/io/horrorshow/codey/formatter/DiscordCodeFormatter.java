@@ -104,16 +104,16 @@ public class DiscordCodeFormatter extends ListenerAdapter {
         boolean isFormatted = false;
         for (var part : dm.getParts()) {
             if (part.isCode()) {
-                var parseRes = javaFormatter.format(part.getText());
+                var parseRes = javaFormatter.format(part.text());
                 if (parseRes.isPresent()) {
                     isFormatted = true;
                     sb.append(codeBlockOf(parseRes.get().text(),
                             parseRes.get().lang()));
                 } else {
-                    sb.append(codeBlockOf(part.getText(), part.getLang()));
+                    sb.append(codeBlockOf(part.text(), part.lang()));
                 }
             } else {
-                sb.append(part.getText());
+                sb.append(part.text());
             }
         }
 

@@ -89,7 +89,7 @@ public class DiscordCompiler extends ListenerAdapter {
         dm.getParts().stream()
                 .filter(MessagePart::isCode)
                 .findFirst()
-                .ifPresent(part -> wandboxApi.compileAsync(part.getText(), part.getLang(),
+                .ifPresent(part -> wandboxApi.compileAsync(part.text(), part.lang(),
                         wandboxResponse -> {
                             compilationResults.put(message.getId(),
                                     WandboxDiscordUtils.formatWandboxResponse(wandboxResponse));
