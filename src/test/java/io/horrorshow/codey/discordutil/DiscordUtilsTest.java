@@ -11,11 +11,16 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import static io.horrorshow.codey.discordutil.DiscordUtils.BASKET;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 class DiscordUtilsTest {
 
@@ -26,8 +31,7 @@ class DiscordUtilsTest {
 
     @Captor
     ArgumentCaptor<Consumer<Message>> messageCaptor;
-    @Captor
-    ArgumentCaptor<Consumer<Void>> voidCaptor;
+
 
     @BeforeEach
     void init() {
@@ -35,6 +39,7 @@ class DiscordUtilsTest {
         messageStore = new MessageStore();
         discordUtils = new DiscordUtils(jda, messageStore);
     }
+
 
     @Test
     void basket_reaction_removes_message() {
@@ -56,6 +61,7 @@ class DiscordUtilsTest {
         verify(message.delete()).queue();
     }
 
+
     @Test
     void send_removable_message_adds_basket_reaction() {
         var text = "Message text";
@@ -72,22 +78,18 @@ class DiscordUtilsTest {
         verify(message.addReaction(BASKET)).queue();
     }
 
+
     @Test
-    void removable_message_async_adds_basket_and_gives_msg_to_consumer() {
+    void removable_message_async_adds_basket_and_returns_msg() throws ExecutionException, InterruptedException {
         var text = "Message text";
         var channel = mock(TextChannel.class, RETURNS_DEEP_STUBS);
         var message = mock(Message.class, RETURNS_DEEP_STUBS);
-        Consumer<Message> consumer = message1 -> assertThat(message1).isEqualTo(message);
 
-        discordUtils.sendRemovableMessage(text, channel, consumer);
+        when(channel.sendMessage(text).complete()).thenReturn(message);
 
-        verify(channel.sendMessage(text))
-                .queue(messageCaptor.capture());
+        var result = discordUtils.sendRemovableMessageAsync(text, channel).get();
 
-        messageCaptor.getValue().accept(message);
-
-        verify(message.addReaction(BASKET))
-                .queue(voidCaptor.capture());
-        voidCaptor.getValue().accept(null);
+        assertThat(result).isEqualTo(message);
+        verify(message.addReaction(BASKET)).complete();
     }
 }

@@ -8,8 +8,9 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+
 
 @Service
 @Slf4j
@@ -23,31 +24,29 @@ public class WandboxApi {
 
 
     public WandboxApi(@Autowired RestTemplate restTemplate,
-                      @Autowired WandboxConfiguration config) {
+            @Autowired WandboxConfiguration config) {
         this.restTemplate = restTemplate;
         this.config = config;
     }
+
 
     private String fixJavaCode(String s) {
         return s.replaceAll("public class ", "class ");
     }
 
-    @Async
-    public void compileAsync(String codeBlock, String lang, Consumer<WandboxResponse> callback) {
-        compileAsync(codeBlock, lang, "", "", callback);
-    }
 
     @Async
-    public void compileAsync(String codeBlock, String lang,
-                             String stdin, String runtimeOptions,
-                             Consumer<WandboxResponse> callback) {
-        try {
-            callback.accept(compile(codeBlock, lang, stdin, runtimeOptions));
-        } catch (RestClientException e) {
-            log.error("exception compiling in lang '{}' stdin '{}' runtimeArgs '{}' code: {}",
-                    lang, stdin, runtimeOptions, codeBlock, e);
-        }
+    public CompletableFuture<WandboxResponse> compileAsync(String codeBlock, String lang) {
+        return compileAsync(codeBlock, lang, "", "");
     }
+
+
+    @Async
+    public CompletableFuture<WandboxResponse> compileAsync(String codeBlock, String lang,
+            String stdin, String runtimeOptions) {
+        return CompletableFuture.completedFuture(compile(codeBlock, lang, stdin, runtimeOptions));
+    }
+
 
     public WandboxResponse compile(String codeBlock, String lang, String stdin, String runtimeOptions)
             throws RestClientException {
@@ -57,6 +56,7 @@ public class WandboxApi {
         return restTemplate
                 .postForObject(config.getUrl(), request, WandboxResponse.class);
     }
+
 
     private String applyLanguageSpecificFixes(String codeBlock, String lang) {
         if (langSpecificFunctions.containsKey(lang.toLowerCase())) {

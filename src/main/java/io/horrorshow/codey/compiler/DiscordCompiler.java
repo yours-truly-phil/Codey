@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 @Service
 @Slf4j
 public class DiscordCompiler extends ListenerAdapter {
@@ -30,32 +31,42 @@ public class DiscordCompiler extends ListenerAdapter {
     private final Map<String, List<String>> compilationResults = new HashMap<>();
     private final DiscordUtils utils;
 
+
     public DiscordCompiler(@Autowired JDA jda,
-                           @Autowired WandboxApi wandboxApi,
-                           @Autowired DiscordUtils utils) {
+            @Autowired WandboxApi wandboxApi,
+            @Autowired DiscordUtils utils) {
         this.wandboxApi = wandboxApi;
         this.utils = utils;
 
         jda.addEventListener(this);
     }
 
+
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
-        if (event.getAuthor().isBot()) return;
+        if (event.getAuthor().isBot()) {
+            return;
+        }
 
         handleMessage(event.getMessage());
     }
+
 
     @Override
     public void onGuildMessageUpdate(@NotNull GuildMessageUpdateEvent event) {
-        if (event.getAuthor().isBot()) return;
+        if (event.getAuthor().isBot()) {
+            return;
+        }
 
         handleMessage(event.getMessage());
     }
 
+
     @Override
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
-        if (event.getUser().isBot()) return;
+        if (event.getUser().isBot()) {
+            return;
+        }
 
         final String emoji = event.getReactionEmote().getEmoji();
         if (PLAY.equals(emoji)) {
@@ -64,6 +75,7 @@ public class DiscordCompiler extends ListenerAdapter {
                     .queue(this::printCompilationResultIfPresent);
         }
     }
+
 
     public void printCompilationResultIfPresent(Message message) {
         if (compilationResults.containsKey(message.getId())) {
@@ -75,9 +87,10 @@ public class DiscordCompiler extends ListenerAdapter {
         } else {
             log.debug("compilation result not present");
             utils.sendRemovableMessage("compilation result removed from cache, " +
-                    "repost message with code block.", message.getTextChannel());
+                                       "repost message with code block.", message.getTextChannel());
         }
     }
+
 
     private void handleMessage(Message message) {
         var contentRaw = message.getContentRaw();
@@ -85,14 +98,15 @@ public class DiscordCompiler extends ListenerAdapter {
         compileCodeBlocks(message, dm);
     }
 
+
     private void compileCodeBlocks(@NotNull Message message, DiscordMessage dm) {
         dm.getParts().stream()
                 .filter(MessagePart::isCode)
                 .findFirst()
-                .ifPresent(part -> wandboxApi.compileAsync(part.text(), part.lang(),
-                        wandboxResponse -> {
+                .ifPresent(part -> wandboxApi.compileAsync(part.text(), part.lang())
+                        .thenAccept(response -> {
                             compilationResults.put(message.getId(),
-                                    WandboxDiscordUtils.formatWandboxResponse(wandboxResponse));
+                                    WandboxDiscordUtils.formatWandboxResponse(response));
                             message.addReaction(PLAY).queue();
                         }));
     }

@@ -12,10 +12,12 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
+
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
+
 
 @Service
 @Slf4j
@@ -25,12 +27,14 @@ public class DiscordUtils extends ListenerAdapter {
 
     private final MessageStore messageStore;
 
+
     public DiscordUtils(@Autowired JDA jda,
-                        @Autowired MessageStore messageStore) {
+            @Autowired MessageStore messageStore) {
         this.messageStore = messageStore;
 
         jda.addEventListener(this);
     }
+
 
     public static byte[] imgAsBytes(BufferedImage image) throws IOException {
         var baos = new ByteArrayOutputStream();
@@ -38,6 +42,7 @@ public class DiscordUtils extends ListenerAdapter {
         baos.flush();
         return baos.toByteArray();
     }
+
 
     @Override
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
@@ -48,16 +53,18 @@ public class DiscordUtils extends ListenerAdapter {
         }
     }
 
+
     private void handleMessageWithNewReaction(@NotNull GuildMessageReactionAddEvent event,
-                                              Message message) {
+            Message message) {
         final String emoji = event.getReactionEmote().getEmoji();
         if (BASKET.equals(emoji)
-                && event.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
+            && event.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
             removeMessage(message);
             log.info("{} removed formatted message by {}: {}",
                     event.getUser().getName(), message.getAuthor().getName(), message.getContentRaw());
         }
     }
+
 
     private void removeMessage(Message message) {
         message.delete().queue();
@@ -65,17 +72,19 @@ public class DiscordUtils extends ListenerAdapter {
                 .removeIf(storedMsg -> message.getId().equals(storedMsg.getId()));
     }
 
+
     @Async
-    public void sendRemovableMessage(String text, TextChannel channel,
-                                     Consumer<Message> messageConsumer) {
-        channel.sendMessage(text)
-                .queue(message -> message.addReaction(BASKET)
-                        .queue(unused -> messageConsumer.accept(message)));
+    public CompletableFuture<Message> sendRemovableMessageAsync(String text, TextChannel channel) {
+        var message = channel.sendMessage(text).complete();
+        message.addReaction(BASKET).complete();
+        return CompletableFuture.completedFuture(message);
     }
+
 
     public void sendRemovableMessage(String text, TextChannel channel) {
         channel.sendMessage(text).queue(message -> message.addReaction(BASKET).queue());
     }
+
 
     public void drawRemovableImage(BufferedImage image, String title, TextChannel channel) {
         try {

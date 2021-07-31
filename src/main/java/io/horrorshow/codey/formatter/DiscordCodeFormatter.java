@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 
 @Service
@@ -134,8 +135,12 @@ public class DiscordCodeFormatter extends ListenerAdapter {
 
     private void postFormattedCode(TextChannel channel, Message message, String s) {
         if (noDuplicatePost(message, s)) {
-            utils.sendRemovableMessage(s, channel,
-                    m -> messageStore.getFormattedCodeStore().put(message.getId(), m));
+            try {
+                var createdMsg = utils.sendRemovableMessageAsync(s, channel).get();
+                messageStore.getFormattedCodeStore().put(createdMsg.getId(), createdMsg);
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("Problem sending removable message", e);
+            }
         }
     }
 
