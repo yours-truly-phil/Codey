@@ -1,5 +1,8 @@
 jda:
   token: change-me
+logging:
+  level:
+    io.horrorshow.codey: debug
 challenge:
   paths:
     - problem_statements
