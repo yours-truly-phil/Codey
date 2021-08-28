@@ -1,6 +1,6 @@
 package io.horrorshow.codey;
 
-import io.horrorshow.codey.discordutil.JDAConfiguration;
+import io.horrorshow.codey.discordutil.CodeyConfig;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ public class CodeyApplication {
     }
 
     @Bean
-    public JDA jda(@Autowired JDAConfiguration configuration) throws LoginException {
+    public JDA jda(@Autowired CodeyConfig configuration) throws LoginException {
         JDA jda = JDABuilder.createDefault(configuration.getToken()).build();
         jda.setAutoReconnect(true);
         return jda;

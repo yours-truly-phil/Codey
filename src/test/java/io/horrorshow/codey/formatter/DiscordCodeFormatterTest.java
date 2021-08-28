@@ -1,5 +1,6 @@
 package io.horrorshow.codey.formatter;
 
+import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessageStore;
@@ -28,6 +29,7 @@ class DiscordCodeFormatterTest {
     JDA jda;
     JavaFormatter javaFormatter;
     MessageStore messageStore;
+    CodeyConfig codeyConfig;
     DiscordUtils utils;
     DiscordCodeFormatter formatter;
 
@@ -39,7 +41,8 @@ class DiscordCodeFormatterTest {
         MockitoAnnotations.openMocks(this);
         javaFormatter = new JavaFormatter();
         messageStore = new MessageStore();
-        utils = new DiscordUtils(jda, messageStore);
+        codeyConfig = new CodeyConfig();
+        utils = new DiscordUtils(jda, messageStore, codeyConfig);
         formatter = new DiscordCodeFormatter(jda, javaFormatter, messageStore, utils);
     }
 

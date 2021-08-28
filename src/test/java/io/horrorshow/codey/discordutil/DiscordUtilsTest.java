@@ -1,7 +1,9 @@
 package io.horrorshow.codey.discordutil;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,8 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
@@ -28,6 +32,7 @@ class DiscordUtilsTest {
     JDA jda;
     MessageStore messageStore;
     DiscordUtils discordUtils;
+    CodeyConfig codeyConfig;
 
     @Captor
     ArgumentCaptor<Consumer<Message>> messageCaptor;
@@ -37,7 +42,8 @@ class DiscordUtilsTest {
     void init() {
         MockitoAnnotations.openMocks(this);
         messageStore = new MessageStore();
-        discordUtils = new DiscordUtils(jda, messageStore);
+        codeyConfig = new CodeyConfig();
+        discordUtils = new DiscordUtils(jda, messageStore, codeyConfig);
     }
 
 
@@ -91,5 +97,20 @@ class DiscordUtilsTest {
 
         assertThat(result).isEqualTo(message);
         verify(message.addReaction(BASKET)).complete();
+    }
+
+
+    @Test
+    void isElevatedMember() {
+        codeyConfig.getRoles().add("CodeyRole");
+        var member = Mockito.mock(Member.class);
+
+        when(member.getRoles()).thenReturn(List.of());
+        assertThat(discordUtils.isElevatedMember(member)).isFalse();
+
+        var role = Mockito.mock(Role.class);
+        when(role.getName()).thenReturn("CodeyRole");
+        when(member.getRoles()).thenReturn(List.of(role));
+        assertThat(discordUtils.isElevatedMember(member)).isTrue();
     }
 }

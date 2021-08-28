@@ -2,6 +2,7 @@ package io.horrorshow.codey.discordutil;
 
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
@@ -26,11 +27,14 @@ public class DiscordUtils extends ListenerAdapter {
     public static final String BASKET = "\uD83D\uDDD1️";
 
     private final MessageStore messageStore;
+    private final CodeyConfig config;
 
 
     public DiscordUtils(@Autowired JDA jda,
-            @Autowired MessageStore messageStore) {
+            @Autowired MessageStore messageStore,
+            @Autowired CodeyConfig config) {
         this.messageStore = messageStore;
+        this.config = config;
 
         jda.addEventListener(this);
     }
@@ -93,5 +97,11 @@ public class DiscordUtils extends ListenerAdapter {
         } catch (IOException e) {
             log.error("Problem drawing removable image", e);
         }
+    }
+
+
+    public boolean isElevatedMember(Member member) {
+        return member != null && member.getRoles().stream()
+                .anyMatch(role -> config.getRoles().contains(role.getName()));
     }
 }

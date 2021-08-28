@@ -1,14 +1,14 @@
-jda:
+codey:
   token: change-me
+  roles:
+    - CodeyRole
+    - CodeyBoss
 logging:
   level:
     io.horrorshow.codey: debug
 challenge:
   paths:
     - problem_statements
-  roles:
-    - CodeyRole
-    - CodeyBoss
 wandbox:
   url: https://wandbox.org/api/compile.json
   compiler:

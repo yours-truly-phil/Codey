@@ -4,6 +4,7 @@ import io.horrorshow.codey.api.WandboxApi;
 import io.horrorshow.codey.api.WandboxConfiguration;
 import io.horrorshow.codey.api.WandboxRequest;
 import io.horrorshow.codey.api.WandboxResponse;
+import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessageStore;
 import net.dv8tion.jda.api.JDA;
@@ -35,6 +36,7 @@ class DiscordCompilerTest {
     DiscordUtils utils;
     DiscordCompiler discordCompiler;
     MessageStore messageStore;
+    CodeyConfig codeyConfig;
     WandboxConfiguration config;
 
     @Captor
@@ -47,7 +49,8 @@ class DiscordCompilerTest {
         config.setUrl("WandboxURL");
         wandboxApi = new WandboxApi(restTemplate, config);
         messageStore = new MessageStore();
-        utils = new DiscordUtils(jda, messageStore);
+        codeyConfig = new CodeyConfig();
+        utils = new DiscordUtils(jda, messageStore, codeyConfig);
         discordCompiler = new DiscordCompiler(jda, wandboxApi, utils);
     }
 

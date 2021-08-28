@@ -6,11 +6,16 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.validation.constraints.NotBlank;
 
+import java.util.ArrayList;
+import java.util.List;
+
+
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "jda")
-public class JDAConfiguration {
+@ConfigurationProperties(prefix = "codey")
+public class CodeyConfig {
 
     @NotBlank
     private String token;
+    private List<String> roles = new ArrayList<>();
 }

@@ -6,7 +6,6 @@ import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
@@ -15,7 +14,12 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+
 
 @Service
 @Slf4j
@@ -33,17 +37,15 @@ public class CodingCompetition extends ListenerAdapter {
 
     private final Random random = new Random();
     private final DiscordUtils utils;
-    private final ChallengeConfiguration config;
     private final TestRunner testRunner;
 
+
     public CodingCompetition(@Autowired JDA jda,
-                             @Autowired ChallengeConfiguration config,
-                             @Autowired DiscordUtils utils,
-                             @Autowired ChallengeRepository challengeRepository,
-                             @Autowired TestRunner testRunner) {
+            @Autowired DiscordUtils utils,
+            @Autowired ChallengeRepository challengeRepository,
+            @Autowired TestRunner testRunner) {
 
         this.utils = utils;
-        this.config = config;
         this.testRunner = testRunner;
 
         jda.addEventListener(this);
@@ -51,23 +53,15 @@ public class CodingCompetition extends ListenerAdapter {
         problemList = challengeRepository.findAllProblems();
     }
 
-    private boolean isElevatedAuthor(Message message) {
-        return Objects.requireNonNull(message.getGuild().getMember(message.getAuthor()))
-                .getRoles().stream()
-                .anyMatch(role -> config.getRoles()
-                        .contains(role.getName()));
-    }
 
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
-        if (event.getAuthor().isBot()) return;
+        if (event.getAuthor().isBot()) {
+            return;
+        }
 
         if (event.getMessage().getMentionedUsersBag().contains(event.getJDA().getSelfUser()) &&
-                Objects.requireNonNull(event.getGuild()
-                        .getMember(event.getAuthor()))
-                        .getRoles().stream()
-                        .anyMatch(role -> config.getRoles()
-                                .contains(role.getName()))) {
+            utils.isElevatedMember(event.getMember())) {
 
             utils.sendRemovableMessage("someone with Codey's Boss role mentioned me!",
                     event.getChannel());
@@ -79,25 +73,29 @@ public class CodingCompetition extends ListenerAdapter {
             onCreateChallenge(channel);
         } else if (SHOW_CHALLENGE.equals(raw)) {
             onShowChallenge(channel);
-        } else if (DBG.equals(raw) && isElevatedAuthor(event.getMessage())) {
+        } else if (DBG.equals(raw) && utils.isElevatedMember(event.getMessage().getMember())) {
             onDbg(event);
         }
 
         getActiveChallenge(channel).flatMap(challenge -> DiscordMessage.of(raw)
-                .getParts().stream()
-                .filter(MessagePart::isCode)
-                .findAny())
+                        .getParts().stream()
+                        .filter(MessagePart::isCode)
+                        .findAny())
                 .ifPresent(p -> event.getMessage().addReaction(VERIFY).queue());
     }
+
 
     private Optional<Challenge> getActiveChallenge(TextChannel channel) {
         return Optional.ofNullable(challenges.get(channel))
                 .filter(challenge -> challenge.getState() == State.ACTIVE);
     }
 
+
     @Override
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
-        if (event.getUser().isBot()) return;
+        if (event.getUser().isBot()) {
+            return;
+        }
 
         var channel = event.getChannel();
         if (VERIFY.equals(event.getReactionEmote().getEmoji())) {
@@ -107,9 +105,10 @@ public class CodingCompetition extends ListenerAdapter {
         }
     }
 
+
     private void verifyUserEntry(@NotNull GuildMessageReactionAddEvent event,
-                                 TextChannel channel,
-                                 Challenge challenge) {
+            TextChannel channel,
+            Challenge challenge) {
         channel.retrieveMessageById(event.getMessageId())
                 .queue(message -> DiscordMessage.of(message.getContentRaw())
                         .getParts().stream()
@@ -122,6 +121,7 @@ public class CodingCompetition extends ListenerAdapter {
                         ));
     }
 
+
     private void onCreateChallenge(TextChannel channel) {
         if (problemList.isEmpty()) {
             utils.sendRemovableMessage(DiscordFormat.noChallengesFound(), channel);
@@ -132,6 +132,7 @@ public class CodingCompetition extends ListenerAdapter {
             utils.sendRemovableMessage(DiscordFormat.presentNewChallenge(challenge), channel);
         }
     }
+
 
     private void onShowChallenge(TextChannel channel) {
         if (challenges.containsKey(channel)) {
@@ -145,9 +146,11 @@ public class CodingCompetition extends ListenerAdapter {
         }
     }
 
+
     public void onChallengeTimeUp(Challenge challenge) {
         utils.sendRemovableMessage(DiscordFormat.challengeFinishedMsg(challenge), challenge.getChannel());
     }
+
 
     private void onDbg(GuildMessageReceivedEvent event) {
         var img = DiscordFormat

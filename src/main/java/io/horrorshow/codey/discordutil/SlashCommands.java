@@ -1,6 +1,5 @@
 package io.horrorshow.codey.discordutil;
 
-import io.horrorshow.codey.challenge.ChallengeConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -18,11 +17,12 @@ import java.util.Objects;
 @Slf4j
 public class SlashCommands extends ListenerAdapter {
 
-    private final ChallengeConfiguration config;
+    private final CodeyConfig codeyConfig;
 
 
-    public SlashCommands(@Autowired JDA jda, @Autowired ChallengeConfiguration config) {
-        this.config = config;
+    public SlashCommands(@Autowired JDA jda, @Autowired CodeyConfig codeyConfig) {
+        this.codeyConfig = codeyConfig;
+
         jda.addEventListener(this);
 
         jda.updateCommands().addCommands(
@@ -37,7 +37,7 @@ public class SlashCommands extends ListenerAdapter {
     public void onSlashCommand(SlashCommandEvent event) {
         if ("say".equals(event.getName())
             && Objects.requireNonNull(event.getMember()).getRoles().stream()
-                    .anyMatch(role -> config.getRoles().contains(role.getName()))
+                    .anyMatch(role -> codeyConfig.getRoles().contains(role.getName()))
         ) {
             event.reply(Objects.requireNonNull(event.getOption("content")).getAsString())
                     .queue();
