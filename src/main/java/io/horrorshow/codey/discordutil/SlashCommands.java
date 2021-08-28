@@ -1,6 +1,5 @@
 package io.horrorshow.codey.discordutil;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.horrorshow.codey.compiler.WandboxDiscordUtils;
 import lombok.extern.slf4j.Slf4j;
