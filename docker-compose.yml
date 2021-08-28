@@ -4,6 +4,6 @@ services:
   app:
     build: .
     environment:
-      JDA_TOKEN: change-me
+      CODEY_TOKEN: change-me
     volumes:
       - ./problem_statements:/application/problem_statements
