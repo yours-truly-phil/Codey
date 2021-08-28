@@ -5,15 +5,19 @@ import io.horrorshow.codey.api.WandboxResponse;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class WandboxDiscordUtils {
+
     public static final int CHAR_LIMIT = 2000;
+    public static final String CODE_BLOCK_TICKS = "```\n";
+
 
     public static List<String> formatWandboxResponse(WandboxResponse wandboxResponse) {
         List<String> result = new ArrayList<>();
 
         StringBuilder sb = new StringBuilder();
         if (wandboxResponse.getStatus() != null
-                && !wandboxResponse.getStatus().equals("0")) {
+            && !wandboxResponse.getStatus().equals("0")) {
             sb.append("```\nstatus code: ")
                     .append(wandboxResponse.getStatus())
                     .append("```\n");
@@ -37,6 +41,12 @@ public class WandboxDiscordUtils {
         return result;
     }
 
+
+    public static String toCodeBlock(String msg) {
+        return "```\n%s```\n".formatted(msg.substring(0, Math.min(msg.length(), CHAR_LIMIT - CODE_BLOCK_TICKS.length() * 2)));
+    }
+
+
     private static void appendAOrBTruncated(String a, String b, StringBuilder sb) {
         if (a != null) {
             sb.append("```\n");
@@ -49,6 +59,7 @@ public class WandboxDiscordUtils {
         }
     }
 
+
     private static String truncateMessage(String msg, int remainder) {
         if (msg.length() > remainder) {
             return msg.substring(0, remainder);
@@ -56,6 +67,7 @@ public class WandboxDiscordUtils {
             return msg;
         }
     }
+
 
     private static int getRemainingChars(StringBuilder sb) {
         return CHAR_LIMIT - sb.length() - "```\n".length();

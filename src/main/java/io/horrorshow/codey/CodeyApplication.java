@@ -1,5 +1,7 @@
 package io.horrorshow.codey;
 
+import com.fasterxml.jackson.core.PrettyPrinter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.horrorshow.codey.discordutil.CodeyConfig;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -13,7 +15,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 
 import javax.security.auth.login.LoginException;
+
 import java.util.concurrent.Executor;
+
 
 @SpringBootApplication
 @EnableAsync(proxyTargetClass = true)
@@ -23,10 +27,12 @@ public class CodeyApplication {
         SpringApplication.run(CodeyApplication.class, args);
     }
 
+
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
         return builder.build();
     }
+
 
     @Bean
     public Executor asyncExecutor() {
@@ -39,10 +45,17 @@ public class CodeyApplication {
         return executor;
     }
 
+
     @Bean
     public JDA jda(@Autowired CodeyConfig configuration) throws LoginException {
         JDA jda = JDABuilder.createDefault(configuration.getToken()).build();
         jda.setAutoReconnect(true);
         return jda;
+    }
+
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 }
