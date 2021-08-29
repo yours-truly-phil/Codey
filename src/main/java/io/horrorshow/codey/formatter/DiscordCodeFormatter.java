@@ -40,29 +40,25 @@ public class DiscordCodeFormatter extends ListenerAdapter {
 
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
-        if (event.getAuthor().isBot()) {
-            return;
+        if (!event.getAuthor().isBot()) {
+            CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
         }
-        CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
     }
 
 
     @Override
     public void onGuildMessageUpdate(@NotNull GuildMessageUpdateEvent event) {
-        if (event.getAuthor().isBot()) {
-            return;
+        if (!event.getAuthor().isBot()) {
+            CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
         }
-        CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
     }
 
 
     @Override
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
-        if (event.getUser().isBot()) {
-            return;
+        if (!event.getUser().isBot()) {
+            CompletableFuture.runAsync(() -> onReaction(event));
         }
-
-        CompletableFuture.runAsync(() -> onReaction(event));
     }
 
 
