@@ -3,7 +3,6 @@ package io.horrorshow.codey.formatter;
 import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
-import io.horrorshow.codey.discordutil.MessageStore;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -12,39 +11,37 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.function.Consumer;
-
 import static io.horrorshow.codey.formatter.DiscordCodeFormatter.STARS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 class DiscordCodeFormatterTest {
 
     @Mock
     JDA jda;
     JavaFormatter javaFormatter;
-    MessageStore messageStore;
     CodeyConfig codeyConfig;
     DiscordUtils utils;
     DiscordCodeFormatter formatter;
 
-    @Captor
-    ArgumentCaptor<Consumer<Message>> consumerMessageCaptor;
 
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
         javaFormatter = new JavaFormatter();
-        messageStore = new MessageStore();
         codeyConfig = new CodeyConfig();
-        utils = new DiscordUtils(jda, messageStore, codeyConfig);
-        formatter = new DiscordCodeFormatter(jda, javaFormatter, messageStore, utils);
+        utils = new DiscordUtils(jda, codeyConfig);
+        formatter = new DiscordCodeFormatter(jda, javaFormatter, utils);
     }
+
 
     @Test
     void format_java_code() {
@@ -80,6 +77,7 @@ class DiscordCodeFormatterTest {
                 bla""");
     }
 
+
     @Test
     void dont_react_to_added_messages_by_bots() {
         var event = mock(GuildMessageReceivedEvent.class, RETURNS_DEEP_STUBS);
@@ -87,6 +85,7 @@ class DiscordCodeFormatterTest {
         formatter.onGuildMessageReceived(event);
         verify(event, never()).getMessage();
     }
+
 
     @Test
     void dont_react_to_updated_messages_by_bots() {
@@ -96,6 +95,7 @@ class DiscordCodeFormatterTest {
         verify(event, never()).getMessage();
     }
 
+
     @Test
     void dont_react_to_reactions_by_bots() {
         var event = mock(GuildMessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
@@ -104,8 +104,21 @@ class DiscordCodeFormatterTest {
         verify(event, never()).getReactionEmote();
     }
 
+
     @Test
     void post_formatted_code_on_stars_reaction() {
+        final String rawContent = """
+                ```java
+                public class A { public static void main(String[] args)
+                { System.out.println("Hello, World!");}}```""";
+        final String formattedContent = """
+                ```java
+                public class A {
+                  public static void main(String[] args) {
+                    System.out.println("Hello, World!");
+                  }
+                }
+                ```""";
         var event = mock(GuildMessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
         when(event.getUser().isBot()).thenReturn(false);
         when(event.getReactionEmote().getEmoji()).thenReturn(STARS);
@@ -115,73 +128,55 @@ class DiscordCodeFormatterTest {
 
         var message = mock(Message.class, RETURNS_DEEP_STUBS);
         when(message.getAuthor().isBot()).thenReturn(false);
-        when(message.getContentRaw()).thenReturn("""
-                ```java
-                public class A { public static void main(String[] args)
-                { System.out.println("Hello, World!");}}```""");
+
+        when(message.getContentRaw()).thenReturn(rawContent);
         when(message.getTextChannel()).thenReturn(channel);
         when(message.getId()).thenReturn("messageId");
+        when(message.getGuild().getId()).thenReturn("guildId");
 
-        formatter.onGuildMessageReactionAdd(event);
+        when(channel.sendMessage(formattedContent).complete()).thenReturn(message);
+        when(event.getChannel().retrieveMessageById("messageId").complete()).thenReturn(message);
 
-        verify(event.getChannel().retrieveMessageById("messageId"))
-                .queue(consumerMessageCaptor.capture());
-
-        consumerMessageCaptor.getValue().accept(message);
-
-        verify(channel).sendMessage("""
-                ```java
-                public class A {
-                  public static void main(String[] args) {
-                    System.out.println("Hello, World!");
-                  }
-                }
-                ```""");
+        formatter.onReaction(event);
     }
+
 
     @Test
     void post_reaction_if_added_message_has_formattable_code() {
-        var event = mock(GuildMessageReceivedEvent.class, RETURNS_DEEP_STUBS);
-        when(event.getAuthor().isBot()).thenReturn(false);
         var message = mock(Message.class, RETURNS_DEEP_STUBS);
-        when(event.getMessage()).thenReturn(message);
         when(message.getContentRaw()).thenReturn("""
                 ```java
                 public class A { public static void main(String[] args)
                 { System.out.println("Hello, World!");}}```""");
 
-        formatter.onGuildMessageReceived(event);
+        formatter.onMessage(message);
 
-        verify(message.addReaction(STARS)).queue();
+        verify(message.addReaction(STARS)).complete();
     }
+
 
     @Test
     void post_reaction_if_updated_message_has_formattable_code() {
-        var event = mock(GuildMessageUpdateEvent.class, RETURNS_DEEP_STUBS);
-        when(event.getAuthor().isBot()).thenReturn(false);
         var message = mock(Message.class, RETURNS_DEEP_STUBS);
-        when(event.getMessage()).thenReturn(message);
         when(message.getContentRaw()).thenReturn("""
                 ```java
                 public class A { public static void main(String[] args)
                 { System.out.println("Hello, World!");}}```""");
 
-        formatter.onGuildMessageUpdate(event);
+        formatter.onMessage(message);
 
-        verify(message.addReaction(STARS)).queue();
+        verify(message.addReaction(STARS)).complete();
     }
+
 
     @Test
     void remove_reaction_if_updated_message_has_no_code() {
-        var event = mock(GuildMessageUpdateEvent.class, RETURNS_DEEP_STUBS);
-        when(event.getAuthor().isBot()).thenReturn(false);
         var message = mock(Message.class, RETURNS_DEEP_STUBS);
-        when(event.getMessage()).thenReturn(message);
         when(message.getContentRaw()).thenReturn("""
                 I don't contain any code""");
 
-        formatter.onGuildMessageUpdate(event);
+        formatter.onMessage(message);
 
-        verify(message.removeReaction(STARS)).queue();
+        verify(message.removeReaction(STARS)).complete();
     }
 }

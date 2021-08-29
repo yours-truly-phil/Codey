@@ -5,6 +5,8 @@ import io.horrorshow.codey.api.Api;
 import io.horrorshow.codey.compiler.WandboxDiscordUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.EmbedType;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -13,6 +15,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -22,15 +25,18 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class SlashCommands extends ListenerAdapter {
 
-    private final CodeyConfig codeyConfig;
     private final Api api;
+    private final MessageStore messageStore;
+    private final DiscordUtils discordUtils;
 
 
     public SlashCommands(@Autowired JDA jda,
-            @Autowired CodeyConfig codeyConfig,
-            @Autowired Api api) {
-        this.codeyConfig = codeyConfig;
+            @Autowired Api api,
+            @Autowired MessageStore messageStore,
+            @Autowired DiscordUtils discordUtils) {
         this.api = api;
+        this.messageStore = messageStore;
+        this.discordUtils = discordUtils;
 
         jda.addEventListener(this);
 
@@ -38,7 +44,10 @@ public class SlashCommands extends ListenerAdapter {
                 new CommandData("say", "Makes the bot say what you tell it to").addOptions(
                         new OptionData(OptionType.STRING, "content", "What the bot should say").setRequired(true)),
                 new CommandData("get", "Get request").addOptions(
-                        new OptionData(OptionType.STRING, "url", "The URL to run the request against").setRequired(true))
+                        new OptionData(OptionType.STRING, "url", "The URL to run the request against").setRequired(true)),
+                new CommandData("cache", "Manage formatted code store").addOptions(
+                        new OptionData(OptionType.BOOLEAN, "clear", "Clear the cache")
+                )
         )).queue();
     }
 
@@ -48,7 +57,36 @@ public class SlashCommands extends ListenerAdapter {
         switch (event.getName()) {
             case "say" -> say(event);
             case "get" -> get(event);
+            case "cache" -> cache(event);
             default -> event.reply("Invalid command").queue();
+        }
+    }
+
+
+    private void cache(SlashCommandEvent event) {
+        var guild = event.getGuild();
+        var lines = new ArrayList<String>();
+        if (guild != null) {
+            event.getOptions().forEach(option -> {
+                if ("clear".equals(option.getName())
+                    && option.getAsBoolean()
+                    && discordUtils.isElevatedMember(event.getMember())) {
+
+                    messageStore.getCompilationCache().clearByGuild(guild);
+
+                    lines.add("Removed %d compilation results".formatted(
+                            messageStore.getCompilationCache().countByGuild(guild)));
+                }
+            });
+
+            lines.add("%d compilation results".formatted(
+                    messageStore.getCompilationCache().countByGuild(guild)));
+
+            event.replyEmbeds(new MessageEmbed(null,
+                    "Cache", String.join("\n", lines),
+                    EmbedType.RICH, null, 4711, null, null, null,
+                    null, null, null, null
+            )).queue();
         }
     }
 
@@ -57,7 +95,8 @@ public class SlashCommands extends ListenerAdapter {
         CompletableFuture.runAsync(() -> {
             try {
                 var url = Objects.requireNonNull(event.getOption("url")).getAsString();
-                var res = WandboxDiscordUtils.toCodeBlock(api.prettyPrintJson(api.getRequest(url)));
+                var res = WandboxDiscordUtils.toCodeBlock(
+                        "%s\n\n%s".formatted(url, api.prettyPrintJson(api.getRequest(url))));
                 event.reply(res).queue();
             } catch (JsonProcessingException e) {
                 event.reply("Error: %s".formatted(e.getMessage())).queue();
@@ -68,8 +107,7 @@ public class SlashCommands extends ListenerAdapter {
 
 
     private void say(SlashCommandEvent event) {
-        if (Objects.requireNonNull(event.getMember()).getRoles().stream()
-                .anyMatch(role -> codeyConfig.getRoles().contains(role.getName()))) {
+        if (discordUtils.isElevatedMember(event.getMember())) {
             event.reply(Objects.requireNonNull(event.getOption("content")).getAsString())
                     .queue();
         }

@@ -3,11 +3,9 @@ package io.horrorshow.codey.formatter;
 import com.google.common.annotations.VisibleForTesting;
 import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
-import io.horrorshow.codey.discordutil.MessageStore;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
@@ -17,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletableFuture;
 
 
 @Service
@@ -27,16 +25,13 @@ public class DiscordCodeFormatter extends ListenerAdapter {
     public static final String STARS = "✨";
 
     private final JavaFormatter javaFormatter;
-    private final MessageStore messageStore;
     private final DiscordUtils utils;
 
 
     public DiscordCodeFormatter(@Autowired JDA jda,
             @Autowired JavaFormatter javaFormatter,
-            @Autowired MessageStore messageStore,
             @Autowired DiscordUtils utils) {
         this.javaFormatter = javaFormatter;
-        this.messageStore = messageStore;
         this.utils = utils;
 
         jda.addEventListener(this);
@@ -48,8 +43,7 @@ public class DiscordCodeFormatter extends ListenerAdapter {
         if (event.getAuthor().isBot()) {
             return;
         }
-
-        handleMessage(event.getMessage());
+        CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
     }
 
 
@@ -58,8 +52,7 @@ public class DiscordCodeFormatter extends ListenerAdapter {
         if (event.getAuthor().isBot()) {
             return;
         }
-
-        handleMessage(event.getMessage());
+        CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
     }
 
 
@@ -69,11 +62,15 @@ public class DiscordCodeFormatter extends ListenerAdapter {
             return;
         }
 
+        CompletableFuture.runAsync(() -> onReaction(event));
+    }
+
+
+    public void onReaction(@NotNull GuildMessageReactionAddEvent event) {
         final String emoji = event.getReactionEmote().getEmoji();
         if (STARS.equals(emoji)) {
-            event.getChannel()
-                    .retrieveMessageById(event.getMessageId())
-                    .queue(this::starsReaction);
+            var message = event.getChannel().retrieveMessageById(event.getMessageId()).complete();
+            starsReaction(message);
         }
     }
 
@@ -85,17 +82,17 @@ public class DiscordCodeFormatter extends ListenerAdapter {
 
         var dm = DiscordMessage.of(message.getContentRaw());
         formatted(dm).ifPresentOrElse(
-                s -> postFormattedCode(message.getTextChannel(), message, s),
-                () -> message.removeReaction(STARS).queue());
+                s -> utils.sendRemovableMessage(s, message.getTextChannel()),
+                () -> message.removeReaction(STARS).complete());
     }
 
 
-    private void handleMessage(Message message) {
+    public void onMessage(Message message) {
         final String contentRaw = message.getContentRaw();
 
         var dm = DiscordMessage.of(contentRaw);
-        formatted(dm).ifPresentOrElse(s -> message.addReaction(STARS).queue(),
-                () -> message.removeReaction(STARS).queue());
+        formatted(dm).ifPresentOrElse(s -> message.addReaction(STARS).complete(),
+                () -> message.removeReaction(STARS).complete());
     }
 
 
@@ -130,24 +127,5 @@ public class DiscordCodeFormatter extends ListenerAdapter {
         return "```" + lang + "\n" +
                code +
                "```";
-    }
-
-
-    private void postFormattedCode(TextChannel channel, Message message, String s) {
-        if (noDuplicatePost(message, s)) {
-            try {
-                var createdMsg = utils.sendRemovableMessageAsync(s, channel).get();
-                messageStore.getFormattedCodeStore().put(createdMsg.getId(), createdMsg);
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("Problem sending removable message", e);
-            }
-        }
-    }
-
-
-    private boolean noDuplicatePost(Message message, String s) {
-        return !messageStore.getFormattedCodeStore().containsKey(message.getId())
-               || !messageStore.getFormattedCodeStore().get(
-                message.getId()).getContentRaw().equals(s);
     }
 }

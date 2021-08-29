@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,14 +27,11 @@ public class DiscordUtils extends ListenerAdapter {
 
     public static final String BASKET = "\uD83D\uDDD1️";
 
-    private final MessageStore messageStore;
     private final CodeyConfig config;
 
 
     public DiscordUtils(@Autowired JDA jda,
-            @Autowired MessageStore messageStore,
             @Autowired CodeyConfig config) {
-        this.messageStore = messageStore;
         this.config = config;
 
         jda.addEventListener(this);
@@ -51,29 +49,24 @@ public class DiscordUtils extends ListenerAdapter {
     @Override
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
         if (!event.getUser().isBot()) {
-            event.getChannel()
-                    .retrieveMessageById(event.getMessageId())
-                    .queue(message -> handleMessageWithNewReaction(event, message));
+            onReactionAdd(event);
         }
     }
 
 
-    private void handleMessageWithNewReaction(@NotNull GuildMessageReactionAddEvent event,
-            Message message) {
-        final String emoji = event.getReactionEmote().getEmoji();
-        if (BASKET.equals(emoji)
-            && event.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
-            removeMessage(message);
-            log.info("{} removed formatted message by {}: {}",
-                    event.getUser().getName(), message.getAuthor().getName(), message.getContentRaw());
+    @Async
+    public void onReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
+        var message = event.getChannel().retrieveMessageById(event.getMessageId()).complete();
+        String emoji = event.getReactionEmote().getEmoji();
+        if (BASKET.equals(emoji)) {
+            if (event.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
+                try {
+                    message.delete().complete();
+                } catch (ErrorResponseException e) {
+                    log.debug("Unable to remove message");
+                }
+            }
         }
-    }
-
-
-    private void removeMessage(Message message) {
-        message.delete().queue();
-        messageStore.getFormattedCodeStore().values()
-                .removeIf(storedMsg -> message.getId().equals(storedMsg.getId()));
     }
 
 
@@ -86,7 +79,8 @@ public class DiscordUtils extends ListenerAdapter {
 
 
     public void sendRemovableMessage(String text, TextChannel channel) {
-        channel.sendMessage(text).queue(message -> message.addReaction(BASKET).queue());
+        var message = channel.sendMessage(text).complete();
+        message.addReaction(BASKET).complete();
     }
 
 

@@ -4,6 +4,7 @@ import io.horrorshow.codey.api.WandboxApi;
 import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
+import io.horrorshow.codey.discordutil.MessageStore;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
@@ -15,9 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 
 @Service
@@ -28,15 +27,17 @@ public class DiscordCompiler extends ListenerAdapter {
 
     private final WandboxApi wandboxApi;
 
-    private final Map<String, List<String>> compilationResults = new HashMap<>();
+    private final MessageStore.CompilationCache compilationCache;
     private final DiscordUtils utils;
 
 
     public DiscordCompiler(@Autowired JDA jda,
             @Autowired WandboxApi wandboxApi,
-            @Autowired DiscordUtils utils) {
+            @Autowired DiscordUtils utils,
+            @Autowired MessageStore messageStore) {
         this.wandboxApi = wandboxApi;
         this.utils = utils;
+        this.compilationCache = messageStore.getCompilationCache();
 
         jda.addEventListener(this);
     }
@@ -48,7 +49,7 @@ public class DiscordCompiler extends ListenerAdapter {
             return;
         }
 
-        handleMessage(event.getMessage());
+        CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
     }
 
 
@@ -57,8 +58,7 @@ public class DiscordCompiler extends ListenerAdapter {
         if (event.getAuthor().isBot()) {
             return;
         }
-
-        handleMessage(event.getMessage());
+        CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
     }
 
 
@@ -67,32 +67,33 @@ public class DiscordCompiler extends ListenerAdapter {
         if (event.getUser().isBot()) {
             return;
         }
+        CompletableFuture.runAsync(() -> onReactionAdd(event));
+    }
 
-        final String emoji = event.getReactionEmote().getEmoji();
+
+    public void onReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
+        String emoji = event.getReactionEmote().getEmoji();
         if (PLAY.equals(emoji)) {
-            event.getChannel()
-                    .retrieveMessageById(event.getMessageId())
-                    .queue(this::printCompilationResultIfPresent);
+            var message = event.getChannel().retrieveMessageById(event.getMessageId()).complete();
+            printCompilationResultIfPresent(message);
         }
     }
 
 
     public void printCompilationResultIfPresent(Message message) {
-        if (compilationResults.containsKey(message.getId())) {
-            for (var msg : compilationResults.getOrDefault(message.getId(),
-                    List.of("compilation result unavailable"))) {
-                log.debug("print compilation result");
+        if (compilationCache.hasResult(message)) {
+            for (var msg : compilationCache.get(message)) {
                 utils.sendRemovableMessage(msg, message.getTextChannel());
+
             }
         } else {
-            log.debug("compilation result not present");
             utils.sendRemovableMessage("compilation result removed from cache, " +
                                        "repost message with code block.", message.getTextChannel());
         }
     }
 
 
-    private void handleMessage(Message message) {
+    public void onMessage(Message message) {
         var contentRaw = message.getContentRaw();
         var dm = DiscordMessage.of(contentRaw);
         compileCodeBlocks(message, dm);
@@ -105,9 +106,8 @@ public class DiscordCompiler extends ListenerAdapter {
                 .findFirst()
                 .ifPresent(part -> wandboxApi.compileAsync(part.text(), part.lang())
                         .thenAccept(response -> {
-                            compilationResults.put(message.getId(),
-                                    WandboxDiscordUtils.formatWandboxResponse(response));
-                            message.addReaction(PLAY).queue();
+                            compilationCache.cache(message, WandboxDiscordUtils.formatWandboxResponse(response));
+                            message.addReaction(PLAY).complete();
                         }));
     }
 }

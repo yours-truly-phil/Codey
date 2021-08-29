@@ -8,15 +8,12 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
 
 import static io.horrorshow.codey.discordutil.DiscordUtils.BASKET;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -30,20 +27,15 @@ class DiscordUtilsTest {
 
     @Mock
     JDA jda;
-    MessageStore messageStore;
     DiscordUtils discordUtils;
     CodeyConfig codeyConfig;
-
-    @Captor
-    ArgumentCaptor<Consumer<Message>> messageCaptor;
 
 
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
-        messageStore = new MessageStore();
         codeyConfig = new CodeyConfig();
-        discordUtils = new DiscordUtils(jda, messageStore, codeyConfig);
+        discordUtils = new DiscordUtils(jda, codeyConfig);
     }
 
 
@@ -53,18 +45,15 @@ class DiscordUtilsTest {
         when(event.getUser().isBot()).thenReturn(false);
         when(event.getReactionEmote().getEmoji()).thenReturn(BASKET);
         when(event.getMessageId()).thenReturn("messageId");
+
         var message = mock(Message.class, RETURNS_DEEP_STUBS);
         when(message.getAuthor().getId()).thenReturn("botUserId");
         when(event.getJDA().getSelfUser().getId()).thenReturn("botUserId");
+        when(event.getChannel().retrieveMessageById("messageId").complete()).thenReturn(message);
 
-        discordUtils.onGuildMessageReactionAdd(event);
+        discordUtils.onReactionAdd(event);
 
-        verify(event.getChannel().retrieveMessageById("messageId"))
-                .queue(messageCaptor.capture());
-
-        messageCaptor.getValue().accept(message);
-
-        verify(message.delete()).queue();
+        verify(message.delete()).complete();
     }
 
 
@@ -73,15 +62,11 @@ class DiscordUtilsTest {
         var text = "Message text";
         var channel = mock(TextChannel.class, RETURNS_DEEP_STUBS);
         var message = mock(Message.class, RETURNS_DEEP_STUBS);
+        when(channel.sendMessage(text).complete()).thenReturn(message);
 
         discordUtils.sendRemovableMessage(text, channel);
 
-        verify(channel.sendMessage(text))
-                .queue(messageCaptor.capture());
-
-        messageCaptor.getValue().accept(message);
-
-        verify(message.addReaction(BASKET)).queue();
+        verify(message.addReaction(BASKET)).complete();
     }
 
 
