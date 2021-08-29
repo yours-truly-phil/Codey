@@ -51,3 +51,4 @@ wandbox:
     cmake: cmake-head
     r: r-head
     ts: typescript-3.9.5
+    typescript: typescript-3.9.5

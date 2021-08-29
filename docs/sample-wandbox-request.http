@@ -7,3 +7,7 @@ Content-Type: application/json
     "stdin": "",
     "runtime_option_raw": ""
 }
+
+### get compiler list
+GET https://wandbox.org/api/list.json
+Content-Type: application/json
