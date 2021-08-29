@@ -1,6 +1,7 @@
 package io.horrorshow.codey.discordutil;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.horrorshow.codey.api.Api;
 import io.horrorshow.codey.compiler.WandboxDiscordUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
@@ -11,11 +12,10 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 
 @Service
@@ -23,17 +23,14 @@ import java.util.Objects;
 public class SlashCommands extends ListenerAdapter {
 
     private final CodeyConfig codeyConfig;
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
+    private final Api api;
 
 
     public SlashCommands(@Autowired JDA jda,
             @Autowired CodeyConfig codeyConfig,
-            @Autowired RestTemplate restTemplate,
-            @Autowired ObjectMapper objectMapper) {
+            @Autowired Api api) {
         this.codeyConfig = codeyConfig;
-        this.restTemplate = restTemplate;
-        this.objectMapper = objectMapper;
+        this.api = api;
 
         jda.addEventListener(this);
 
@@ -57,16 +54,16 @@ public class SlashCommands extends ListenerAdapter {
 
 
     private void get(SlashCommandEvent event) {
-        try {
-            var url = Objects.requireNonNull(event.getOption("url")).getAsString();
-            var res = restTemplate.getForObject(url, Map.class);
-            var out = objectMapper.writerWithDefaultPrettyPrinter()
-                            .writeValueAsString(res);
-            var formatted = WandboxDiscordUtils.toCodeBlock(out);
-            event.reply(formatted).queue();
-        } catch (Exception e) {
-            event.reply("Something went wrong: " + e.getMessage()).queue();
-        }
+        CompletableFuture.runAsync(() -> {
+            try {
+                var url = Objects.requireNonNull(event.getOption("url")).getAsString();
+                var res = WandboxDiscordUtils.toCodeBlock(api.prettyPrintJson(api.getRequest(url)));
+                event.reply(res).queue();
+            } catch (JsonProcessingException e) {
+                event.reply("Error: %s".formatted(e.getMessage())).queue();
+                log.debug("Error in get slash command: {}", e.getMessage());
+            }
+        });
     }
 
 
