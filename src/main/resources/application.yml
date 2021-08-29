@@ -6,6 +6,9 @@ codey:
 logging:
   level:
     io.horrorshow.codey: debug
+spring:
+  main:
+    web-application-type: none
 challenge:
   paths:
     - problem_statements
