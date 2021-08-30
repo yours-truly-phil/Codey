@@ -1,9 +1,8 @@
 package io.horrorshow.codey;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.horrorshow.codey.api.piston.CompilerInfo;
 import io.horrorshow.codey.api.piston.PistonConfiguration;
-import io.horrorshow.codey.api.piston.PistonRuntime;
+import io.horrorshow.codey.api.piston.PistonTypes;
 import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.MessageStore;
 import net.dv8tion.jda.api.JDA;
@@ -77,10 +76,10 @@ public class CodeyApplication {
 
 
     @Bean
-    public CompilerInfo pistonCompiler(@Autowired RestTemplate restTemplate,
+    public PistonTypes.CompilerInfo pistonCompiler(@Autowired RestTemplate restTemplate,
             @Autowired PistonConfiguration config) {
-        var compiler = new CompilerInfo(new ConcurrentHashMap<>());
-        var runtimes = restTemplate.getForObject(config.getRuntimesUrl(), PistonRuntime[].class);
+        var compiler = new PistonTypes.CompilerInfo(new ConcurrentHashMap<>());
+        var runtimes = restTemplate.getForObject(config.getRuntimesUrl(), PistonTypes.PistonRuntime[].class);
         Arrays.stream(Objects.requireNonNull(runtimes, "Can't run without piston runtimes and compiler versions"))
                 .forEach(runtime -> {
                     compiler.compilerMap().put(runtime.language(), runtime);
