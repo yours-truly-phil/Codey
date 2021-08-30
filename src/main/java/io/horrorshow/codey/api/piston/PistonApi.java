@@ -44,7 +44,6 @@ public class PistonApi implements CompilerApi {
         var response = retryTemplate.execute(callback ->
                 restTemplate.postForObject(config.getExecuteUrl(), request, PistonTypes.PistonResponse.class));
 
-        log.debug("get response {}", response);
         return response == null
                 ? CompletableFuture.completedFuture(new Output(null, -1, null, "no response"))
                 : CompletableFuture.completedFuture(
