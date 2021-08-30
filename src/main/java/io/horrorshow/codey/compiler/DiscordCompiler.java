@@ -73,12 +73,12 @@ public class DiscordCompiler extends ListenerAdapter {
         String emoji = event.getReactionEmote().getEmoji();
         if (PLAY.equals(emoji)) {
             var message = event.getChannel().retrieveMessageById(event.getMessageId()).complete();
-            printCompilationResultIfPresent(message);
+            sendCompilationResults(message);
         }
     }
 
 
-    public void printCompilationResultIfPresent(Message message) {
+    public void sendCompilationResults(Message message) {
         if (compilationCache.hasResult(message)) {
             var futures = compilationCache
                     .get(message).stream()
