@@ -7,3 +7,4 @@ services:
       CODEY_TOKEN: change-me
     volumes:
       - ./problem_statements:/application/problem_statements
+      - ./logs:/application/logs

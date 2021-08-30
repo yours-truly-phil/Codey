@@ -1,10 +1,10 @@
-FROM adoptopenjdk:15-jre-hotspot as builder
+FROM adoptopenjdk/openjdk16 as builder
 WORKDIR application
 ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} application.jar
 RUN java -Djarmode=layertools -jar application.jar extract
 
-FROM adoptopenjdk:15-jre-hotspot
+FROM adoptopenjdk/openjdk16
 WORKDIR application
 RUN mkdir ./problem_statements
 COPY --from=builder application/dependencies/ ./

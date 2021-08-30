@@ -6,6 +6,8 @@ codey:
 logging:
   level:
     io.horrorshow.codey: debug
+  file:
+    name: ./logs/codey.log
 spring:
   main:
     web-application-type: none

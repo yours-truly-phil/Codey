@@ -121,7 +121,7 @@ public class DiscordUtils extends ListenerAdapter {
         if (output.errMsg() != null && !output.errMsg().isBlank()) {
             errors.add("Error: " + output.errMsg());
         }
-        if (output.status() != null) {
+        if (output.status() != null && output.status() != 0) {
             errors.add("Status: " + output.status());
         }
 
