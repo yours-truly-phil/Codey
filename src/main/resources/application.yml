@@ -52,3 +52,6 @@ wandbox:
     r: r-head
     ts: typescript-3.9.5
     typescript: typescript-3.9.5
+piston:
+  execute-url: https://emkc.org/api/v2/piston/execute
+  runtimes-url: https://emkc.org/api/v2/piston/runtimes

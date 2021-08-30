@@ -106,8 +106,9 @@ public class DiscordCompiler extends ListenerAdapter {
                 .filter(MessagePart::isCode)
                 .findFirst()
                 .ifPresent(part -> compiler.compile(part.text(), part.lang(), null, null)
-                        .thenAccept(sysOut -> {
-                            compilationCache.cache(message, List.of(DiscordUtils.toCodeBlock(sysOut.sysOut())));
+                        .thenAccept(output -> {
+                            log.debug("output from compilation {}", output);
+                            compilationCache.cache(message, List.of(DiscordUtils.toCodeBlock(output.sysOut())));
                             message.addReaction(PLAY).complete();
                         }));
     }
