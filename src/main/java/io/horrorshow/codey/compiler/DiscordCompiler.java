@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
@@ -46,7 +47,7 @@ public class DiscordCompiler extends ListenerAdapter {
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
-            CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
+            onMessage(event.getMessage());
         }
     }
 
@@ -54,7 +55,7 @@ public class DiscordCompiler extends ListenerAdapter {
     @Override
     public void onGuildMessageUpdate(@NotNull GuildMessageUpdateEvent event) {
         if (!event.getAuthor().isBot()) {
-            CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
+            onMessage(event.getMessage());
         }
     }
 
@@ -62,11 +63,12 @@ public class DiscordCompiler extends ListenerAdapter {
     @Override
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
         if (!event.getUser().isBot()) {
-            CompletableFuture.runAsync(() -> onReactionAdd(event));
+            onReactionAdd(event);
         }
     }
 
 
+    @Async
     public void onReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
         String emoji = event.getReactionEmote().getEmoji();
         if (PLAY.equals(emoji)) {
@@ -78,17 +80,19 @@ public class DiscordCompiler extends ListenerAdapter {
 
     public void printCompilationResultIfPresent(Message message) {
         if (compilationCache.hasResult(message)) {
-            for (var msg : compilationCache.get(message)) {
-                utils.sendRemovableMessage(msg, message.getTextChannel());
-
-            }
+            var futures = compilationCache
+                    .get(message).stream()
+                    .map(msg -> utils.sendRemovableMessageAsync(msg, message.getTextChannel()))
+                    .toList();
+            CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
         } else {
-            utils.sendRemovableMessage("compilation result removed from cache, " +
-                                       "repost message with code block.", message.getTextChannel());
+            utils.sendRemovableMessageAsync("compilation result removed from cache, " +
+                                            "repost message with code block.", message.getTextChannel());
         }
     }
 
 
+    @Async
     public void onMessage(Message message) {
         var contentRaw = message.getContentRaw();
         var dm = DiscordMessage.of(contentRaw);
