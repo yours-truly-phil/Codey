@@ -1,10 +1,11 @@
 package io.horrorshow.codey.api;
 
+import io.horrorshow.codey.compiler.Output;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
@@ -13,8 +14,9 @@ import java.util.function.Function;
 
 
 @Service
+@Qualifier("wandbox")
 @Slf4j
-public class WandboxApi {
+public class WandboxApi implements CompilerApi {
 
     private final RestTemplate restTemplate;
     private final WandboxConfiguration config;
@@ -36,25 +38,14 @@ public class WandboxApi {
 
 
     @Async
-    public CompletableFuture<WandboxResponse> compileAsync(String codeBlock, String lang) {
-        return compileAsync(codeBlock, lang, "", "");
-    }
-
-
-    @Async
-    public CompletableFuture<WandboxResponse> compileAsync(String codeBlock, String lang,
-            String stdin, String runtimeOptions) {
-        return CompletableFuture.completedFuture(compile(codeBlock, lang, stdin, runtimeOptions));
-    }
-
-
-    public WandboxResponse compile(String codeBlock, String lang, String stdin, String runtimeOptions)
-            throws RestClientException {
-        codeBlock = applyLanguageSpecificFixes(codeBlock, lang);
+    public CompletableFuture<Output> compile(String content, String lang, String stdin, String args) {
+        var codeBlock = applyLanguageSpecificFixes(content, lang);
         var compiler = config.getCompiler().getOrDefault(lang, lang);
-        var request = new WandboxRequest(codeBlock, compiler, stdin, runtimeOptions);
-        return restTemplate
-                .postForObject(config.getUrl(), request, WandboxResponse.class);
+        var request = new WandboxRequest(codeBlock, compiler, stdin, args);
+        var response = restTemplate.postForObject(config.getUrl(), request, WandboxResponse.class);
+        return CompletableFuture.completedFuture(response == null
+                ? new Output(null, -1, "no response")
+                : new Output(response.getProgram_output(), response.getStatus(), response.getCompiler_error()));
     }
 
 

@@ -1,0 +1,6 @@
+package io.horrorshow.codey.compiler;
+
+public record Output(String sysOut, int status, String errMsg) {
+
+}
+

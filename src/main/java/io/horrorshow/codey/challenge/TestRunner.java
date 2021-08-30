@@ -26,7 +26,8 @@ public class TestRunner {
         for (var test : caseList) {
             try {
                 var wandboxResult = wandboxApi.compile(code, lang, test.getInput(), "");
-                res.put(test, Optional.of(wandboxResult));
+//                res.put(test, Optional.of(wandboxResult));
+                throw new RuntimeException("not implemented! gotta refactor first");
             } catch (RestClientException e) {
                 res.put(test, Optional.empty());
             }

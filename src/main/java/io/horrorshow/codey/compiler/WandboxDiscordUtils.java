@@ -5,19 +5,16 @@ import io.horrorshow.codey.api.WandboxResponse;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.horrorshow.codey.discordutil.DiscordUtils.CHAR_LIMIT;
+
 
 public class WandboxDiscordUtils {
-
-    public static final int CHAR_LIMIT = 2000;
-    public static final String CODE_BLOCK_TICKS = "```\n";
-
 
     public static List<String> formatWandboxResponse(WandboxResponse wandboxResponse) {
         List<String> result = new ArrayList<>();
 
         StringBuilder sb = new StringBuilder();
-        if (wandboxResponse.getStatus() != null
-            && !wandboxResponse.getStatus().equals("0")) {
+        if (wandboxResponse.getStatus() != 0) {
             sb.append("```\nstatus code: ")
                     .append(wandboxResponse.getStatus())
                     .append("```\n");
@@ -39,11 +36,6 @@ public class WandboxDiscordUtils {
                 ? "no output returned" : output);
 
         return result;
-    }
-
-
-    public static String toCodeBlock(String msg) {
-        return "```\n%s```\n".formatted(msg.substring(0, Math.min(msg.length(), CHAR_LIMIT - CODE_BLOCK_TICKS.length() * 2)));
     }
 
 

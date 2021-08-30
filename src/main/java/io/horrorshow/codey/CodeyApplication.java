@@ -1,6 +1,8 @@
 package io.horrorshow.codey;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.horrorshow.codey.api.PistonApi;
+import io.horrorshow.codey.api.PistonConfiguration;
 import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.MessageStore;
 import net.dv8tion.jda.api.JDA;
@@ -18,6 +20,9 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.security.auth.login.LoginException;
 
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 
@@ -67,5 +72,21 @@ public class CodeyApplication {
     @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
     public MessageStore messageStore() {
         return new MessageStore();
+    }
+
+
+    @Bean
+    public PistonApi.CompilerInfo pistonCompiler(@Autowired RestTemplate restTemplate,
+            @Autowired PistonConfiguration config) {
+        var compiler = new PistonApi.CompilerInfo(new ConcurrentHashMap<>());
+        var runtimes = restTemplate.getForObject(config.getRuntimesUrl(), PistonApi.PistonRuntime[].class);
+        Arrays.stream(Objects.requireNonNull(runtimes, "Can't run without piston runtimes and compiler versions"))
+                .forEach(runtime -> {
+                    compiler.compilerMap().put(runtime.language(), runtime);
+                    if (runtime.aliases() != null) {
+                        Arrays.stream(runtime.aliases()).forEach(alias -> compiler.compilerMap().put(alias, runtime));
+                    }
+                });
+        return compiler;
     }
 }

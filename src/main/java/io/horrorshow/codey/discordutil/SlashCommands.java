@@ -2,7 +2,6 @@ package io.horrorshow.codey.discordutil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.horrorshow.codey.api.Api;
-import io.horrorshow.codey.compiler.WandboxDiscordUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.EmbedType;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 
 @Service
@@ -96,7 +94,7 @@ public class SlashCommands extends ListenerAdapter {
     public void get(SlashCommandEvent event) {
         try {
             var url = Objects.requireNonNull(event.getOption("url")).getAsString();
-            var res = WandboxDiscordUtils.toCodeBlock(
+            var res = DiscordUtils.toCodeBlock(
                     "%s\n\n%s".formatted(url, api.prettyPrintJson(api.getRequest(url))));
             event.reply(res).queue();
         } catch (JsonProcessingException e) {

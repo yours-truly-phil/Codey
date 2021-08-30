@@ -1,8 +1,6 @@
 package io.horrorshow.codey.compiler;
 
-import io.horrorshow.codey.api.WandboxApi;
-import io.horrorshow.codey.api.WandboxConfiguration;
-import io.horrorshow.codey.api.WandboxRequest;
+import io.horrorshow.codey.api.CompilerApi;
 import io.horrorshow.codey.api.WandboxResponse;
 import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.DiscordUtils;
@@ -17,7 +15,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.web.client.RestTemplate;
+
+import java.util.concurrent.CompletableFuture;
 
 import static io.horrorshow.codey.compiler.DiscordCompiler.PLAY;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -28,30 +27,29 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 class DiscordCompilerTest {
 
     @Mock
     JDA jda;
     @Mock
-    RestTemplate restTemplate;
-    WandboxApi wandboxApi;
+    CompilerApi compilerApi;
+
     DiscordUtils utils;
     DiscordCompiler discordCompiler;
     MessageStore messageStore;
     CodeyConfig codeyConfig;
-    WandboxConfiguration config;
+
 
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
-        config = new WandboxConfiguration();
-        config.setUrl("WandboxURL");
-        wandboxApi = new WandboxApi(restTemplate, config);
         messageStore = new MessageStore();
         codeyConfig = new CodeyConfig();
         utils = new DiscordUtils(jda, codeyConfig);
-        discordCompiler = new DiscordCompiler(jda, wandboxApi, utils, messageStore);
+        discordCompiler = new DiscordCompiler(jda, compilerApi, utils, messageStore);
     }
+
 
     @Test
     void doesnt_react_to_bot_messages() {
@@ -62,6 +60,7 @@ class DiscordCompilerTest {
         verify(event, never()).getMessage();
     }
 
+
     @Test
     void doesnt_react_to_bot_message_updates() {
         var event =
@@ -71,6 +70,7 @@ class DiscordCompilerTest {
         verify(event, never()).getMessage();
     }
 
+
     @Test
     void doesnt_react_to_bot_reactions() {
         var event =
@@ -79,6 +79,7 @@ class DiscordCompilerTest {
         discordCompiler.onGuildMessageReactionAdd(event);
         verify(event, never()).getReactionEmote();
     }
+
 
     @Test
     void on_add_message_compile_code_from_codeblocks_and_add_PLAY_reaction() {
@@ -95,15 +96,22 @@ class DiscordCompilerTest {
         when(message.getId()).thenReturn("messageId");
 
         var wandboxResponse = new WandboxResponse();
-        wandboxResponse.setStatus("0");
-        when(restTemplate.postForObject(
-                eq(config.getUrl()), any(WandboxRequest.class), eq(WandboxResponse.class)))
-                .thenReturn(wandboxResponse);
+        wandboxResponse.setStatus(0);
+
+        when(compilerApi.compile(eq("""
+                                
+                public class A {
+                    public static void main(String[] args) {
+                        System.out.println("Hello, World!");
+                    }
+                }"""), eq("java"), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(new Output("sysOut", 0, null)));
 
         discordCompiler.onMessage(message);
 
         verify(message.addReaction(PLAY)).complete();
     }
+
 
     @Test
     void on_update_message_compile_code_from_codeblocks_and_add_PLAY_reaction() {
@@ -119,16 +127,14 @@ class DiscordCompilerTest {
         when(message.getId()).thenReturn("messageId");
         when(message.getGuild().getId()).thenReturn("guildId");
 
-        var wandboxResponse = new WandboxResponse();
-        wandboxResponse.setStatus("0");
-        when(restTemplate.postForObject(
-                eq(config.getUrl()), any(WandboxRequest.class), eq(WandboxResponse.class)))
-                .thenReturn(wandboxResponse);
+        when(compilerApi.compile(any(), eq("java"), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(new Output("sysOut", 0, null)));
 
         discordCompiler.onMessage(message);
 
         verify(message.addReaction(PLAY)).complete();
     }
+
 
     @Test
     void on_play_reaction_print_compilation_results_after_compilable_message_received() {
@@ -148,16 +154,14 @@ class DiscordCompilerTest {
         var channel = mock(TextChannel.class, RETURNS_DEEP_STUBS);
         when(message.getTextChannel()).thenReturn(channel);
 
-        var wandboxResponse = new WandboxResponse();
-        wandboxResponse.setStatus("0");
-        wandboxResponse.setCompiler_message("compiler message");
-        wandboxResponse.setCompiler_error("compiler error");
-        wandboxResponse.setProgram_message("program message");
-        wandboxResponse.setProgram_output("program output");
-
-        when(restTemplate.postForObject(
-                eq(config.getUrl()), any(WandboxRequest.class), eq(WandboxResponse.class)))
-                .thenReturn(wandboxResponse);
+        when(compilerApi.compile(eq("""
+                                
+                public class A {
+                    public static void main(String[] args) {
+                        System.out.println("Hello, World!");
+                    }
+                }"""), eq("java"), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(new Output("sysOut", 0, null)));
 
         discordCompiler.onMessage(message);
 
@@ -172,11 +176,7 @@ class DiscordCompilerTest {
 
         verify(channel).sendMessage("""
                 ```
-                compiler error```
-                """);
-        verify(channel).sendMessage("""
-                ```
-                program message```
+                sysOut```
                 """);
     }
 }

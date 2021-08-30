@@ -27,6 +27,9 @@ public class DiscordUtils extends ListenerAdapter {
 
     public static final String BASKET = "\uD83D\uDDD1️";
 
+    public static final int CHAR_LIMIT = 2000;
+    public static final String CODE_BLOCK_TICKS = "```\n";
+
     private final CodeyConfig config;
 
 
@@ -97,5 +100,10 @@ public class DiscordUtils extends ListenerAdapter {
     public boolean isElevatedMember(Member member) {
         return member != null && member.getRoles().stream()
                 .anyMatch(role -> config.getRoles().contains(role.getName()));
+    }
+
+
+    public static String toCodeBlock(String msg) {
+        return "```\n%s```\n".formatted(msg.substring(0, Math.min(msg.length(), CHAR_LIMIT - CODE_BLOCK_TICKS.length() * 2)));
     }
 }

@@ -8,7 +8,7 @@ import lombok.Data;
 public class WandboxResponse {
     private String program_message;
     private String program_output;
-    private String status;
+    private int status;
     private String compiler_error;
     private String compiler_message;
 }

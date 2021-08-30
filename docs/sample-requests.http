@@ -1,0 +1,32 @@
+POST https://wandbox.org/api/compile.json
+Content-Type: application/json
+
+{
+    "code": "interface A { public static void main(String[] args) { System.out.println(\"Hello, World!\"); } }",
+    "compiler": "openjdk-head",
+    "stdin": "",
+    "runtime_option_raw": ""
+}
+
+### get compiler list
+GET https://wandbox.org/api/list.json
+Content-Type: application/json
+
+### piston info
+GET https://emkc.org/api/v2/piston/runtimes
+Content-Type: application/json
+
+### compile piston
+POST https://emkc.org/api/v2/piston/execute
+Content-Type: application/json
+
+{
+    "language": "java",
+    "version": "15.0.2",
+    "files": [
+        {
+            "name": "main",
+            "content": "interface A { public static void main(String[] args) { System.out.println(\"Hello, World!\"); } }"
+        }
+    ]
+}

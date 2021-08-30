@@ -1,6 +1,6 @@
 package io.horrorshow.codey.compiler;
 
-import io.horrorshow.codey.api.WandboxApi;
+import io.horrorshow.codey.api.CompilerApi;
 import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
@@ -14,9 +14,11 @@ import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -26,19 +28,18 @@ public class DiscordCompiler extends ListenerAdapter {
 
     public static final String PLAY = "▶️";
 
-    private final WandboxApi wandboxApi;
-
+    private final CompilerApi compiler;
     private final MessageStore.CompilationCache compilationCache;
     private final DiscordUtils utils;
 
 
     public DiscordCompiler(@Autowired JDA jda,
-            @Autowired WandboxApi wandboxApi,
+            @Autowired @Qualifier("piston") CompilerApi compiler,
             @Autowired DiscordUtils utils,
             @Autowired MessageStore messageStore) {
-        this.wandboxApi = wandboxApi;
         this.utils = utils;
         this.compilationCache = messageStore.getCompilationCache();
+        this.compiler = compiler;
 
         jda.addEventListener(this);
     }
@@ -104,9 +105,9 @@ public class DiscordCompiler extends ListenerAdapter {
         dm.getParts().stream()
                 .filter(MessagePart::isCode)
                 .findFirst()
-                .ifPresent(part -> wandboxApi.compileAsync(part.text(), part.lang())
-                        .thenAccept(response -> {
-                            compilationCache.cache(message, WandboxDiscordUtils.formatWandboxResponse(response));
+                .ifPresent(part -> compiler.compile(part.text(), part.lang(), null, null)
+                        .thenAccept(sysOut -> {
+                            compilationCache.cache(message, List.of(DiscordUtils.toCodeBlock(sysOut.sysOut())));
                             message.addReaction(PLAY).complete();
                         }));
     }
