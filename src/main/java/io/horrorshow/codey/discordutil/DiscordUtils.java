@@ -19,6 +19,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -79,7 +80,15 @@ public class DiscordUtils extends ListenerAdapter {
     @Async
     public CompletableFuture<Message> sendRemovableMessageAsync(String text, TextChannel channel) {
         var message = channel.sendMessage(text).complete();
-        message.addReaction(BASKET).complete();
+        message.addReaction(BASKET).queue();
+        return CompletableFuture.completedFuture(message);
+    }
+
+
+    @Async
+    public CompletableFuture<Message> sendTextFile(String filename, String text, TextChannel channel) {
+        var message = channel.sendFile(text.getBytes(StandardCharsets.UTF_8), filename).complete();
+        message.addReaction(BASKET).queue();
         return CompletableFuture.completedFuture(message);
     }
 
@@ -106,12 +115,13 @@ public class DiscordUtils extends ListenerAdapter {
     }
 
 
-    public static String toCodeBlock(String msg) {
-        return "```\n%s```\n".formatted(msg.substring(0, Math.min(msg.length(), CHAR_LIMIT - CODE_BLOCK_TICKS.length() * 2)));
+    public static String toCodeBlock(String msg, boolean concat) {
+        return "```\n%s```\n".formatted(
+                concat ? msg.substring(0, Math.min(msg.length(), CHAR_LIMIT - CODE_BLOCK_TICKS.length() * 2)) : msg);
     }
 
 
-    public static List<String> toDiscordFormat(Output output) {
+    public static List<String> toDiscordMessages(Output output) {
         List<String> discordMessages = new ArrayList<>();
 
         List<String> errors = new ArrayList<>();
@@ -126,10 +136,10 @@ public class DiscordUtils extends ListenerAdapter {
         }
 
         if (errors.size() > 0) {
-            discordMessages.add("Problems during compilation\n" + toCodeBlock(String.join("\n", errors)));
+            discordMessages.add("Problems during compilation\n" + String.join("\n", errors));
         }
 
-        discordMessages.add(toCodeBlock(output.sysOut()));
+        discordMessages.add(output.sysOut());
 
         return discordMessages;
     }

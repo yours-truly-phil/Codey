@@ -20,6 +20,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
 
+import static io.horrorshow.codey.discordutil.DiscordUtils.CHAR_LIMIT;
+import static io.horrorshow.codey.discordutil.DiscordUtils.toCodeBlock;
+
 
 @Service
 @Slf4j
@@ -82,7 +85,13 @@ public class DiscordCompiler extends ListenerAdapter {
         if (compilationCache.hasResult(message)) {
             var futures = compilationCache
                     .get(message).stream()
-                    .map(msg -> utils.sendRemovableMessageAsync(msg, message.getTextChannel()))
+                    .map(msg -> {
+                        if (msg.length() > CHAR_LIMIT) {
+                            return utils.sendTextFile("codey-compiler-output.txt", msg, message.getTextChannel());
+                        } else {
+                            return utils.sendRemovableMessageAsync(toCodeBlock(msg, true), message.getTextChannel());
+                        }
+                    })
                     .toList();
             CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
         } else {
@@ -106,8 +115,7 @@ public class DiscordCompiler extends ListenerAdapter {
                 .findFirst()
                 .ifPresent(part -> compiler.compile(part.text(), part.lang(), null, null)
                         .thenAccept(output -> {
-                            log.debug("output from compilation {}", output);
-                            compilationCache.cache(message, DiscordUtils.toDiscordFormat(output));
+                            compilationCache.cache(message, DiscordUtils.toDiscordMessages(output));
                             message.addReaction(PLAY).complete();
                         }));
     }

@@ -81,7 +81,7 @@ class DiscordUtilsTest {
         var result = discordUtils.sendRemovableMessageAsync(text, channel).get();
 
         assertThat(result).isEqualTo(message);
-        verify(message.addReaction(BASKET)).complete();
+        verify(message.addReaction(BASKET)).queue();
     }
 
 

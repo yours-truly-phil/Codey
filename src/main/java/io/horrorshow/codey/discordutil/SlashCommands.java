@@ -95,7 +95,7 @@ public class SlashCommands extends ListenerAdapter {
         try {
             var url = Objects.requireNonNull(event.getOption("url")).getAsString();
             var res = DiscordUtils.toCodeBlock(
-                    "%s\n\n%s".formatted(url, api.prettyPrintJson(api.getRequest(url))));
+                    "%s\n\n%s".formatted(url, api.prettyPrintJson(api.getRequest(url))), false);
             event.reply(res).queue();
         } catch (JsonProcessingException e) {
             event.reply("Error: %s".formatted(e.getMessage())).queue();
