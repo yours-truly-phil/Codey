@@ -1,5 +1,6 @@
 package io.horrorshow.codey.discordutil;
 
+import io.horrorshow.codey.compiler.Output;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
@@ -18,6 +19,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -105,5 +108,29 @@ public class DiscordUtils extends ListenerAdapter {
 
     public static String toCodeBlock(String msg) {
         return "```\n%s```\n".formatted(msg.substring(0, Math.min(msg.length(), CHAR_LIMIT - CODE_BLOCK_TICKS.length() * 2)));
+    }
+
+
+    public static List<String> toDiscordFormat(Output output) {
+        List<String> discordMessages = new ArrayList<>();
+
+        List<String> errors = new ArrayList<>();
+        if (output.signal() != null) {
+            errors.add("Signal: " + output.signal());
+        }
+        if (output.errMsg() != null && !output.errMsg().isBlank()) {
+            errors.add("Error: " + output.errMsg());
+        }
+        if (output.status() != null) {
+            errors.add("Status: " + output.status());
+        }
+
+        if (errors.size() > 0) {
+            discordMessages.add("Problems during compilation\n" + toCodeBlock(String.join("\n", errors)));
+        }
+
+        discordMessages.add(toCodeBlock(output.sysOut()));
+
+        return discordMessages;
     }
 }

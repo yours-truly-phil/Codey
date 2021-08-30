@@ -58,6 +58,6 @@ class WandboxApiTest {
 
         var output = wandboxApi.compile(codeBlock, "java", null, null).get();
 
-        assertThat(output).isEqualTo(new Output("program output", 0, null));
+        assertThat(output).isEqualTo(new Output("program output", 0, null, null));
     }
 }

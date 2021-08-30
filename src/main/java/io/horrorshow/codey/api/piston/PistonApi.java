@@ -46,8 +46,8 @@ public class PistonApi implements CompilerApi {
 
         log.debug("get response {}", response);
         return response == null
-                ? CompletableFuture.completedFuture(new Output(null, -1, "no response"))
+                ? CompletableFuture.completedFuture(new Output(null, -1, null, "no response"))
                 : CompletableFuture.completedFuture(
-                        new Output(response.run().output(), response.run().code(), response.run().stderr()));
+                        new Output(response.run().output(), response.run().code(), response.run().signal(), response.run().stderr()));
     }
 }

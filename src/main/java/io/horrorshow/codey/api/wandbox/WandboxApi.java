@@ -45,8 +45,8 @@ public class WandboxApi implements CompilerApi {
         var request = new WandboxRequest(codeBlock, compiler, stdin, args);
         var response = restTemplate.postForObject(config.getUrl(), request, WandboxResponse.class);
         return CompletableFuture.completedFuture(response == null
-                ? new Output(null, -1, "no response")
-                : new Output(response.getProgram_output(), response.getStatus(), response.getCompiler_error()));
+                ? new Output(null, -1, null, "no response")
+                : new Output(response.getProgram_output(), response.getStatus(), null, response.getCompiler_error()));
     }
 
 

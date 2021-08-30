@@ -105,7 +105,7 @@ class DiscordCompilerTest {
                         System.out.println("Hello, World!");
                     }
                 }"""), eq("java"), any(), any()))
-                .thenReturn(CompletableFuture.completedFuture(new Output("sysOut", 0, null)));
+                .thenReturn(CompletableFuture.completedFuture(new Output("sysOut", 0, null, null)));
 
         discordCompiler.onMessage(message);
 
@@ -128,7 +128,7 @@ class DiscordCompilerTest {
         when(message.getGuild().getId()).thenReturn("guildId");
 
         when(compilerApi.compile(any(), eq("java"), any(), any()))
-                .thenReturn(CompletableFuture.completedFuture(new Output("sysOut", 0, null)));
+                .thenReturn(CompletableFuture.completedFuture(new Output("sysOut", 0, null, null)));
 
         discordCompiler.onMessage(message);
 
@@ -161,7 +161,7 @@ class DiscordCompilerTest {
                         System.out.println("Hello, World!");
                     }
                 }"""), eq("java"), any(), any()))
-                .thenReturn(CompletableFuture.completedFuture(new Output("sysOut", 0, null)));
+                .thenReturn(CompletableFuture.completedFuture(new Output("sysOut", 0, null, null)));
 
         discordCompiler.onMessage(message);
 

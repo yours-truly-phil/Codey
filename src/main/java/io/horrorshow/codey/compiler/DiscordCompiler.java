@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -108,7 +107,7 @@ public class DiscordCompiler extends ListenerAdapter {
                 .ifPresent(part -> compiler.compile(part.text(), part.lang(), null, null)
                         .thenAccept(output -> {
                             log.debug("output from compilation {}", output);
-                            compilationCache.cache(message, List.of(DiscordUtils.toCodeBlock(output.sysOut())));
+                            compilationCache.cache(message, DiscordUtils.toDiscordFormat(output));
                             message.addReaction(PLAY).complete();
                         }));
     }
