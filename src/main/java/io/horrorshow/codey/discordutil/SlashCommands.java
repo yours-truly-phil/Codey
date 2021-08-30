@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -91,18 +92,17 @@ public class SlashCommands extends ListenerAdapter {
     }
 
 
-    private void get(SlashCommandEvent event) {
-        CompletableFuture.runAsync(() -> {
-            try {
-                var url = Objects.requireNonNull(event.getOption("url")).getAsString();
-                var res = WandboxDiscordUtils.toCodeBlock(
-                        "%s\n\n%s".formatted(url, api.prettyPrintJson(api.getRequest(url))));
-                event.reply(res).queue();
-            } catch (JsonProcessingException e) {
-                event.reply("Error: %s".formatted(e.getMessage())).queue();
-                log.debug("Error in get slash command: {}", e.getMessage());
-            }
-        });
+    @Async
+    public void get(SlashCommandEvent event) {
+        try {
+            var url = Objects.requireNonNull(event.getOption("url")).getAsString();
+            var res = WandboxDiscordUtils.toCodeBlock(
+                    "%s\n\n%s".formatted(url, api.prettyPrintJson(api.getRequest(url))));
+            event.reply(res).queue();
+        } catch (JsonProcessingException e) {
+            event.reply("Error: %s".formatted(e.getMessage())).queue();
+            log.debug("Error in get slash command: {}", e.getMessage());
+        }
     }
 
 
