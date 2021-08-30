@@ -1,5 +1,6 @@
-package io.horrorshow.codey.api;
+package io.horrorshow.codey.api.wandbox;
 
+import io.horrorshow.codey.api.CompilerApi;
 import io.horrorshow.codey.compiler.Output;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

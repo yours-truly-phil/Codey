@@ -1,4 +1,4 @@
-package io.horrorshow.codey.api;
+package io.horrorshow.codey.api.wandbox;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;

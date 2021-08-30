@@ -1,7 +1,7 @@
 package io.horrorshow.codey.compiler;
 
 import io.horrorshow.codey.api.CompilerApi;
-import io.horrorshow.codey.api.WandboxResponse;
+import io.horrorshow.codey.api.wandbox.WandboxResponse;
 import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessageStore;

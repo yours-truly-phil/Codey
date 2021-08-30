@@ -1,6 +1,6 @@
 package io.horrorshow.codey.compiler;
 
-import io.horrorshow.codey.api.WandboxResponse;
+import io.horrorshow.codey.api.wandbox.WandboxResponse;
 
 import java.util.ArrayList;
 import java.util.List;

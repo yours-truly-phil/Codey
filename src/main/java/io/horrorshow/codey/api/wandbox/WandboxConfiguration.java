@@ -1,4 +1,4 @@
-package io.horrorshow.codey.api;
+package io.horrorshow.codey.api.wandbox;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

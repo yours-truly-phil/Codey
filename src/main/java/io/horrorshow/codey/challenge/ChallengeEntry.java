@@ -1,6 +1,6 @@
 package io.horrorshow.codey.challenge;
 
-import io.horrorshow.codey.api.WandboxResponse;
+import io.horrorshow.codey.api.wandbox.WandboxResponse;
 import io.horrorshow.codey.challenge.xml.TestCase;
 import io.horrorshow.codey.discordutil.MessagePart;
 import lombok.Getter;

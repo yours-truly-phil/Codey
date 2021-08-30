@@ -1,5 +1,9 @@
 package io.horrorshow.codey.api;
 
+import io.horrorshow.codey.api.wandbox.WandboxApi;
+import io.horrorshow.codey.api.wandbox.WandboxConfiguration;
+import io.horrorshow.codey.api.wandbox.WandboxRequest;
+import io.horrorshow.codey.api.wandbox.WandboxResponse;
 import io.horrorshow.codey.compiler.Output;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

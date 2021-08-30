@@ -1,7 +1,7 @@
 package io.horrorshow.codey.challenge;
 
-import io.horrorshow.codey.api.WandboxApi;
-import io.horrorshow.codey.api.WandboxResponse;
+import io.horrorshow.codey.api.wandbox.WandboxApi;
+import io.horrorshow.codey.api.wandbox.WandboxResponse;
 import io.horrorshow.codey.challenge.xml.Problem;
 import io.horrorshow.codey.challenge.xml.TestCase;
 import org.springframework.beans.factory.annotation.Autowired;
