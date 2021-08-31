@@ -98,7 +98,7 @@ public class CodingCompetition extends ListenerAdapter {
         }
 
         var channel = event.getChannel();
-        if (VERIFY.equals(event.getReactionEmote().getEmoji())) {
+        if (DiscordUtils.hasEmoji(VERIFY, event)) {
             getActiveChallenge(channel).ifPresentOrElse(challenge ->
                             verifyUserEntry(event, channel, challenge)
                     , () -> utils.sendRemovableMessage(DiscordFormat.noActiveChallenge(), channel));

@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.message.guild.react.GenericGuildMessageReactionEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -64,8 +66,7 @@ public class DiscordUtils extends ListenerAdapter {
     @Async
     public void onReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
         var message = event.getChannel().retrieveMessageById(event.getMessageId()).complete();
-        String emoji = event.getReactionEmote().getEmoji();
-        if (BASKET.equals(emoji)) {
+        if (hasEmoji(BASKET, event)) {
             if (event.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
                 try {
                     message.delete().complete();
@@ -112,6 +113,11 @@ public class DiscordUtils extends ListenerAdapter {
     public boolean isElevatedMember(Member member) {
         return member != null && member.getRoles().stream()
                 .anyMatch(role -> config.getRoles().contains(role.getName()));
+    }
+
+
+    public static boolean hasEmoji(String emoji, GenericGuildMessageReactionEvent event) {
+        return event.getReactionEmote().isEmoji() && Objects.equals(emoji, event.getReactionEmote().getEmoji());
     }
 
 

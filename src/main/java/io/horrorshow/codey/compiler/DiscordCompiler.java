@@ -73,8 +73,7 @@ public class DiscordCompiler extends ListenerAdapter {
 
     @Async
     public void onReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
-        String emoji = event.getReactionEmote().getEmoji();
-        if (PLAY.equals(emoji)) {
+        if (DiscordUtils.hasEmoji(PLAY, event)) {
             var message = event.getChannel().retrieveMessageById(event.getMessageId()).complete();
             sendCompilationResults(message);
         }
