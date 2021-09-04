@@ -42,9 +42,10 @@ public class JavaParserTest {
     void wrap_expression_in_class_with_main() {
 
         var source = "System.out.println(\"Lonely println statement\")";
-
+        var loopSource = "for (int i = 0; i < 100; i++) { System.out.println(\"test\"); }";
+        var loop = StaticJavaParser.parseStatement(loopSource);
         var expression = StaticJavaParser.parseExpression(source);
-        var body = new BlockStmt().addStatement(expression);
+        var body = new BlockStmt().addStatement(expression).addStatement(loop);
         var stringArgs = new Parameter().setType("String[]").setName("args");
         var myClass = new CompilationUnit().addClass("CodeyClass").setPublic(true);
         myClass.addMethod("main", Modifier.Keyword.STATIC)
@@ -57,6 +58,9 @@ public class JavaParserTest {
                                 
                     static public void main(String[] args) {
                         System.out.println("Lonely println statement");
+                        for (int i = 0; i < 100; i++) {
+                            System.out.println("test");
+                        }
                     }
                 }""");
     }
