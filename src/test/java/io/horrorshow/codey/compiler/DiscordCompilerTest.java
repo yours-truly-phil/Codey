@@ -169,6 +169,7 @@ class DiscordCompilerTest {
                 mock(GuildMessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
         when(event.getUser().isBot()).thenReturn(false);
         when(event.getReactionEmote().getEmoji()).thenReturn(PLAY);
+        when(event.getReactionEmote().isEmoji()).thenReturn(true);
         when(event.getMessageId()).thenReturn("messageId");
         when(event.getChannel().retrieveMessageById("messageId").complete()).thenReturn(message);
 

@@ -44,6 +44,7 @@ class DiscordUtilsTest {
         var event = mock(GuildMessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
         when(event.getUser().isBot()).thenReturn(false);
         when(event.getReactionEmote().getEmoji()).thenReturn(BASKET);
+        when(event.getReactionEmote().isEmoji()).thenReturn(true);
         when(event.getMessageId()).thenReturn("messageId");
 
         var message = mock(Message.class, RETURNS_DEEP_STUBS);

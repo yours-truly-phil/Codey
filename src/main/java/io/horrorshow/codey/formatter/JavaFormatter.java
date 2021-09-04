@@ -3,7 +3,11 @@ package io.horrorshow.codey.formatter;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.printer.PrettyPrinterConfiguration;
+import com.github.javaparser.printer.DefaultPrettyPrinter;
+import com.github.javaparser.printer.configuration.DefaultConfigurationOption;
+import com.github.javaparser.printer.configuration.DefaultPrinterConfiguration;
+import com.github.javaparser.printer.configuration.Indentation;
+import com.github.javaparser.printer.configuration.PrinterConfiguration;
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +24,7 @@ import java.util.function.Function;
 @Slf4j
 public class JavaFormatter {
 
-    private final PrettyPrinterConfiguration ppConf = new PrettyPrinterConfiguration();
+    private final PrinterConfiguration ppConf = new DefaultPrettyPrinter().getConfiguration();
 
     private final List<Function<String, Optional<String>>> parsers = new ArrayList<>();
 
@@ -32,8 +36,8 @@ public class JavaFormatter {
 
 
     public JavaFormatter() {
-        ppConf.setIndentSize(2);
-        ppConf.setIndentType(PrettyPrinterConfiguration.IndentType.SPACES);
+        var configOption = new DefaultConfigurationOption(DefaultPrinterConfiguration.ConfigOption.INDENTATION);
+        ppConf.addOption(configOption.value(new Indentation(Indentation.IndentType.SPACES, 2)));
 
         ParserConfiguration jpConf = new ParserConfiguration();
         jpConf.setCharacterEncoding(StandardCharsets.UTF_8);
@@ -63,7 +67,7 @@ public class JavaFormatter {
 
     private Optional<String> javaParse(String source,
             Function<String, Node> javaParserFun,
-            PrettyPrinterConfiguration ppCfg) {
+            PrinterConfiguration ppCfg) {
         try {
             var prettyResult = javaParserFun.apply(source).toString(ppCfg)
                     .replaceAll("\\r\\n", "\n")
