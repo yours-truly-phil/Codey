@@ -2,7 +2,7 @@ FROM maven:3.8.2-adoptopenjdk-16 as builder
 WORKDIR application
 COPY src src
 COPY pom.xml .
-RUN mvn package
+RUN mvn spring-boot:build-image -Pproduction
 RUN cp target/*.jar application.jar
 RUN java -Djarmode=layertools -jar application.jar extract
 
