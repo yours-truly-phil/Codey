@@ -14,17 +14,15 @@ paste the link into a browser window and select your server for the bot to join.
 
 https://discord.com/api/oauth2/authorize?client_id=779383631255961640&permissions=11328&scope=bot
 
+## Build and run in docker
+
+* replace `change-me` with the jda token in `docker-compose.yml`
+* `docker-compose build && docker-compose up -d`
+
 ## run
 
 * replace `change-me` in `application.yml` when running with `spring-boot:run` or add the parameter `jda.token` with your bots token to your run configuration in your IDE.
 * run the main method in class `CodeyApplication` or the maven task `spring-boot:run`
-
-## Build and run in docker
-
-* replace `change-me` with the jda token in `docker-compose.yml`
-* `./mvnw spring-boot:build-image -Pproduction`
-* `docker-compose build`
-* `docker-compose up -d`
 
 ### How to get a discord token and invite your own bot to your server
 
