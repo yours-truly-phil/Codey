@@ -11,9 +11,6 @@ logging:
 spring:
   main:
     web-application-type: none
-challenge:
-  paths:
-    - problem_statements
 wandbox:
   url: https://wandbox.org/api/compile.json
   compiler:

@@ -22,8 +22,6 @@
     <google-java-format.version>1.10.0</google-java-format.version>
     <assertj.version>3.18.1</assertj.version>
     <javaparser.version>3.23.0</javaparser.version>
-    <jaxb2.version>2.5.0</jaxb2.version>
-    <jaxb-impl.version>2.3.3</jaxb-impl.version>
     <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
     <spring-retry.version>1.3.1</spring-retry.version>
@@ -91,11 +89,6 @@
       <artifactId>lombok</artifactId>
       <optional>true</optional>
     </dependency>
-    <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
-      <version>${jaxb-impl.version}</version>
-    </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -143,25 +136,6 @@
             <arg>--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
             <arg>--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
           </compilerArgs>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>jaxb2-maven-plugin</artifactId>
-        <version>${jaxb2.version}</version>
-        <executions>
-          <execution>
-            <id>xjc</id>
-            <goals>
-              <goal>xjc</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <packageName>io.horrorshow.codey.challenge.xml</packageName>
-          <sources>
-            <source>${project.basedir}/src/main/resources/xsd/problem-statement.xsd</source>
-          </sources>
         </configuration>
       </plugin>
       <plugin>
