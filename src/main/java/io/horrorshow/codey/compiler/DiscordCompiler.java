@@ -113,7 +113,7 @@ public class DiscordCompiler extends ListenerAdapter {
         dm.getParts().stream()
                 .filter(MessagePart::isCode)
                 .findFirst()
-                .ifPresent(part -> compiler.compile(SourceProcessing.processSource(part.text()), part.lang(), null, null)
+                .ifPresent(part -> compiler.compile(SourceProcessing.processSource(part.text(), part.lang()), part.lang(), null, null)
                         .thenAccept(output -> {
                             compilationCache.cache(message, DiscordUtils.toDiscordMessages(output));
                             message.addReaction(PLAY).complete();

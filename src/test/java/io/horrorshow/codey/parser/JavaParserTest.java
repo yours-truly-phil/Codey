@@ -37,7 +37,7 @@ public class JavaParserTest {
     @Test
     void process_statement() {
         var statementSrc = "System.out.println(\"Lonely println statement\")";
-        var source = processSource(statementSrc);
+        var source = processSource(statementSrc, "java");
         assertThat(source).isEqualTo("""
                 public class CodeyClass {
                                 
@@ -51,7 +51,7 @@ public class JavaParserTest {
     @Test
     void process_expression() {
         var expressionSrc = "for (int i = 0; i < 100; i++) { System.out.println(\"test\"); }";
-        var source = processSource(expressionSrc);
+        var source = processSource(expressionSrc, "java");
         assertThat(source).isEqualTo("""
                 public class CodeyClass {
                                 
@@ -67,7 +67,7 @@ public class JavaParserTest {
     @Test
     void dont_change_unknown_sources() {
         var unknown = "int main() { println(); }";
-        var source = processSource(unknown);
+        var source = processSource(unknown, "java");
         assertThat(source).isEqualTo(unknown);
     }
 }

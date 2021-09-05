@@ -10,29 +10,36 @@ import com.github.javaparser.ast.stmt.BlockStmt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 
 public class SourceProcessing {
 
-    private static final List<Function<String, BlockStmt>> parsers = List.of(
-            (text) -> {
-                var statement = StaticJavaParser.parseStatement(text);
-                return new BlockStmt().addStatement(statement);
-            },
-            (text) -> {
-                var expression = StaticJavaParser.parseExpression(text);
-                return new BlockStmt().addStatement(expression);
-            }
+    private static final Map<String, List<Function<String, BlockStmt>>> parsers = Map.of(
+            "java", List.of((text) -> {
+                        var statement = StaticJavaParser.parseStatement(text);
+                        return new BlockStmt().addStatement(statement);
+                    },
+                    (text) -> {
+                        var expression = StaticJavaParser.parseExpression(text);
+                        return new BlockStmt().addStatement(expression);
+                    })
     );
 
-    public static String processSource(@NotNull String source) {
-        for (var parser : parsers) {
-            var clazzSource = wrapInClass(source, parser);
-            if (clazzSource != null) return clazzSource;
+
+    public static String processSource(@NotNull String source, @NotNull String lang) {
+        if (parsers.containsKey(lang)) {
+            for (var parser : parsers.get(lang)) {
+                var clazzSource = wrapInClass(source, parser);
+                if (clazzSource != null) {
+                    return clazzSource;
+                }
+            }
         }
         return source;
     }
+
 
     private static String wrapInClass(String source, Function<String, BlockStmt> parser) {
         try {
@@ -42,6 +49,7 @@ public class SourceProcessing {
             return null;
         }
     }
+
 
     @NotNull
     public static ClassOrInterfaceDeclaration toPsvmInClass(BlockStmt body) {
