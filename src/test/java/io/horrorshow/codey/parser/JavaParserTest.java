@@ -1,10 +1,7 @@
 package io.horrorshow.codey.parser;
 
 import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Modifier;
-import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.printer.DefaultPrettyPrinter;
 import com.github.javaparser.printer.configuration.DefaultConfigurationOption;
@@ -12,13 +9,15 @@ import com.github.javaparser.printer.configuration.DefaultPrinterConfiguration;
 import com.github.javaparser.printer.configuration.Indentation;
 import org.junit.jupiter.api.Test;
 
+import static io.horrorshow.codey.parser.SourceProcessing.processSource;
+import static io.horrorshow.codey.parser.SourceProcessing.toPsvmInClass;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
 public class JavaParserTest {
 
     @Test
-    void testJavaParser() {
+    void pretty_printer_code_sample() {
         var config = new DefaultPrettyPrinter().getConfiguration();
         var indent = new DefaultConfigurationOption(DefaultPrinterConfiguration.ConfigOption.INDENTATION);
         var indentation = new Indentation(Indentation.IndentType.SPACES, 2);
@@ -29,7 +28,7 @@ public class JavaParserTest {
         var compilationUnit = StaticJavaParser.parse(source);
         assertThat(compilationUnit.toString(config)).isEqualTo("""
                 public class A {
-                                        
+                                
                   public static void main(String[] args) {
                     System.out.println("Hello, World");
                   }
@@ -39,29 +38,39 @@ public class JavaParserTest {
 
 
     @Test
-    void wrap_expression_in_class_with_main() {
-
-        var source = "System.out.println(\"Lonely println statement\")";
-        var loopSource = "for (int i = 0; i < 100; i++) { System.out.println(\"test\"); }";
-        var loop = StaticJavaParser.parseStatement(loopSource);
-        var expression = StaticJavaParser.parseExpression(source);
-        var body = new BlockStmt().addStatement(expression).addStatement(loop);
-        var stringArgs = new Parameter().setType("String[]").setName("args");
-        var myClass = new CompilationUnit().addClass("CodeyClass").setPublic(true);
-        myClass.addMethod("main", Modifier.Keyword.STATIC)
-                .setStatic(true).setPublic(true)
-                .setParameters(NodeList.nodeList(stringArgs))
-                .setBody(body);
-
-        assertThat(myClass.toString()).isEqualTo("""
+    void process_statement() {
+        var statementSrc = "System.out.println(\"Lonely println statement\")";
+        var source = processSource(statementSrc);
+        assertThat(source).isEqualTo("""
                 public class CodeyClass {
                                 
                     static public void main(String[] args) {
                         System.out.println("Lonely println statement");
+                    }
+                }""");
+    }
+
+
+    @Test
+    void process_expression() {
+        var expressionSrc = "for (int i = 0; i < 100; i++) { System.out.println(\"test\"); }";
+        var source = processSource(expressionSrc);
+        assertThat(source).isEqualTo("""
+                public class CodeyClass {
+                                
+                    static public void main(String[] args) {
                         for (int i = 0; i < 100; i++) {
                             System.out.println("test");
                         }
                     }
                 }""");
+    }
+
+
+    @Test
+    void dont_change_unknown_sources() {
+        var unknown = "int main() { println(); }";
+        var source = processSource(unknown);
+        assertThat(source).isEqualTo(unknown);
     }
 }

@@ -5,6 +5,7 @@ import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
 import io.horrorshow.codey.discordutil.MessageStore;
+import io.horrorshow.codey.parser.SourceProcessing;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
@@ -112,7 +113,7 @@ public class DiscordCompiler extends ListenerAdapter {
         dm.getParts().stream()
                 .filter(MessagePart::isCode)
                 .findFirst()
-                .ifPresent(part -> compiler.compile(part.text(), part.lang(), null, null)
+                .ifPresent(part -> compiler.compile(SourceProcessing.processSource(part.text()), part.lang(), null, null)
                         .thenAccept(output -> {
                             compilationCache.cache(message, DiscordUtils.toDiscordMessages(output));
                             message.addReaction(PLAY).complete();
