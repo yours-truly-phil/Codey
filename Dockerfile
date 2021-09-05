@@ -1,7 +1,8 @@
-FROM adoptopenjdk/openjdk16 as builder
+FROM maven:3.8.2-adoptopenjdk-16 as builder
 WORKDIR application
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} application.jar
+COPY . .
+RUN mvn package
+RUN cp target/*.jar application.jar
 RUN java -Djarmode=layertools -jar application.jar extract
 
 FROM adoptopenjdk/openjdk16
