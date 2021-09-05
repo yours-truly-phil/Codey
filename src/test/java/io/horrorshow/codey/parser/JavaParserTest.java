@@ -1,8 +1,6 @@
 package io.horrorshow.codey.parser;
 
 import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.printer.DefaultPrettyPrinter;
 import com.github.javaparser.printer.configuration.DefaultConfigurationOption;
 import com.github.javaparser.printer.configuration.DefaultPrinterConfiguration;
@@ -10,7 +8,6 @@ import com.github.javaparser.printer.configuration.Indentation;
 import org.junit.jupiter.api.Test;
 
 import static io.horrorshow.codey.parser.SourceProcessing.processSource;
-import static io.horrorshow.codey.parser.SourceProcessing.toPsvmInClass;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
