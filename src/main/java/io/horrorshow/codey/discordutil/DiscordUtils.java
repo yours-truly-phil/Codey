@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -148,5 +149,9 @@ public class DiscordUtils extends ListenerAdapter {
         discordMessages.add(output.sysOut());
 
         return discordMessages;
+    }
+
+    public Color getColor() {
+        return Color.decode(config.getEmbedColor());
     }
 }

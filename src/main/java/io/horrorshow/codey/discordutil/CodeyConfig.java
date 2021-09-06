@@ -17,5 +17,6 @@ public class CodeyConfig {
 
     @NotBlank
     private String token;
+    private String embedColor;
     private List<String> roles = new ArrayList<>();
 }

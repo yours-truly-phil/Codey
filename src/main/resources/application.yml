@@ -3,6 +3,7 @@ codey:
   roles:
     - CodeyRole
     - CodeyBoss
+  embedColor: "#f1c40f"
 logging:
   level:
     io.horrorshow.codey: debug
