@@ -11,7 +11,7 @@ import static io.horrorshow.codey.parser.SourceProcessing.processSource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-public class JavaParserTest {
+public class JavaSourceProcessorTest {
 
     @Test
     void pretty_printer_code_sample() {
@@ -38,7 +38,7 @@ public class JavaParserTest {
     void process_statement() {
         var statementSrc = "System.out.println(\"Lonely println statement\");";
         var source = processSource(statementSrc, "java");
-        assertThat(source).isEqualTo("""
+        assertThat(source).isEqualTo(new ProcessResult("""
                 import java.util.*;
                                 
                 public class CodeyClass {
@@ -49,7 +49,7 @@ public class JavaParserTest {
                         }
                     }
                 }
-                """);
+                """, true, null));
     }
 
 
@@ -57,7 +57,7 @@ public class JavaParserTest {
     void process_expression() {
         var expressionSrc = "for (int i = 0; i < 100; i++) { System.out.println(\"test\"); }";
         var source = processSource(expressionSrc, "java");
-        assertThat(source).isEqualTo("""
+        assertThat(source).isEqualTo(new ProcessResult("""
                 import java.util.*;
                                 
                 public class CodeyClass {
@@ -70,7 +70,7 @@ public class JavaParserTest {
                         }
                     }
                 }
-                """);
+                """, true, null));
     }
 
 
@@ -84,14 +84,15 @@ public class JavaParserTest {
                     }
                 }
                 """;
-        assertThat(processSource(source, "java")).isEqualTo(source);
+        assertThat(processSource(source, "java"))
+                .isEqualTo(new ProcessResult(source, true, null));
     }
 
 
     @Test
-    void dont_change_unknown_sources() {
+    void not_java_source_as_java_returns_error() {
         var unknown = "int main() { println(); }";
         var source = processSource(unknown, "java");
-        assertThat(source).isEqualTo(unknown);
+        assertThat(source.isOk()).isEqualTo(false);
     }
 }

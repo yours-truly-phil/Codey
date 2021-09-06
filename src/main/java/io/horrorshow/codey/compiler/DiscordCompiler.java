@@ -113,10 +113,22 @@ public class DiscordCompiler extends ListenerAdapter {
         dm.getParts().stream()
                 .filter(MessagePart::isCode)
                 .findFirst()
-                .ifPresent(part -> compiler.compile(SourceProcessing.processSource(part.text(), part.lang()), part.lang(), null, null)
-                        .thenAccept(output -> {
-                            compilationCache.cache(message, DiscordUtils.toDiscordMessages(output));
-                            message.addReaction(PLAY).complete();
-                        }));
+                .ifPresent(part -> {
+                    var processed = SourceProcessing.processSource(part.text(), part.lang());
+                    if (processed.isOk()) {
+                        log.debug("source ok: {}", processed.source());
+                        compiler.compile(processed.source(), part.lang(), null, null)
+                                .thenAccept(output -> cacheAndAddPlayReaction(message, output));
+                    } else {
+                        var errorOut = new Output(null, 1, null, processed.error());
+                        cacheAndAddPlayReaction(message, errorOut);
+                    }
+                });
+    }
+
+
+    private void cacheAndAddPlayReaction(@NotNull Message message, Output errorOut) {
+        compilationCache.cache(message, DiscordUtils.toDiscordMessages(errorOut));
+        message.addReaction(PLAY).complete();
     }
 }

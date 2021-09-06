@@ -143,9 +143,9 @@ public class DiscordUtils extends ListenerAdapter {
 
         if (errors.size() > 0) {
             discordMessages.add("Problems during compilation\n" + String.join("\n", errors));
+        } else {
+            discordMessages.add(output.sysOut());
         }
-
-        discordMessages.add(output.sysOut());
 
         return discordMessages;
     }
