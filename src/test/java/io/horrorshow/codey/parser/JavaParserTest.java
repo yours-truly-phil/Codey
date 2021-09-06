@@ -36,15 +36,20 @@ public class JavaParserTest {
 
     @Test
     void process_statement() {
-        var statementSrc = "System.out.println(\"Lonely println statement\")";
+        var statementSrc = "System.out.println(\"Lonely println statement\");";
         var source = processSource(statementSrc, "java");
         assertThat(source).isEqualTo("""
+                import java.util.*;
+                                
                 public class CodeyClass {
                                 
                     static public void main(String[] args) {
-                        System.out.println("Lonely println statement");
+                        {
+                            System.out.println("Lonely println statement");
+                        }
                     }
-                }""");
+                }
+                """);
     }
 
 
@@ -53,14 +58,33 @@ public class JavaParserTest {
         var expressionSrc = "for (int i = 0; i < 100; i++) { System.out.println(\"test\"); }";
         var source = processSource(expressionSrc, "java");
         assertThat(source).isEqualTo("""
+                import java.util.*;
+                                
                 public class CodeyClass {
                                 
                     static public void main(String[] args) {
-                        for (int i = 0; i < 100; i++) {
-                            System.out.println("test");
+                        {
+                            for (int i = 0; i < 100; i++) {
+                                System.out.println("test");
+                            }
                         }
                     }
-                }""");
+                }
+                """);
+    }
+
+
+    @Test
+    void process_proper_class() {
+        var source = """
+                import java.util.List;
+                public class A {
+                    public static void main(String[] args) {
+                        List<String> list;
+                    }
+                }
+                """;
+        assertThat(processSource(source, "java")).isEqualTo(source);
     }
 
 

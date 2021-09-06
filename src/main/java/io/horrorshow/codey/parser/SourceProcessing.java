@@ -4,7 +4,6 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import org.jetbrains.annotations.NotNull;
@@ -17,15 +16,14 @@ import java.util.function.Function;
 public class SourceProcessing {
 
     private static final Map<String, List<Function<String, BlockStmt>>> parsers = Map.of(
-            "java", List.of((text) -> {
-                        var statement = StaticJavaParser.parseStatement(text);
-                        return new BlockStmt().addStatement(statement);
-                    },
-                    (text) -> {
-                        var expression = StaticJavaParser.parseExpression(text);
-                        return new BlockStmt().addStatement(expression);
-                    })
+            "java", List.of(SourceProcessing::parseAsStatement)
     );
+
+
+    private static BlockStmt parseAsStatement(String text) {
+        var statement = StaticJavaParser.parseStatement("{ " + text + " }");
+        return new BlockStmt().addStatement(statement);
+    }
 
 
     public static String processSource(@NotNull String source, @NotNull String lang) {
@@ -52,13 +50,15 @@ public class SourceProcessing {
 
 
     @NotNull
-    public static ClassOrInterfaceDeclaration toPsvmInClass(BlockStmt body) {
+    public static CompilationUnit toPsvmInClass(BlockStmt body) {
+        var compilationUnit = new CompilationUnit();
+        compilationUnit.addImport("java.util.*");
         var stringArgs = new Parameter().setType("String[]").setName("args");
-        var myClass = new CompilationUnit().addClass("CodeyClass").setPublic(true);
+        var myClass = compilationUnit.addClass("CodeyClass").setPublic(true);
         myClass.addMethod("main", Modifier.Keyword.STATIC)
                 .setStatic(true).setPublic(true)
                 .setParameters(NodeList.nodeList(stringArgs))
                 .setBody(body);
-        return myClass;
+        return compilationUnit;
     }
 }
