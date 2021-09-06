@@ -14,7 +14,7 @@ public class SourceProcessing {
 
 
     public static ProcessResult processSource(@NotNull String source, @NotNull String lang) {
-        var processor = processors.getOrDefault("java", defaultProcessor);
+        var processor = processors.getOrDefault(lang, defaultProcessor);
         return processor.process(source);
     }
 }
