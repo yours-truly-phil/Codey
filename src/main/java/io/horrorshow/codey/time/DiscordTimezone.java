@@ -10,9 +10,12 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoField;
 import java.util.Arrays;
+import java.util.Locale;
 
 @Service
 public class DiscordTimezone extends ListenerAdapter {
@@ -118,6 +121,8 @@ public class DiscordTimezone extends ListenerAdapter {
             {
                 array[2] = rawContentParts[index + 1];
 
+                DayOfWeek dayOfWeek = null;
+
                 if(!ZoneId.getAvailableZoneIds().contains((String) array[2]))
                 {
                     array[0] = false;
@@ -125,7 +130,19 @@ public class DiscordTimezone extends ListenerAdapter {
                     return array;
                 }
 
-                array[3] = OffsetDateTime.now(ZoneId.of((String) array[2])).withHour((Integer) array[0]).withMinute((Integer) array[1]);
+                if(index > 0)
+                {
+                    try {
+                        dayOfWeek = DayOfWeek.valueOf(rawContentParts[index - 1].toUpperCase(Locale.ROOT));
+                    } catch (IllegalArgumentException ignored) {}
+                }
+
+                OffsetDateTime offsetDateTime = OffsetDateTime.now(ZoneId.of((String) array[2])).withHour((Integer) array[0]).withMinute((Integer) array[1]);
+                if(dayOfWeek != null)
+                {
+                    offsetDateTime = offsetDateTime.with(ChronoField.DAY_OF_WEEK, dayOfWeek.getValue());
+                }
+                array[3] = offsetDateTime;
             }
         }
 
