@@ -1,6 +1,8 @@
 package io.horrorshow.codey.time;
 
 import io.horrorshow.codey.discordutil.DiscordUtils;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
@@ -14,8 +16,13 @@ import java.time.DayOfWeek;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class DiscordTimezone extends ListenerAdapter {
@@ -27,126 +34,123 @@ public class DiscordTimezone extends ListenerAdapter {
         jda.addEventListener(this);
     }
 
-    private final String emoji = "⏰";
-    private final String deleteEmoji = "\uD83D\uDDD1";
-
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
-            onMessage(event.getMessage());
+            CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
         }
     }
 
-    private void onMessage(Message message) {
+    void onMessage(Message message) {
         String rawContent = message.getContentRaw();
-        String[] rawContentParts = rawContent.split("\\s+");
+        TimeMatch[] matches = matchTimes(rawContent);
 
-        if(rawContentParts.length == 0)
+        if(matches.length == 0)
             return;
 
-        Object[] result = time(rawContentParts);
+        // Retrieve only one match
+        TimeMatch match = matches[0];
 
-        if(!((boolean) result[0])) {
-            if(result[1] != null && (boolean) result[1])
-            {
-                message.addReaction(emoji).complete();
-                message.reply(new EmbedBuilder()
-                        .setColor(utils.getColor())
-                        .setTitle("Did you know that I can provide time conversions automatically?")
-                        .addField("Here is a tip:",
-                                "You can use regions from the IANA Time Zone Database (TZDB). " +
-                                "This has region IDs of the form `{area}/{city}`, such as `Europe/Paris` or `America/New_York`", false)
-                        .build()).complete().addReaction(deleteEmoji).complete();
-            }
-            return;
-        }
+        int[] time = match.parseTime();
+        OffsetDateTime timeStamp;
+        if(match.hasWeekDay())
+            timeStamp = parseTime(time[0], time[1], match.region, match.weekDay);
+        else
+            timeStamp = parseTime(time[0], time[1], match.region);
 
-        OffsetDateTime timeStamp = (OffsetDateTime) result[3];
-
-        message.reply(new EmbedBuilder()
+        utils.sendRemovableMessageReply(message, new EmbedBuilder()
                 .setFooter("Time in your timezone: ")
                 .setTimestamp(timeStamp)
                 .setColor(utils.getColor())
-                .build()).mentionRepliedUser(false).complete();
+                .build());
     }
 
-    private Object[] time(String[] rawContentParts) {
-        boolean returnValue = false;
-        Object[] array = new Object[4];
+    private OffsetDateTime parseTime(int hour, int minute, String zoneId, DayOfWeek weekDay)
+    {
+        return OffsetDateTime.now(ZoneId.of(zoneId)).with(ChronoField.DAY_OF_WEEK, weekDay.getValue()).withHour(hour).withMinute(minute);
+    }
 
-        int index = -1;
+    private OffsetDateTime parseTime(int hour, int minute, String zoneId)
+    {
+        return OffsetDateTime.now(ZoneId.of(zoneId)).withHour(hour).withMinute(minute);
+    }
 
-        for(int i = 0; i < rawContentParts.length; i++)
-        {
-            String s = rawContentParts[i];
-            if(!s.contains(":"))
-            {
-                returnValue = false;
-            } else
-            {
-                String[] parts = s.split(":");
-                if(parts.length < 2)
+    private final Pattern[] patterns = new Pattern[]{
+            Pattern.compile("[\\d]{1,2}:[\\d]{1,2} +(\\w+/\\w+|\\w{2,5})"),
+            Pattern.compile("([^\\s]+) +[\\d]{1,2}:[\\d]{1,2} +(\\w+/\\w+|\\w{2,5})")
+    };
+
+    TimeMatch[] matchTimes(String messageContent)
+    {
+        List<TimeMatch> matches = new ArrayList<>();
+
+        for(Pattern pattern : patterns) {
+            Matcher matcher = pattern.matcher(messageContent);
+            while (matcher.find()) {
+                if(!startsWithWeekDay(matcher.group().toUpperCase(Locale.ROOT))) {
+                    String time = stripRegion(matcher.group());
+                    String region = stripTime(matcher.group());
+
+                    if (ZoneId.getAvailableZoneIds().contains(region))
+                        matches.add(new TimeMatch(time, region, false, null, matcher.start()));
+                } else
                 {
-                    returnValue = false;
-                    continue;
-                }
+                    DayOfWeek weekOfDay = getWeekOfDay(matcher.group().toUpperCase(Locale.ROOT));
+                    String time = getTime(matcher.group());
+                    String region = getRegion(matcher.group());
 
-                try {
-                    int firstPart = Integer.parseInt(parts[0]);
-                    int secondPart = Integer.parseInt(parts[1]);
-
-                    array[0] = firstPart;
-                    array[1] = secondPart;
-
-                    returnValue = !(firstPart < 1 || firstPart > 23 || secondPart < 0 || secondPart > 59);
-
-                    index = i;
-
-                    if(returnValue)
-                        break;
-                } catch (NumberFormatException e)
-                {
-                    returnValue = false;
+                    if (ZoneId.getAvailableZoneIds().contains(region)) {
+                        // Rather hacky solution to remove the match if it was already detected without the week day
+                        matches.remove(matches.size() - 1);
+                        matches.add(new TimeMatch(time, region, true, weekOfDay, matcher.start()));
+                    }
                 }
             }
         }
 
-        if(index != -1)
-        {
-            if(index >= rawContentParts.length - 1) {
-                returnValue = false;
-                array[1] = true;
-            }
-            else
-            {
-                array[2] = rawContentParts[index + 1];
+        return matches.toArray(new TimeMatch[0]);
+    }
 
-                DayOfWeek dayOfWeek = null;
+    private String getTime(String group) {
+        return group.split("\\s+")[1];
+    }
 
-                if(!ZoneId.getAvailableZoneIds().contains((String) array[2]))
-                {
-                    array[0] = false;
-                    array[1] = true;
-                    return array;
-                }
+    private String getRegion(String group) {
+        return group.split("\\s+")[2];
+    }
 
-                if(index > 0)
-                {
-                    try {
-                        dayOfWeek = DayOfWeek.valueOf(rawContentParts[index - 1].toUpperCase(Locale.ROOT));
-                    } catch (IllegalArgumentException ignored) {}
-                }
+    private DayOfWeek getWeekOfDay(String group) {
+        return DayOfWeek.valueOf(group.split("\\s+")[0]);
+    }
 
-                OffsetDateTime offsetDateTime = OffsetDateTime.now(ZoneId.of((String) array[2])).withHour((Integer) array[0]).withMinute((Integer) array[1]);
-                if(dayOfWeek != null)
-                {
-                    offsetDateTime = offsetDateTime.with(ChronoField.DAY_OF_WEEK, dayOfWeek.getValue());
-                }
-                array[3] = offsetDateTime;
-            }
+    private final List<String> weekDays = Arrays.asList("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY");
+
+    private boolean startsWithWeekDay(String group)
+    {
+        return weekDays.contains(group.split("\\s+")[0]);
+    }
+
+    private String stripTime(String group) {
+        String[] data = group.split("\\s+");
+
+        if(data.length == 1)
+            return data[0];
+
+        return String.join(" ", Arrays.copyOfRange(data, 1, data.length));
+    }
+
+
+    private String stripRegion(String group) {
+        return group.split("\\s+")[0];
+    }
+
+    record TimeMatch(String time, String region, boolean hasWeekDay, DayOfWeek weekDay, int index) {
+        public int[] parseTime() {
+            String[] time = time().split(":");
+            int hour = Integer.parseInt(time[0].trim());
+            int minute = Integer.parseInt(time[1].trim());
+
+            return new int[]{hour, minute};
         }
-
-        array[0] = returnValue;
-        return array;
     }
 }

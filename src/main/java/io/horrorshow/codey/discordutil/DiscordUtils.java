@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.react.GenericGuildMessageReactionEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
 
-import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -153,5 +154,12 @@ public class DiscordUtils extends ListenerAdapter {
 
     public Color getColor() {
         return Color.decode(config.getEmbedColor());
+    }
+
+    @Async
+    public CompletableFuture<Message> sendRemovableMessageReply(Message origin, MessageEmbed content) {
+        var message = origin.reply(content).complete();
+        message.addReaction(BASKET).queue();
+        return CompletableFuture.completedFuture(message);
     }
 }
