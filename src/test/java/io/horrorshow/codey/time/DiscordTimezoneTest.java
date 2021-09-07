@@ -1,6 +1,5 @@
 package io.horrorshow.codey.time;
 
-import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.parser.TimeParser;
 import net.dv8tion.jda.api.JDA;

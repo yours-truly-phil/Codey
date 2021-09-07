@@ -1,13 +1,9 @@
 package io.horrorshow.codey.parser;
 
-import java.text.DateFormatSymbols;
 import java.time.DayOfWeek;
-import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 
 public class TimeParser {
