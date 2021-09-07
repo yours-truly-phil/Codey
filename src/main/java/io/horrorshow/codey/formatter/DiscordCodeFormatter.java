@@ -29,8 +29,8 @@ public class DiscordCodeFormatter extends ListenerAdapter {
 
 
     public DiscordCodeFormatter(@Autowired JDA jda,
-            @Autowired JavaFormatter javaFormatter,
-            @Autowired DiscordUtils utils) {
+                                @Autowired JavaFormatter javaFormatter,
+                                @Autowired DiscordUtils utils) {
         this.javaFormatter = javaFormatter;
         this.utils = utils;
 
@@ -121,7 +121,7 @@ public class DiscordCodeFormatter extends ListenerAdapter {
 
     private String codeBlockOf(String code, String lang) {
         return "```" + lang + "\n" +
-               code +
-               "```";
+                code +
+                "```";
     }
 }

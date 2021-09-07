@@ -42,7 +42,7 @@ public class DiscordUtils extends ListenerAdapter {
 
 
     public DiscordUtils(@Autowired JDA jda,
-            @Autowired CodeyConfig config) {
+                        @Autowired CodeyConfig config) {
         this.config = config;
 
         jda.addEventListener(this);
