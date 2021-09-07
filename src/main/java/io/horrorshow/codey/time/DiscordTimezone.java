@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class DiscordTimezone extends ListenerAdapter {
+    private static final Pattern timeMatcher = Pattern.compile(createTimeMatchPattern(), Pattern.CASE_INSENSITIVE);
     private final DiscordUtils utils;
 
     public DiscordTimezone(@Autowired JDA jda, @Autowired DiscordUtils utils) {
@@ -28,8 +29,6 @@ public class DiscordTimezone extends ListenerAdapter {
 
         jda.addEventListener(this);
     }
-
-    private static final Pattern timeMatcher = Pattern.compile(createTimeMatchPattern(), Pattern.CASE_INSENSITIVE);
 
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
