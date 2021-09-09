@@ -38,7 +38,7 @@ public class DiscordTimezone extends ListenerAdapter {
     }
 
     void onMessage(Message message) {
-        var matcher = timeMatcher.matcher(message.getContentRaw());
+        var matcher = timeMatcher.matcher(message.getContentStripped());
 
         while (matcher.find()) {
             OffsetDateTime timestamp = TimeParser.toOffsetDateTime(matcher.group());
