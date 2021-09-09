@@ -46,7 +46,7 @@ class DiscordTimezoneTest {
     @Test
     void finds_time_in_message_and_replies_with_local_time() {
         var message = mock(Message.class, RETURNS_DEEP_STUBS);
-        when(message.getContentRaw()).thenReturn("""
+        when(message.getContentStripped()).thenReturn("""
                 this is a discord message, here
                 is a time: Friday 15:00 Europe/Berlin cool cool
                 here is some invalid time fRidai 24:60 Europe/Los_Angeles""");
