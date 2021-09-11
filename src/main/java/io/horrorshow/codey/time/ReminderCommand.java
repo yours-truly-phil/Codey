@@ -1,7 +1,7 @@
 package io.horrorshow.codey.time;
 
-import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.DataStore;
+import io.horrorshow.codey.discordutil.DiscordUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -105,30 +105,37 @@ public class ReminderCommand extends ListenerAdapter {
         if (inMinutes < 1) {
             event.reply("That's in the past.").complete();
             return;
-        } else {
-            if (inMinutes > MAX_DURATION_MINS) {
-                event.reply("can't remind you on "
-                            + LocalDateTime.ofInstant(Instant.now()
-                        .plus(MAX_DURATION_MINS, ChronoUnit.MINUTES), ZoneId.systemDefault())
-                            + ". Too far in the future.").complete();
-                return;
-            }
+        } else if (inMinutes > MAX_DURATION_MINS) {
+            event.reply("can't remind you on "
+                        + LocalDateTime.ofInstant(Instant.now()
+                    .plus(MAX_DURATION_MINS, ChronoUnit.MINUTES), ZoneId.systemDefault())
+                        + ". Too far in the future.").complete();
+            return;
         }
+
+        var requestPing = !options.containsKey("ping") || options.get("ping").getAsBoolean();
+
         var message = options.get("m").getAsString();
 
         var embed = new EmbedBuilder()
                 .setColor(event.getMember() != null ? event.getMember().getColor() : Color.MAGENTA)
-                .setDescription("%s%s%s\n%s\n<@%s>".formatted(ALARM, ALARM, ALARM, message, event.getUser().getId()))
+                .setTitle(ALARM + ALARM + ALARM)
+                .setDescription(message)
                 .setThumbnail(event.getUser().getAvatarUrl())
                 .setAuthor(event.getUser().getName())
                 .setFooter("reminder set at")
                 .setTimestamp(Instant.now())
                 .build();
 
-        var timer = new ReminderTimer(message, event.getUser(), () -> {
+        Runnable reminderTask = () -> {
+            if (requestPing) {
+                utils.sendRemovableMessageAsync("%s <@%s>".formatted(ALARM, event.getUser().getId()), event.getTextChannel());
+            }
             utils.sendRemovableEmbed(embed, event.getTextChannel());
             timerMap.remove(event.getId());
-        }, inMinutes * 60 * 1000);
+        };
+
+        var timer = new ReminderTimer(message, event.getUser(), reminderTask, inMinutes * 60 * 1000);
 
         timerMap.put(event.getId(), timer);
 

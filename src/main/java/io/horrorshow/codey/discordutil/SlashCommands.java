@@ -36,7 +36,8 @@ public class SlashCommands extends ListenerAdapter {
                 .addOptions(new OptionData(OptionType.BOOLEAN, "clear", "Clear the cache"))),
         REMIND_ME("remind-me", new CommandData("remind-me", "Set a reminder")
                 .addOptions(new OptionData(OptionType.INTEGER, "in", "how many minutes from now?", true),
-                        new OptionData(OptionType.STRING, "m", "what should it say?", true))),
+                        new OptionData(OptionType.STRING, "m", "what should it say?", true),
+                        new OptionData(OptionType.BOOLEAN, "ping", "ping when done?"))),
         SHOW_REMINDERS("show-reminders", new CommandData("show-reminders", "Show your running reminders")
                 .addOptions(new OptionData(OptionType.BOOLEAN, "all", "Show reminders of all users"))),
         STOP_REMINDER("stop-reminder", new CommandData("stop-reminder", "Stop a running reminder")
