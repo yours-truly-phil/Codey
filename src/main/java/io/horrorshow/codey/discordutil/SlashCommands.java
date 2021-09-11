@@ -40,13 +40,16 @@ public class SlashCommands extends ListenerAdapter {
         jda.addEventListener(this);
 
         jda.updateCommands().addCommands(List.of(
-                new CommandData("say", "Makes the bot say what you tell it to").addOptions(
-                        new OptionData(OptionType.STRING, "content", "What the bot should say").setRequired(true)),
-                new CommandData("get", "Get request").addOptions(
-                        new OptionData(OptionType.STRING, "url", "The URL to run the request against").setRequired(true)),
-                new CommandData("cache", "Manage formatted code store").addOptions(
-                        new OptionData(OptionType.BOOLEAN, "clear", "Clear the cache")
-                )
+                new CommandData("say", "Makes the bot say what you tell it to")
+                        .addOptions(new OptionData(OptionType.STRING, "content",
+                                "What the bot should say", true)),
+
+                new CommandData("get", "Get request")
+                        .addOptions(new OptionData(OptionType.STRING, "url",
+                                "The URL to run the request against", true)),
+
+                new CommandData("cache", "Manage formatted code store")
+                        .addOptions(new OptionData(OptionType.BOOLEAN, "clear", "Clear the cache"))
         )).queue();
     }
 
@@ -57,7 +60,6 @@ public class SlashCommands extends ListenerAdapter {
             case "say" -> say(event);
             case "get" -> get(event);
             case "cache" -> cache(event);
-            default -> event.reply("Invalid command").queue();
         }
     }
 

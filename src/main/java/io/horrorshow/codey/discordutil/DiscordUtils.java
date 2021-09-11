@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
 
-import java.awt.Color;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -89,6 +89,14 @@ public class DiscordUtils extends ListenerAdapter {
 
 
     @Async
+    public CompletableFuture<Message> sendRemovableEmbed(MessageEmbed embed, TextChannel channel) {
+        var message = channel.sendMessage(embed).complete();
+        message.addReaction(BASKET).complete();
+        return CompletableFuture.completedFuture(message);
+    }
+
+
+    @Async
     public CompletableFuture<Message> sendTextFile(String filename, String text, TextChannel channel) {
         var message = channel.sendFile(text.getBytes(StandardCharsets.UTF_8), filename).complete();
         message.addReaction(BASKET).queue();
@@ -129,7 +137,7 @@ public class DiscordUtils extends ListenerAdapter {
     }
 
 
-    public static List<String> toDiscordMessages(Output output) {
+    public static List<String> compilerOutToDiscordMessage(Output output) {
         List<String> discordMessages = new ArrayList<>();
 
         List<String> errors = new ArrayList<>();

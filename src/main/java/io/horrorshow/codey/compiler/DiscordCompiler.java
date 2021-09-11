@@ -128,7 +128,7 @@ public class DiscordCompiler extends ListenerAdapter {
 
 
     private void cacheAndAddPlayReaction(@NotNull Message message, Output errorOut) {
-        compilationCache.cache(message, DiscordUtils.toDiscordMessages(errorOut));
+        compilationCache.cache(message, DiscordUtils.compilerOutToDiscordMessage(errorOut));
         message.addReaction(PLAY).complete();
     }
 }
