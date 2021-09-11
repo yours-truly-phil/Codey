@@ -2,9 +2,8 @@
 
 [![MavenBuild Actions Status](https://github.com/Philtard/Codey/workflows/maven-build/badge.svg)](https://github.com/Philtard/Codey/actions)
 
-Discord bot to compile and run code and fix code formatting, all 
-without leaving discord and just a single click (reaction) away.
-Supports tons of languages and automatically finds runnable code in messages.
+Discord bot to compile and run code and fix code formatting, all without leaving discord and just a single click (reaction) away. Supports
+tons of languages and automatically finds runnable code in messages.
 
 ![Codey Demo](docs/demo.gif)
 
@@ -21,7 +20,8 @@ https://discord.com/api/oauth2/authorize?client_id=779383631255961640&permission
 
 ## run
 
-* replace `change-me` in `application.yml` when running with `spring-boot:run` or add the parameter `jda.token` with your bots token to your run configuration in your IDE.
+* replace `change-me` in `application.yml` when running with `spring-boot:run`
+  or add the parameter `codey.token` with your bots token to your run configuration in your IDE.
 * run the main method in class `CodeyApplication` or the maven task `spring-boot:run`
 
 ### How to get a discord token and invite your own bot to your server
@@ -32,7 +32,8 @@ https://discord.com/api/oauth2/authorize?client_id=779383631255961640&permission
 * to reveal your token click `Click To Reveal Token` and copy that token to the places described above depending on how you run it
 * select `OAuth2`
 * check `bot` in Scopes
-* after checking `bot` you can select the bot permissions `Send Messages`, `Add Reactions`, `View Channels` and `Manage Messages` (or whatever it is your bot needs if you don't intend to build the one in this repo)
+* after checking `bot` you can select the bot permissions `Send Messages`, `Add Reactions`, `View Channels`
+  and `Manage Messages` (or whatever it is your bot needs if you don't intend to build the one in this repo)
 * now click on `Copy` next to the generated link and paste it into a browser window.
 * select your server to let the bot join.
 * if you run your bot now it shows as online in your servers memberlist.
