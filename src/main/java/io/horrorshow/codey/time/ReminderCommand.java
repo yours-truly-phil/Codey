@@ -10,9 +10,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +24,6 @@ import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,6 +33,7 @@ import java.util.stream.Collectors;
 public class ReminderCommand extends ListenerAdapter {
 
     private static final String ALARM = "⏰";
+    private static final long MAX_DURATION_MINS = 60 * 24 * 365 * 20;
 
     private final DiscordUtils utils;
     private final Map<String, Reminder> timerMap;
@@ -47,16 +44,7 @@ public class ReminderCommand extends ListenerAdapter {
         this.utils = utils;
         this.timerMap = store.getTimerMap();
 
-        var remindMe = new CommandData("remind-me", "Set a reminder")
-                .addOptions(new OptionData(OptionType.INTEGER, "in", "how many minutes from now?", true),
-                        new OptionData(OptionType.STRING, "m", "what should it say?", true));
-        var showReminders = new CommandData("show-reminders", "Show your running reminders")
-                .addOptions(new OptionData(OptionType.BOOLEAN, "all", "Show reminders of all users"));
-        var stopReminder = new CommandData("stop-reminder", "Stop a running reminder")
-                .addOptions(new OptionData(OptionType.STRING, "id", "Id of the reminder to stop", true));
-
         jda.addEventListener(this);
-        jda.updateCommands().addCommands(remindMe, showReminders, stopReminder).queue();
     }
 
 
@@ -72,24 +60,26 @@ public class ReminderCommand extends ListenerAdapter {
 
 
     public void onShowReminders(SlashCommandEvent event) {
-        final BiFunction<String, Reminder, String> formatEntry =
-                (id, reminder) -> "%s by %s (%ds remaining) -> %s".formatted(
-                        id,
-                        reminder.getUser().getName(),
-                        getSecondsUntil(reminder),
-                        reminder.getMessage());
-
         var allOption = event.getOption("all");
         if (allOption != null && allOption.getAsBoolean() && utils.isElevatedMember(event.getMember())) {
             event.reply("***All currently running timers***\n" + timerMap.entrySet().stream()
-                    .map(entry -> formatEntry.apply(entry.getKey(), entry.getValue()))
+                    .map(entry -> formatReminder(entry.getKey(), entry.getValue()))
                     .collect(Collectors.joining("\n"))).complete();
         } else {
             event.reply("***Currently running timers by " + event.getUser().getName() + "***\n" + timerMap.entrySet().stream()
                     .filter(entry -> entry.getValue().getUser().getIdLong() == event.getUser().getIdLong())
-                    .map(entry -> formatEntry.apply(entry.getKey(), entry.getValue()))
+                    .map(entry -> formatReminder(entry.getKey(), entry.getValue()))
                     .collect(Collectors.joining("\n"))).complete();
         }
+    }
+
+
+    private String formatReminder(String id, Reminder reminder) {
+        return "%s by %s (%ds remaining) -> %s".formatted(
+                id,
+                reminder.getUser().getName(),
+                getSecondsUntil(reminder),
+                reminder.getMessage());
     }
 
 
@@ -120,18 +110,20 @@ public class ReminderCommand extends ListenerAdapter {
         if (inMinutes < 1) {
             event.reply("That's in the past.").complete();
             return;
-        } else if (inMinutes > 60 * 24 * 365 * 20) {
-            event.reply("can't remind you on "
-                        + LocalDateTime.ofInstant(Instant.now()
-                    .plus(60 * 24 * 365 * 20, ChronoUnit.MINUTES), ZoneId.systemDefault())
-                        + ". Too far in the future.").complete();
-            return;
+        } else {
+            if (inMinutes > MAX_DURATION_MINS) {
+                event.reply("can't remind you on "
+                            + LocalDateTime.ofInstant(Instant.now()
+                        .plus(MAX_DURATION_MINS, ChronoUnit.MINUTES), ZoneId.systemDefault())
+                            + ". Too far in the future.").complete();
+                return;
+            }
         }
         var message = options.get("m").getAsString();
 
         var embed = new EmbedBuilder()
                 .setColor(event.getMember() != null ? event.getMember().getColor() : Color.MAGENTA)
-                .setDescription("%s%s%s\n%s".formatted(ALARM, ALARM, ALARM, message))
+                .setDescription("%s%s%s\n%s\n<@%s>".formatted(ALARM, ALARM, ALARM, message, event.getUser().getId()))
                 .setThumbnail(event.getUser().getAvatarUrl())
                 .setAuthor(event.getUser().getName())
                 .setFooter("reminder set at")
