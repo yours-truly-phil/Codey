@@ -4,7 +4,7 @@ import io.horrorshow.codey.api.CompilerApi;
 import io.horrorshow.codey.api.wandbox.WandboxResponse;
 import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.DiscordUtils;
-import io.horrorshow.codey.discordutil.MessageStore;
+import io.horrorshow.codey.discordutil.DataStore;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -37,17 +37,17 @@ class DiscordCompilerTest {
 
     DiscordUtils utils;
     DiscordCompiler discordCompiler;
-    MessageStore messageStore;
+    DataStore dataStore;
     CodeyConfig codeyConfig;
 
 
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
-        messageStore = new MessageStore();
+        dataStore = new DataStore();
         codeyConfig = new CodeyConfig();
         utils = new DiscordUtils(jda, codeyConfig);
-        discordCompiler = new DiscordCompiler(jda, compilerApi, utils, messageStore);
+        discordCompiler = new DiscordCompiler(jda, compilerApi, utils, dataStore);
     }
 
 

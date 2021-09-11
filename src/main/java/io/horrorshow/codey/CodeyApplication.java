@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.horrorshow.codey.api.piston.PistonConfiguration;
 import io.horrorshow.codey.api.piston.PistonTypes;
 import io.horrorshow.codey.discordutil.CodeyConfig;
-import io.horrorshow.codey.discordutil.MessageStore;
+import io.horrorshow.codey.discordutil.DataStore;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -81,8 +81,8 @@ public class CodeyApplication {
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-    public MessageStore messageStore() {
-        return new MessageStore();
+    public DataStore messageStore() {
+        return new DataStore();
     }
 
 

@@ -1,12 +1,10 @@
 package io.horrorshow.codey.time;
 
 import io.horrorshow.codey.discordutil.DiscordUtils;
-import io.horrorshow.codey.discordutil.MessageStore;
-import lombok.Getter;
+import io.horrorshow.codey.discordutil.DataStore;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -18,11 +16,8 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.Temporal;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -36,11 +31,11 @@ public class ReminderCommand extends ListenerAdapter {
     private static final long MAX_DURATION_MINS = 60 * 24 * 365 * 20;
 
     private final DiscordUtils utils;
-    private final Map<String, Reminder> timerMap;
+    private final Map<String, ReminderTimer> timerMap;
 
 
     @Autowired
-    public ReminderCommand(JDA jda, DiscordUtils utils, MessageStore store) {
+    public ReminderCommand(JDA jda, DiscordUtils utils, DataStore store) {
         this.utils = utils;
         this.timerMap = store.getTimerMap();
 
@@ -74,7 +69,7 @@ public class ReminderCommand extends ListenerAdapter {
     }
 
 
-    private String formatReminder(String id, Reminder reminder) {
+    private String formatReminder(String id, ReminderTimer reminder) {
         return "%s by %s (%ds remaining) -> %s".formatted(
                 id,
                 reminder.getUser().getName(),
@@ -83,7 +78,7 @@ public class ReminderCommand extends ListenerAdapter {
     }
 
 
-    private long getSecondsUntil(Reminder reminder) {
+    private long getSecondsUntil(ReminderTimer reminder) {
         return Instant.now().until(reminder.getDone(), ChronoUnit.SECONDS);
     }
 
@@ -130,7 +125,7 @@ public class ReminderCommand extends ListenerAdapter {
                 .setTimestamp(Instant.now())
                 .build();
 
-        var timer = new Reminder(message, event.getUser(), () -> {
+        var timer = new ReminderTimer(message, event.getUser(), () -> {
             utils.sendRemovableEmbed(embed, event.getTextChannel());
             timerMap.remove(event.getId());
         }, inMinutes * 60 * 1000);
@@ -138,35 +133,5 @@ public class ReminderCommand extends ListenerAdapter {
         timerMap.put(event.getId(), timer);
 
         event.reply("reminder set %dmin from now".formatted(inMinutes)).complete();
-    }
-
-
-    static public class Reminder extends Timer {
-
-        @Getter
-        private final String message;
-        @Getter
-        private final User user;
-        @Getter
-        private final Temporal start;
-        @Getter
-        private final Temporal done;
-
-
-        public Reminder(String message, User user, Runnable runnable, long delay) {
-            super();
-            this.message = message;
-            this.user = user;
-            start = Instant.now();
-            done = start.plus(delay, ChronoUnit.MILLIS);
-
-            var task = new TimerTask() {
-                @Override
-                public void run() {
-                    runnable.run();
-                }
-            };
-            schedule(task, delay);
-        }
     }
 }

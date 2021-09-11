@@ -55,16 +55,16 @@ public class SlashCommands extends ListenerAdapter {
     }
 
     private final Api api;
-    private final MessageStore messageStore;
+    private final DataStore dataStore;
     private final DiscordUtils discordUtils;
 
 
     public SlashCommands(@Autowired JDA jda,
             @Autowired Api api,
-            @Autowired MessageStore messageStore,
+            @Autowired DataStore dataStore,
             @Autowired DiscordUtils discordUtils) {
         this.api = api;
-        this.messageStore = messageStore;
+        this.dataStore = dataStore;
         this.discordUtils = discordUtils;
 
         jda.updateCommands().addCommands(Arrays.stream(COMMAND.values()).map(COMMAND::getData).toList()).queue();
@@ -92,15 +92,15 @@ public class SlashCommands extends ListenerAdapter {
                     && option.getAsBoolean()
                     && discordUtils.isElevatedMember(event.getMember())) {
 
-                    messageStore.getCompilationCache().clearByGuild(guild);
+                    dataStore.getCompilationCache().clearByGuild(guild);
 
                     lines.add("Removed %d compilation results".formatted(
-                            messageStore.getCompilationCache().countByGuild(guild)));
+                            dataStore.getCompilationCache().countByGuild(guild)));
                 }
             });
 
             lines.add("%d compilation results".formatted(
-                    messageStore.getCompilationCache().countByGuild(guild)));
+                    dataStore.getCompilationCache().countByGuild(guild)));
 
             event.replyEmbeds(new MessageEmbed(null,
                     "Cache", String.join("\n", lines),

@@ -1,6 +1,6 @@
 package io.horrorshow.codey.discordutil;
 
-import io.horrorshow.codey.time.ReminderCommand;
+import io.horrorshow.codey.time.ReminderTimer;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -11,13 +11,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public class MessageStore {
+public class DataStore {
 
     @Getter
     private final CompilationCache compilationCache = new CompilationCache();
 
     @Getter
-    private final Map<String, ReminderCommand.Reminder> timerMap = new ConcurrentHashMap<>();
+    private final Map<String, ReminderTimer> timerMap = new ConcurrentHashMap<>();
 
     public static class CompilationCache {
 
