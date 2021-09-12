@@ -1,8 +1,7 @@
 # Codey
 
-Discord bot to run competitive programming challenges, 
-apply code formatting fixes, compile and run code, all 
-without leaving discord and just a single click away.
+Discord bot to compile and run code and fix code formatting, all without leaving discord and just a single click (reaction) away. Supports
+tons of languages and automatically finds runnable code in messages.
 
 ![Codey demo](demo.gif)
 

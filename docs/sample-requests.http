@@ -30,3 +30,22 @@ Content-Type: application/json
         }
     ]
 }
+
+### runtimes localhost
+GET http://localhost:2000/api/v2/runtimes
+
+
+### compile locahost
+POST http://localhost:2000/api/v2/execute
+Content-Type: application/json
+
+{
+    "language": "java",
+    "version": "15.0.2",
+    "files": [
+        {
+            "name": "main",
+            "content": "interface A { public static void main(String[] args) { System.out.println(\"Hello, World!\"); } }"
+        }
+    ]
+}

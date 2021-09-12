@@ -90,7 +90,9 @@ public class CodeyApplication {
     public PistonTypes.CompilerInfo pistonCompilerInfo(@Autowired RestTemplate restTemplate,
             @Autowired PistonConfiguration config) {
         var compiler = new PistonTypes.CompilerInfo(new ConcurrentHashMap<>());
-        var runtimes = restTemplate.getForObject(config.getRuntimesUrl(), PistonTypes.PistonRuntime[].class);
+        var runtimesUrl = config.isUseLocal() ? config.getLocalRuntimesUrl() : config.getRuntimesUrl();
+        log.info("using runtimes url: {}", runtimesUrl);
+        var runtimes = restTemplate.getForObject(runtimesUrl, PistonTypes.PistonRuntime[].class);
         Arrays.stream(Objects.requireNonNull(runtimes, "Can't run without piston runtimes and compiler versions"))
                 .forEach(runtime -> {
                     compiler.compilerMap().put(runtime.language(), runtime);
@@ -98,6 +100,7 @@ public class CodeyApplication {
                         Arrays.stream(runtime.aliases()).forEach(alias -> compiler.compilerMap().put(alias, runtime));
                     }
                 });
+        log.debug("{} compilers loaded", compiler.compilerMap().size());
         return compiler;
     }
 

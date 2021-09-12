@@ -19,8 +19,8 @@ public class PistonApi implements CompilerApi {
 
     private final RestTemplate restTemplate;
     private final RetryTemplate retryTemplate;
-    private final PistonConfiguration config;
     private final PistonTypes.CompilerInfo compiler;
+    private final String executeUrl;
 
 
     public PistonApi(@Autowired RestTemplate restTemplate,
@@ -29,8 +29,9 @@ public class PistonApi implements CompilerApi {
             @Autowired RetryTemplate retryTemplate) {
         this.restTemplate = restTemplate;
         this.retryTemplate = retryTemplate;
-        this.config = config;
         this.compiler = compiler;
+        executeUrl = config.isUseLocal() ? config.getLocalExecuteUrl() : config.getExecuteUrl();
+        log.info("Using execute url: {}", executeUrl);
     }
 
 
@@ -42,7 +43,7 @@ public class PistonApi implements CompilerApi {
                 20000L, 20000L, -1L, -1L);
 
         var response = retryTemplate.execute(callback ->
-                restTemplate.postForObject(config.getExecuteUrl(), request, PistonTypes.PistonResponse.class));
+                restTemplate.postForObject(executeUrl, request, PistonTypes.PistonResponse.class));
 
         return response == null
                 ? CompletableFuture.completedFuture(new Output(null, -1, null, "no response"))
