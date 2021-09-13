@@ -1,9 +1,22 @@
 # docker-compose.yml
 version: "3.8"
 services:
+  api:
+    image: ghcr.io/engineer-man/piston
+    container_name: piston_api
+    restart: always
+    ports:
+      - "2000:2000"
+    volumes:
+      - ./pistondata:/piston
+    tmpfs:
+      - /piston/jobs:exec
+      - /tmp:exec
   app:
     build: .
     environment:
       CODEY_TOKEN: change-me
     volumes:
       - ./logs:/application/logs
+    depends_on:
+      - api

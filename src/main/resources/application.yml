@@ -56,8 +56,8 @@ piston:
   current-api: emkc
   apis:
     local:
-      runtimes: http://localhost:2000/api/v2/runtimes
-      execute: http://localhost:2000/api/v2/execute
+      runtimes: http://api:2000/api/v2/runtimes
+      execute: http://api:2000/api/v2/execute
     emkc:
       runtimes: https://emkc.org/api/v2/piston/runtimes
       execute: https://emkc.org/api/v2/piston/execute
