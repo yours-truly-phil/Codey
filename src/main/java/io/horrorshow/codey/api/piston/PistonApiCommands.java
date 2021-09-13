@@ -9,8 +9,11 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nonnull;
+
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -33,13 +36,16 @@ public class PistonApiCommands extends ListenerAdapter {
 
 
     @Override
-    public void onSlashCommand(SlashCommandEvent event) {
+    public void onSlashCommand(@Nonnull SlashCommandEvent event) {
         var name = event.getName();
         if (SlashCommands.COMMAND.CHANGE_API.getName().equals(name)) {
             CompletableFuture.runAsync(() -> changeApi(event));
         } else if (SlashCommands.COMMAND.SHOW_APIS.getName().equals(name)) {
             if (discordUtils.isElevatedMember(event.getMember())) {
-                event.reply("Apis:\n" + String.join("\n", config.getApis().keySet())).queue();
+                event.reply("Apis:\n"
+                            + config.getApis().keySet().stream()
+                                    .map(key -> " - " + key + (key.equals(config.getCurrentApi()) ? " (*)" : ""))
+                                    .collect(Collectors.joining("\n"))).queue();
             } else {
                 event.reply("you don't have the permissions to do that").queue();
             }
