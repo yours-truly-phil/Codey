@@ -42,7 +42,7 @@ public class DiscordUtils extends ListenerAdapter {
 
 
     public DiscordUtils(@Autowired JDA jda,
-                        @Autowired CodeyConfig config) {
+            @Autowired CodeyConfig config) {
         this.config = config;
 
         jda.addEventListener(this);
@@ -131,9 +131,9 @@ public class DiscordUtils extends ListenerAdapter {
     }
 
 
-    public static String toCodeBlock(String msg, boolean concat) {
+    public static String toCodeBlock(String msg, boolean truncate) {
         return "```\n%s```\n".formatted(
-                concat ? msg.substring(0, Math.min(msg.length(), CHAR_LIMIT - CODE_BLOCK_TICKS.length() * 2)) : msg);
+                truncate ? msg.substring(0, Math.min(msg.length(), CHAR_LIMIT - CODE_BLOCK_TICKS.length() * 2)) : msg);
     }
 
 
@@ -160,9 +160,11 @@ public class DiscordUtils extends ListenerAdapter {
         return discordMessages;
     }
 
+
     public Color getColor() {
         return Color.decode(config.getEmbedColor());
     }
+
 
     @Async
     public CompletableFuture<Message> sendRemovableMessageReply(Message origin, MessageEmbed content) {

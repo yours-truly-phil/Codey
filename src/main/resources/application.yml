@@ -53,8 +53,11 @@ wandbox:
     ts: typescript-3.9.5
     typescript: typescript-3.9.5
 piston:
-  use-local: true
-  execute-url: https://emkc.org/api/v2/piston/execute
-  runtimes-url: https://emkc.org/api/v2/piston/runtimes
-  local-execute-url: http://localhost:2000/api/v2/execute
-  local-runtimes-url: http://localhost:2000/api/v2/runtimes
+  current-api: emkc
+  apis:
+    local:
+      runtimes: http://localhost:2000/api/v2/runtimes
+      execute: http://localhost:2000/api/v2/execute
+    emkc:
+      runtimes: https://emkc.org/api/v2/piston/runtimes
+      execute: https://emkc.org/api/v2/piston/execute

@@ -1,6 +1,6 @@
 package io.horrorshow.codey.api.piston;
 
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class PistonTypes {
@@ -9,7 +9,7 @@ public class PistonTypes {
 
     }
 
-    public static record CompilerInfo(Map<String, PistonRuntime> compilerMap) {
+    static class CompilerInfo extends ConcurrentHashMap<String, PistonRuntime> {
 
     }
 

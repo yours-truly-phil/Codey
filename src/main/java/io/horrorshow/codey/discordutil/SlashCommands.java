@@ -25,6 +25,7 @@ import java.util.Objects;
 @Slf4j
 public class SlashCommands extends ListenerAdapter {
 
+
     public enum COMMAND {
         SAY("say", new CommandData("say", "Makes the bot say what you tell it to")
                 .addOptions(new OptionData(OptionType.STRING, "content",
@@ -41,7 +42,10 @@ public class SlashCommands extends ListenerAdapter {
         SHOW_REMINDERS("show-reminders", new CommandData("show-reminders", "Show your running reminders")
                 .addOptions(new OptionData(OptionType.BOOLEAN, "all", "Show reminders of all users"))),
         STOP_REMINDER("stop-reminder", new CommandData("stop-reminder", "Stop a running reminder")
-                .addOptions(new OptionData(OptionType.STRING, "id", "Id of the reminder to stop", true)));
+                .addOptions(new OptionData(OptionType.STRING, "id", "Id of the reminder to stop", true))),
+        CHANGE_API("change-api", new CommandData("change-api", "set compiler api")
+                .addOptions(new OptionData(OptionType.STRING, "name", "Name of the endpoint", true))),
+        SHOW_APIS("show-apis", new CommandData("show-apis", "Show available apis"));
 
         @Getter
         public final String name;
@@ -117,7 +121,7 @@ public class SlashCommands extends ListenerAdapter {
         try {
             var url = Objects.requireNonNull(event.getOption("url")).getAsString();
             var res = DiscordUtils.toCodeBlock(
-                    "%s\n\n%s".formatted(url, api.prettyPrintJson(api.getRequest(url))), false);
+                    "%s\n\n%s".formatted(url, api.prettyPrintJson(api.getRequest(url))), true);
             event.reply(res).queue();
         } catch (JsonProcessingException e) {
             event.reply("Error: %s".formatted(e.getMessage())).queue();

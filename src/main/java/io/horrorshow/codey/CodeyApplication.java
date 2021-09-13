@@ -1,8 +1,6 @@
 package io.horrorshow.codey;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.horrorshow.codey.api.piston.PistonConfiguration;
-import io.horrorshow.codey.api.piston.PistonTypes;
 import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.DataStore;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +27,6 @@ import org.springframework.web.client.RestTemplate;
 import javax.security.auth.login.LoginException;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 
@@ -85,24 +80,6 @@ public class CodeyApplication {
         return new DataStore();
     }
 
-
-    @Bean
-    public PistonTypes.CompilerInfo pistonCompilerInfo(@Autowired RestTemplate restTemplate,
-            @Autowired PistonConfiguration config) {
-        var compiler = new PistonTypes.CompilerInfo(new ConcurrentHashMap<>());
-        var runtimesUrl = config.isUseLocal() ? config.getLocalRuntimesUrl() : config.getRuntimesUrl();
-        log.info("using runtimes url: {}", runtimesUrl);
-        var runtimes = restTemplate.getForObject(runtimesUrl, PistonTypes.PistonRuntime[].class);
-        Arrays.stream(Objects.requireNonNull(runtimes, "Can't run without piston runtimes and compiler versions"))
-                .forEach(runtime -> {
-                    compiler.compilerMap().put(runtime.language(), runtime);
-                    if (runtime.aliases() != null) {
-                        Arrays.stream(runtime.aliases()).forEach(alias -> compiler.compilerMap().put(alias, runtime));
-                    }
-                });
-        log.debug("{} compilers loaded", compiler.compilerMap().size());
-        return compiler;
-    }
 
     @Bean
     public RetryTemplate retryTemplate() {

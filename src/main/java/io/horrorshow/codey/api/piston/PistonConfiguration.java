@@ -2,7 +2,11 @@ package io.horrorshow.codey.api.piston;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 @Data
@@ -10,11 +14,11 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "piston")
 public class PistonConfiguration {
 
-    private boolean useLocal = false;
+    private String currentApi = "emkc";
+    private final Map<String, PistonUrl> apis = new HashMap<>();
 
-    private String runtimesUrl = "https://emkc.org/api/v2/piston/runtimes";
-    private String executeUrl = "https://emkc.org/api/v2/piston/execute";
+    @ConstructorBinding
+    public record PistonUrl(String runtimes, String execute) {
 
-    private String localRuntimesUrl = "http://localhost:2000/api/v2/runtimes";
-    private String localExecuteUrl = "http://localhost:2000/api/v2/execute";
+    }
 }
