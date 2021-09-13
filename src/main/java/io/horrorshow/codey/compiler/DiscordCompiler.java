@@ -1,10 +1,10 @@
 package io.horrorshow.codey.compiler;
 
 import io.horrorshow.codey.api.CompilerApi;
+import io.horrorshow.codey.discordutil.DataStore;
 import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
-import io.horrorshow.codey.discordutil.DataStore;
 import io.horrorshow.codey.parser.SourceProcessing;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
@@ -95,8 +95,10 @@ public class DiscordCompiler extends ListenerAdapter {
                     .toList();
             CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
         } else {
-            utils.sendRemovableMessageAsync("compilation result removed from cache, " +
-                                            "repost message with code block.", message.getTextChannel());
+            onMessage(message);
+            utils.sendRemovableMessageAsync("Compilation result unavailable! "
+                                            + "Codey will try to compile it again, "
+                                            + "try again in a few seconds.", message.getTextChannel());
         }
     }
 
