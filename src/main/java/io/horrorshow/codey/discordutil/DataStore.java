@@ -1,6 +1,6 @@
 package io.horrorshow.codey.discordutil;
 
-import io.horrorshow.codey.time.ReminderTimer;
+import io.horrorshow.codey.time.ReminderTask;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -17,7 +17,7 @@ public class DataStore {
     private final CompilationCache compilationCache = new CompilationCache();
 
     @Getter
-    private final Map<String, ReminderTimer> timerMap = new ConcurrentHashMap<>();
+    private final Map<Long, ReminderTask> timerMap = new ConcurrentHashMap<>();
 
     public static class CompilationCache {
 

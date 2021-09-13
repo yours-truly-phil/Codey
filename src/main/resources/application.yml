@@ -12,6 +12,15 @@ logging:
 spring:
   main:
     web-application-type: none
+  jpa:
+    database-platform: io.horrorshow.codey.data.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: jdbc:sqlite:data/codey.db
+    driver-class-name: org.sqlite.JDBC
+    username: admin
+    password: admin
 wandbox:
   url: https://wandbox.org/api/compile.json
   compiler:

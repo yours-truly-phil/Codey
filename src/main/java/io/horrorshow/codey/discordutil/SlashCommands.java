@@ -42,7 +42,7 @@ public class SlashCommands extends ListenerAdapter {
         SHOW_REMINDERS("show-reminders", new CommandData("show-reminders", "Show your running reminders")
                 .addOptions(new OptionData(OptionType.BOOLEAN, "all", "Show reminders of all users"))),
         STOP_REMINDER("stop-reminder", new CommandData("stop-reminder", "Stop a running reminder")
-                .addOptions(new OptionData(OptionType.STRING, "id", "Id of the reminder to stop", true))),
+                .addOptions(new OptionData(OptionType.INTEGER, "id", "Id of the reminder to stop", true))),
         CHANGE_API("change-api", new CommandData("change-api", "set compiler api")
                 .addOptions(new OptionData(OptionType.STRING, "name", "Name of the endpoint", true))),
         SHOW_APIS("show-apis", new CommandData("show-apis", "Show available apis"));

@@ -1,10 +1,14 @@
 package io.horrorshow.codey.time;
 
+import io.horrorshow.codey.data.TimerData;
+import io.horrorshow.codey.data.TimerRepository;
 import io.horrorshow.codey.discordutil.DataStore;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -18,7 +22,10 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -31,13 +38,31 @@ public class ReminderCommand extends ListenerAdapter {
     private static final long MAX_DURATION_MINS = 60 * 24 * 365 * 20;
 
     private final DiscordUtils utils;
-    private final Map<String, ReminderTimer> timerMap;
+    private final Map<Long, ReminderTask> timerMap;
+    private final TimerRepository timerRepository;
 
 
     @Autowired
-    public ReminderCommand(JDA jda, DiscordUtils utils, DataStore store) {
+    public ReminderCommand(JDA jda, DiscordUtils utils, DataStore store, TimerRepository timerRepository) {
         this.utils = utils;
         this.timerMap = store.getTimerMap();
+        this.timerRepository = timerRepository;
+
+        try {
+            jda.awaitReady();
+            timerRepository.findAll().stream()
+                    .map(timerData -> createTimer(timerData, jda,
+                            (embed, channel) -> runTimer(timerData, embed, channel, utils, timerRepository)))
+                    .forEach(reminderTask -> {
+                        if (Instant.now().isAfter(Instant.from(reminderTask.done()))) {
+                            timerRepository.deleteById(reminderTask.id());
+                        } else {
+                            timerMap.put(reminderTask.id(), reminderTask);
+                        }
+                    });
+        } catch (InterruptedException e) {
+            log.error("unable to wait for jda to startup", e);
+        }
 
         jda.addEventListener(this);
     }
@@ -58,37 +83,38 @@ public class ReminderCommand extends ListenerAdapter {
         var allOption = event.getOption("all");
         if (allOption != null && allOption.getAsBoolean() && utils.isElevatedMember(event.getMember())) {
             event.reply("***All currently running timers***\n" + timerMap.entrySet().stream()
-                    .map(entry -> formatReminder(entry.getKey(), entry.getValue()))
+                    .map(entry -> formatReminder(entry.getKey().toString(), entry.getValue()))
                     .collect(Collectors.joining("\n"))).complete();
         } else {
             event.reply("***Currently running timers by " + event.getUser().getName() + "***\n" + timerMap.entrySet().stream()
-                    .filter(entry -> entry.getValue().getUser().getIdLong() == event.getUser().getIdLong())
-                    .map(entry -> formatReminder(entry.getKey(), entry.getValue()))
+                    .filter(entry -> entry.getValue().user().getIdLong() == event.getUser().getIdLong())
+                    .map(entry -> formatReminder(entry.getKey().toString(), entry.getValue()))
                     .collect(Collectors.joining("\n"))).complete();
         }
     }
 
 
-    private String formatReminder(String id, ReminderTimer reminder) {
+    private String formatReminder(String id, ReminderTask reminder) {
         return "%s by %s (%ds remaining) -> %s".formatted(
                 id,
-                reminder.getUser().getName(),
+                reminder.user().getName(),
                 getSecondsUntil(reminder),
-                reminder.getMessage());
+                reminder.message());
     }
 
 
-    private long getSecondsUntil(ReminderTimer reminder) {
-        return Instant.now().until(reminder.getDone(), ChronoUnit.SECONDS);
+    private long getSecondsUntil(ReminderTask reminder) {
+        return Instant.now().until(reminder.done(), ChronoUnit.SECONDS);
     }
 
 
     public void onStopReminder(SlashCommandEvent event) {
-        var id = Objects.requireNonNull(event.getOption("id")).getAsString();
+        var id = Objects.requireNonNull(event.getOption("id")).getAsLong();
         var reminder = timerMap.get(id);
         if (reminder != null
-            && (event.getUser().getIdLong() == reminder.getUser().getIdLong() || utils.isElevatedMember(event.getMember()))) {
-            reminder.cancel();
+            && (event.getUser().getId().equals(reminder.user().getId()) || utils.isElevatedMember(event.getMember()))) {
+
+            reminder.task().cancel();
             timerMap.remove(id);
             event.reply("Timer %s cancelled".formatted(id)).complete();
         } else {
@@ -117,28 +143,66 @@ public class ReminderCommand extends ListenerAdapter {
 
         var message = options.get("m").getAsString();
 
+        var newTimerData = new TimerData(null,
+                event.getTextChannel().getId(),
+                message, event.getUser().getId(),
+                Instant.now().toEpochMilli(),
+                Instant.now().plus(inMinutes * 60, ChronoUnit.SECONDS).toEpochMilli(),
+                requestPing);
+        var timerData = timerRepository.save(newTimerData);
+
+        var reminderTask = createTimer(timerData, event.getJDA(),
+                (embed, channel) -> runTimer(timerData, embed, channel, utils, timerRepository));
+
+        var timer = new Timer();
+        timer.schedule(reminderTask.task(), timerData.getDone() - Instant.now().toEpochMilli());
+
+        timerMap.put(timerData.getId(), reminderTask);
+
+        event.reply("reminder set %dmin from now".formatted(inMinutes)).complete();
+    }
+
+
+    private void runTimer(TimerData timerData, MessageEmbed embed, TextChannel channel, DiscordUtils utils,
+            TimerRepository timerRepository) {
+
+        if (timerData.getIsPingUser()) {
+            utils.sendRemovableMessageAsync("%s <@%s>".formatted(ALARM, timerData.getUserId()), channel);
+        }
+        utils.sendRemovableEmbed(embed, channel);
+        timerMap.remove(timerData.getId());
+        timerRepository.deleteById(timerData.getId());
+    }
+
+
+    public ReminderTask createTimer(TimerData timerData, JDA jda, BiConsumer<MessageEmbed, TextChannel> onRun) {
+        var channel = jda.getTextChannelById(timerData.getChannelId());
+        var user = jda.getUserById(timerData.getUserId());
+        if (user == null) {
+            user = jda.retrieveUserById(timerData.getUserId()).complete();
+        }
+        var member = Objects.requireNonNull(channel,
+                        "Channel must not be null, channelId=" + timerData.getChannelId())
+                .getGuild().getMember(user);
+        var color = member != null ? member.getColor() : Color.MAGENTA;
+
         var embed = new EmbedBuilder()
-                .setColor(event.getMember() != null ? event.getMember().getColor() : Color.MAGENTA)
+                .setColor(color)
                 .setTitle(ALARM + ALARM + ALARM)
-                .setDescription(message)
-                .setThumbnail(event.getUser().getAvatarUrl())
-                .setAuthor(event.getUser().getName())
+                .setDescription(timerData.getMessage())
+                .setThumbnail(user.getAvatarUrl())
+                .setAuthor(user.getName())
                 .setFooter("reminder set at")
                 .setTimestamp(Instant.now())
                 .build();
 
-        Runnable reminderTask = () -> {
-            if (requestPing) {
-                utils.sendRemovableMessageAsync("%s <@%s>".formatted(ALARM, event.getUser().getId()), event.getTextChannel());
+        var task = new TimerTask() {
+            @Override
+            public void run() {
+                onRun.accept(embed, channel);
             }
-            utils.sendRemovableEmbed(embed, event.getTextChannel());
-            timerMap.remove(event.getId());
         };
 
-        var timer = new ReminderTimer(message, event.getUser(), reminderTask, inMinutes * 60 * 1000);
-
-        timerMap.put(event.getId(), timer);
-
-        event.reply("reminder set %dmin from now".formatted(inMinutes)).complete();
+        return new ReminderTask(timerData.getId(), user, timerData.getMessage(), Instant.ofEpochMilli(timerData.getDone()), task);
     }
 }
