@@ -51,7 +51,7 @@ public class CodeyApplication {
     public Executor asyncExecutor() {
         var executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(4);
+        executor.setMaxPoolSize(50);
         executor.setQueueCapacity(500);
         executor.setThreadNamePrefix("Thread-");
         executor.initialize();
