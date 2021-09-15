@@ -96,7 +96,9 @@ public class CodeyApplication {
         retryTemplate.registerListener(new RetryListenerSupport() {
             @Override
             public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback, Throwable throwable) {
-                log.warn("Retry Count {}", context.getRetryCount(), throwable);
+                if (log.isDebugEnabled()) {
+                    log.debug("Retry Count {}", context.getRetryCount(), throwable);
+                }
                 super.onError(context, callback, throwable);
             }
         });
