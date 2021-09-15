@@ -19,10 +19,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+
 @Service
 public class DiscordTimezone extends ListenerAdapter {
+
     private static final Pattern timeMatcher = Pattern.compile(createTimeMatchPattern(), Pattern.CASE_INSENSITIVE);
     private final DiscordUtils utils;
+
 
     public DiscordTimezone(@Autowired JDA jda, @Autowired DiscordUtils utils) {
         this.utils = utils;
@@ -30,12 +33,14 @@ public class DiscordTimezone extends ListenerAdapter {
         jda.addEventListener(this);
     }
 
+
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
             CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
         }
     }
+
 
     void onMessage(Message message) {
         var matcher = timeMatcher.matcher(message.getContentStripped());
@@ -50,11 +55,12 @@ public class DiscordTimezone extends ListenerAdapter {
         }
     }
 
+
     private static String createTimeMatchPattern() {
         return Arrays.stream(new DateFormatSymbols().getWeekdays()).collect(Collectors.joining("|", "(", ")?"))
-                + "( )?([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9] "
-                + ZoneId.getAvailableZoneIds().stream()
-                .map(zone -> zone.replaceAll("\\+", "\\\\+"))
-                .collect(Collectors.joining("|", "(", ")"));
+               + "( )?([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9] "
+               + ZoneId.getAvailableZoneIds().stream()
+                       .map(zone -> zone.replaceAll("\\+", "\\\\+"))
+                       .collect(Collectors.joining("|", "(", ")"));
     }
 }

@@ -118,7 +118,9 @@ public class DiscordCompiler extends ListenerAdapter {
                 .ifPresent(part -> {
                     var processed = SourceProcessing.processSource(part.text(), part.lang());
                     if (processed.isOk()) {
-                        log.debug("compiling {}", processed);
+                        if (log.isTraceEnabled()) {
+                            log.trace("compiling {}", processed);
+                        }
                         compiler.compile(processed.source(), part.lang(), null, null)
                                 .thenAccept(output -> cacheAndAddPlayReaction(message, output));
                     } else {

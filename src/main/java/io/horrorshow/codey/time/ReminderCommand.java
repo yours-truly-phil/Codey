@@ -50,16 +50,9 @@ public class ReminderCommand extends ListenerAdapter {
 
         try {
             jda.awaitReady();
-            timerRepository.findAll().stream()
-                    .map(timerData -> createTimer(timerData, jda,
-                            (embed, channel) -> runTimer(timerData, embed, channel, utils, timerRepository)))
-                    .forEach(reminderTask -> {
-                        if (Instant.now().isAfter(Instant.from(reminderTask.done()))) {
-                            timerRepository.deleteById(reminderTask.id());
-                        } else {
-                            timerMap.put(reminderTask.id(), reminderTask);
-                        }
-                    });
+            for (var timerData : timerRepository.findAll()) {
+                scheduleTimer(jda, utils, timerRepository, timerData);
+            }
         } catch (InterruptedException e) {
             log.error("unable to wait for jda to startup", e);
         }
@@ -151,15 +144,23 @@ public class ReminderCommand extends ListenerAdapter {
                 requestPing);
         var timerData = timerRepository.save(newTimerData);
 
-        var reminderTask = createTimer(timerData, event.getJDA(),
-                (embed, channel) -> runTimer(timerData, embed, channel, utils, timerRepository));
-
-        var timer = new Timer();
-        timer.schedule(reminderTask.task(), timerData.getDone() - Instant.now().toEpochMilli());
-
-        timerMap.put(timerData.getId(), reminderTask);
+        scheduleTimer(event.getJDA(), utils, timerRepository, timerData);
 
         event.reply("reminder set %dmin from now".formatted(inMinutes)).complete();
+    }
+
+
+    private void scheduleTimer(JDA jda, DiscordUtils utils, TimerRepository timerRepository, TimerData timerData) {
+        var reminderTask = createTimer(timerData, jda,
+                (embed, channel) -> runTimer(timerData, embed, channel, utils, timerRepository));
+
+        if (Instant.now().isAfter(Instant.from(reminderTask.done()))) {
+            timerRepository.deleteById(reminderTask.id());
+        } else {
+            var timer = new Timer();
+            timer.schedule(reminderTask.task(), timerData.getDone() - Instant.now().toEpochMilli());
+            timerMap.put(reminderTask.id(), reminderTask);
+        }
     }
 
 
