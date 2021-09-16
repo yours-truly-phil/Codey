@@ -17,6 +17,7 @@ public class CodeyConfig {
 
     @NotBlank
     private String token;
+    private String githubWebhookSecret;
     private String embedColor;
     private List<String> roles = new ArrayList<>();
 }

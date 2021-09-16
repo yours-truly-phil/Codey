@@ -1,5 +1,6 @@
 codey:
   token: change-me
+  github-webhook-secret: change-me
   roles:
     - CodeyRole
     - CodeyBoss
@@ -11,7 +12,7 @@ logging:
     name: ./logs/codey.log
 spring:
   main:
-    web-application-type: none
+    web-application-type: servlet
   jpa:
     database-platform: io.horrorshow.codey.data.SQLiteDialect
     hibernate:

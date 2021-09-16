@@ -10,7 +10,7 @@
     </parent>
     <groupId>io.horrorshow</groupId>
     <artifactId>codey</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
     <name>Codey</name>
     <description>
         Compiles and reformats code from inside code blocks in discord messages.
@@ -27,6 +27,7 @@
         <spring-retry.version>1.3.1</spring-retry.version>
         <spring-aspects.version>5.3.9</spring-aspects.version>
         <sqlite.version>3.36.0.3</sqlite.version>
+        <commons-codec.version>1.15</commons-codec.version>
     </properties>
 
     <repositories>
@@ -71,6 +72,10 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
             <version>${jda.version}</version>
@@ -96,9 +101,11 @@
             <version>${sqlite.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${commons-codec.version}</version>
         </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

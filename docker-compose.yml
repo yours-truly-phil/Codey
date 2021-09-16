@@ -14,8 +14,10 @@ services:
       - /tmp:exec
   app:
     build: .
+    restart: always
     environment:
       CODEY_TOKEN: change-me
+      CODEY_GITHUB-WEBHOOK-SECRET: change-me
     volumes:
       - ./logs:/application/logs
     depends_on:
