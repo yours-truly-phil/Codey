@@ -78,17 +78,35 @@ public class GithubWebhookEndpoint {
 
         try {
             var event = header.get("x-github-event");
-            if (event.equals("push")) {
-                var push = objectMapper.readValue(payload, GithubPush.class);
-                log.info("push:\n{}", push);
-            } else if (event.equals("ping")) {
-                var ping = objectMapper.readValue(payload, GithubPing.class);
-                log.info("ping:\n{}", ping);
-            } else {
-                log.warn("unknown github event '{}'", event);
-                var map = objectMapper.readValue(payload, Map.class);
-                log.info("payload:\n{}", objectMapper.writerWithDefaultPrettyPrinter()
-                        .writeValueAsString(map));
+            switch (event) {
+                case "push" -> {
+                    var push = objectMapper.readValue(payload, GithubPush.class);
+                    log.info("push:\n{}", push);
+                }
+                case "ping" -> {
+                    var ping = objectMapper.readValue(payload, GithubPing.class);
+                    log.info("ping:\n{}", ping);
+                }
+                case "page_build" -> {
+                    var pageBuild = objectMapper.readValue(payload, GithubPageBuild.class);
+                    log.info("page_build:\n{}", pageBuild);
+                }
+                case "workflow_run" -> printDefault("workflow_run", payload);
+                case "check_run" -> printDefault("check_run", payload);
+                case "status" -> printDefault("status", payload);
+                case "check_suite" -> printDefault("check_suite", payload);
+                case "deployment" -> printDefault("deployment", payload);
+                case "deployment_status" -> printDefault("deployment_status", payload);
+                case "workflow_job" -> {
+                    var workflowJob = objectMapper.readValue(payload, GithubWorkflowPayload.class);
+                    log.info("workflow_job:\n{}", workflowJob);
+                }
+                default -> {
+                    log.warn("unknown github event '{}'", event);
+                    var map = objectMapper.readValue(payload, Map.class);
+                    log.info("payload:\n{}", objectMapper.writerWithDefaultPrettyPrinter()
+                            .writeValueAsString(map));
+                }
             }
         } catch (JsonProcessingException e) {
             log.error("unable to parse json from github-webhook", e);
@@ -100,13 +118,57 @@ public class GithubWebhookEndpoint {
     }
 
 
+    private void printDefault(String job, String payload) throws JsonProcessingException {
+        var obj = objectMapper.readValue(payload, Map.class);
+        log.info("{}}:\n{}", job, objectMapper.writerWithDefaultPrettyPrinter()
+                .writeValueAsString(obj));
+    }
+
+
     static class GithubPing {
 
         @JsonProperty public String zen;
         @JsonProperty public String hook_id;
         @JsonProperty public Map<String, Object> hook;
         @JsonProperty public GithubRepository repository;
-        @JsonProperty public GithubSender sender;
+        @JsonProperty public GithubUserInfo sender;
+    }
+
+
+    static class GithubWorkflowPayload {
+
+        @JsonProperty public String action;
+        @JsonProperty public GithubWorkflowJob workflow_job;
+    }
+
+
+    static class GithubWorkflowJob {
+
+        @JsonProperty public Map<String, Object> rest;
+        @JsonProperty public GithubRepository repository;
+        @JsonProperty public GithubUserInfo sender;
+    }
+
+
+    static class GithubPageBuild {
+
+        @JsonProperty public String id;
+        @JsonProperty public GithubBuild build;
+        @JsonProperty public GithubRepository repository;
+        @JsonProperty public GithubUserInfo sender;
+    }
+
+
+    static class GithubBuild {
+
+        @JsonProperty public String url;
+        @JsonProperty public String status;
+        @JsonProperty public Map<String, String> error;
+        @JsonProperty public GithubPusher pusher;
+        @JsonProperty public String commit;
+        @JsonProperty public Long duration;
+        @JsonProperty public String created_at;
+        @JsonProperty public String updated_at;
     }
 
 
@@ -141,7 +203,7 @@ public class GithubWebhookEndpoint {
         @JsonProperty public String after;
         @JsonProperty public GithubRepository repository;
         @JsonProperty public GithubPusher pusher;
-        @JsonProperty public GithubSender sender;
+        @JsonProperty public GithubUserInfo sender;
         @JsonProperty public boolean created;
         @JsonProperty public boolean deleted;
         @JsonProperty public boolean forced;
@@ -151,7 +213,7 @@ public class GithubWebhookEndpoint {
         @JsonProperty public GithubCommit head_commit;
     }
 
-    static class GithubSender {
+    static class GithubUserInfo {
 
         @JsonProperty public String login;
         @JsonProperty public Long id;
@@ -186,7 +248,7 @@ public class GithubWebhookEndpoint {
         @JsonProperty public String name;
         @JsonProperty public String full_name;
         @JsonProperty("private") public boolean is_private;
-        @JsonProperty public GithubOwner owner;
+        @JsonProperty public GithubUserInfo owner;
         @JsonProperty public String html_url;
         @JsonProperty public String description;
         @JsonProperty public boolean fork;
@@ -257,29 +319,5 @@ public class GithubWebhookEndpoint {
         @JsonProperty public String default_branch;
         @JsonProperty public Integer stargazers;
         @JsonProperty public String master_branch;
-    }
-
-    static class GithubOwner {
-
-        @JsonProperty public String name;
-        @JsonProperty public String email;
-        @JsonProperty public String login;
-        @JsonProperty public Long id;
-        @JsonProperty public String node_id;
-        @JsonProperty public String avatar_url;
-        @JsonProperty public String gravatar_id;
-        @JsonProperty public String url;
-        @JsonProperty public String html_url;
-        @JsonProperty public String followers_url;
-        @JsonProperty public String following_url;
-        @JsonProperty public String gists_url;
-        @JsonProperty public String starred_url;
-        @JsonProperty public String subscriptions_url;
-        @JsonProperty public String organizations_url;
-        @JsonProperty public String repos_url;
-        @JsonProperty public String events_url;
-        @JsonProperty public String received_events_url;
-        @JsonProperty public String type;
-        @JsonProperty public boolean site_admin;
     }
 }
