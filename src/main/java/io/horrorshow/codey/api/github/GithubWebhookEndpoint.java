@@ -139,14 +139,27 @@ public class GithubWebhookEndpoint {
 
         @JsonProperty public String action;
         @JsonProperty public GithubWorkflowJob workflow_job;
+        @JsonProperty public GithubRepository repository;
+        @JsonProperty public GithubUserInfo sender;
     }
 
 
     static class GithubWorkflowJob {
-
-        @JsonProperty public Map<String, Object> rest;
-        @JsonProperty public GithubRepository repository;
-        @JsonProperty public GithubUserInfo sender;
+        @JsonProperty public Long id;
+        @JsonProperty public Long run_id;
+        @JsonProperty public String run_url;
+        @JsonProperty public String node_id;
+        @JsonProperty public String head_sha;
+        @JsonProperty public String url;
+        @JsonProperty public String html_url;
+        @JsonProperty public String status;
+        @JsonProperty public Object conclusion;
+        @JsonProperty public String started_at;
+        @JsonProperty public String completed_at;
+        @JsonProperty public String name;
+        @JsonProperty public List<Object> steps;
+        @JsonProperty public String check_run_url;
+        @JsonProperty public List<String> labels;
     }
 
 
@@ -164,7 +177,7 @@ public class GithubWebhookEndpoint {
         @JsonProperty public String url;
         @JsonProperty public String status;
         @JsonProperty public Map<String, String> error;
-        @JsonProperty public GithubPusher pusher;
+        @JsonProperty public GithubUserInfo pusher;
         @JsonProperty public String commit;
         @JsonProperty public Long duration;
         @JsonProperty public String created_at;
@@ -215,6 +228,8 @@ public class GithubWebhookEndpoint {
 
     static class GithubUserInfo {
 
+        @JsonProperty public String name;
+        @JsonProperty public String email;
         @JsonProperty public String login;
         @JsonProperty public Long id;
         @JsonProperty public String node_id;
