@@ -160,6 +160,10 @@ public class GithubWebhookEndpoint {
         @JsonProperty public List<Object> steps;
         @JsonProperty public String check_run_url;
         @JsonProperty public List<String> labels;
+        @JsonProperty public String runner_id;
+        @JsonProperty public String runner_name;
+        @JsonProperty public String runner_group_id;
+        @JsonProperty public String runner_group_name;
     }
 
 
