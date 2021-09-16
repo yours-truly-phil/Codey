@@ -101,6 +101,7 @@ public class GithubWebhookEndpoint {
 
 
     static class GithubPing {
+
         @JsonProperty public String zen;
         @JsonProperty public String hook_id;
         @JsonProperty public Map<String, Object> hook;
@@ -112,21 +113,24 @@ public class GithubWebhookEndpoint {
     static class GithubCommit {
 
         @JsonProperty public String id;
-        @JsonProperty public String timestamp;
-        @JsonProperty public String message;
-        @JsonProperty public GithubAuthor author;
-        @JsonProperty public String url;
+        @JsonProperty public String tree_id;
         @JsonProperty public boolean distinct;
+        @JsonProperty public String message;
+        @JsonProperty public String timestamp;
+        @JsonProperty public String url;
+        @JsonProperty public GithubUser author;
+        @JsonProperty public GithubUser committer;
         @JsonProperty public List<String> added;
         @JsonProperty public List<String> modified;
         @JsonProperty public List<String> removed;
 
     }
 
-    static class GithubAuthor {
+    static class GithubUser {
 
         @JsonProperty public String name;
         @JsonProperty public String email;
+        @JsonProperty public String username;
     }
 
 
@@ -135,16 +139,16 @@ public class GithubWebhookEndpoint {
         @JsonProperty public String ref;
         @JsonProperty public String before;
         @JsonProperty public String after;
+        @JsonProperty public GithubRepository repository;
+        @JsonProperty public GithubPusher pusher;
+        @JsonProperty public GithubSender sender;
         @JsonProperty public boolean created;
         @JsonProperty public boolean deleted;
         @JsonProperty public boolean forced;
         @JsonProperty public Object base_ref;
         @JsonProperty public String compare;
         @JsonProperty public List<GithubCommit> commits;
-        @JsonProperty public String head_commit;
-        @JsonProperty public GithubRepository repository;
-        @JsonProperty public GithubPusher pusher;
-        @JsonProperty public GithubSender sender;
+        @JsonProperty public GithubCommit head_commit;
     }
 
     static class GithubSender {
@@ -181,7 +185,7 @@ public class GithubWebhookEndpoint {
         @JsonProperty public String node_id;
         @JsonProperty public String name;
         @JsonProperty public String full_name;
-        @JsonProperty("private") public boolean _private;
+        @JsonProperty("private") public boolean is_private;
         @JsonProperty public GithubOwner owner;
         @JsonProperty public String html_url;
         @JsonProperty public String description;
