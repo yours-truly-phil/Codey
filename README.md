@@ -5,6 +5,15 @@
 Discord bot to compile and run code and fix code formatting, all without leaving discord and just a single click (reaction) away. Supports
 tons of languages and automatically finds runnable code in messages.
 
+### capabilities:
+
+ - compile and run code from discord messages
+ - reformat java code and fix indentation
+ - reminder function
+ - listen to GitHub repository events and posts summary on push
+ - show date and time from messages in local timezone
+ - send get requests via slash command
+
 ![Codey Demo](docs/demo.gif)
 
 ## discord invite link to invite the bot to your server
