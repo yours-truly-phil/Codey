@@ -38,10 +38,13 @@ public class GithubEventBot extends ListenerAdapter {
                 .setTimestamp(Instant.ofEpochSecond(event.repository.pushed_at))
                 .setThumbnail(event.sender.avatar_url)
                 .setTitle("Push by " + event.pusher.name + " into '" + event.repository.name + "'")
-                .setDescription("Commits:\n"
-                                + event.commits.stream()
-                                        .map(this::formatCommit)
-                                        .collect(Collectors.joining("\n")))
+//                .setDescription("Commits:\n"
+//                                + event.commits.stream()
+//                                        .map(this::formatCommit)
+//                                        .collect(Collectors.joining("\n")))
+                .addField("Commits", event.commits.stream()
+                        .map(this::formatCommit)
+                        .collect(Collectors.joining("\n")), false)
                 .setFooter(event.repository.html_url)
                 .build();
 
