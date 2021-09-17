@@ -96,9 +96,7 @@ public class GithubWebhookEndpoint {
             switch (event) {
                 case "push" -> {
                     var push = objectMapper.readValue(payload, GithubPush.class);
-                    if (log.isTraceEnabled()) {
-                        log.trace("push:\n{}", push);
-                    }
+                    log.debug("push event");
                     githubEventBot.onPush(push);
                 }
                 case "ping" -> {
