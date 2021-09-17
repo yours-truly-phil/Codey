@@ -72,13 +72,13 @@ public class GithubWebhookEndpoint {
 
         var signature = header.get("x-hub-signature-256");
         if (signature == null) {
-            log.warn("no signature");
+            log.warn("no signature, headers={}", header);
             return new ResponseEntity<>("No signature given." + EOL, responseHeaders, HttpStatus.BAD_REQUEST);
         }
 
         boolean invalidLength = signature.length() != SIGNATURE_LENGTH;
         if (invalidLength) {
-            log.warn("invalid signature length");
+            log.warn("invalid signature length, signature={}", signature);
             return new ResponseEntity<>("Invalid signature." + EOL, responseHeaders, HttpStatus.UNAUTHORIZED);
         }
 
@@ -87,7 +87,7 @@ public class GithubWebhookEndpoint {
             return MessageDigest.isEqual(signature.getBytes(StandardCharsets.UTF_8), hash.getBytes(StandardCharsets.UTF_8));
         });
         if (!hashOk) {
-            log.warn("wrong secret");
+            log.warn("wrong secret signature={}", signature);
             return new ResponseEntity<>("Invalid signature." + EOL, responseHeaders, HttpStatus.UNAUTHORIZED);
         }
 
