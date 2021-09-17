@@ -314,9 +314,9 @@ public class GithubWebhookEndpoint {
         @JsonProperty public String labels_url;
         @JsonProperty public String releases_url;
         @JsonProperty public String deployments_url;
-        @JsonProperty public Long created_at;
+        @JsonProperty public String created_at;
         @JsonProperty public String updated_at;
-        @JsonProperty public Long pushed_at;
+        @JsonProperty public String pushed_at;
         @JsonProperty public String git_url;
         @JsonProperty public String ssh_url;
         @JsonProperty public String clone_url;
