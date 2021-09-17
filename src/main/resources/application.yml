@@ -1,6 +1,7 @@
 codey:
   token: change-me
-  github-webhook-secret: change-me
+  github-webhook-secrets:
+    - change-me
   roles:
     - CodeyRole
     - CodeyBoss
