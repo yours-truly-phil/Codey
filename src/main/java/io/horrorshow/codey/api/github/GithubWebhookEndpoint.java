@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,14 +34,17 @@ public class GithubWebhookEndpoint {
     private static final String EOL = "\n";
     private static final int SIGNATURE_LENGTH = 71;
 
-    private final HmacUtils hmacUtils;
+    private final List<HmacUtils> hmacUtils = new ArrayList<>();
     private final ObjectMapper objectMapper;
     private final GithubEventBot githubEventBot;
 
 
     @Autowired
     public GithubWebhookEndpoint(CodeyConfig codeyConfig, ObjectMapper objectMapper, GithubEventBot githubEventBot) {
-        this.hmacUtils = new HmacUtils(HmacAlgorithms.HMAC_SHA_256, codeyConfig.getGithubWebhookSecret());
+        for (var secret : codeyConfig.getGithubWebhookSecrets()) {
+            hmacUtils.add(new HmacUtils(HmacAlgorithms.HMAC_SHA_256, secret));
+        }
+        log.debug("loaded " + hmacUtils.size() + " secrets");
         this.objectMapper = objectMapper;
         this.githubEventBot = githubEventBot;
     }
@@ -71,10 +75,16 @@ public class GithubWebhookEndpoint {
             return new ResponseEntity<>("No signature given." + EOL, responseHeaders, HttpStatus.BAD_REQUEST);
         }
 
-        var hash = String.format("sha256=%s", hmacUtils.hmacHex(payload));
         boolean invalidLength = signature.length() != SIGNATURE_LENGTH;
+        if (invalidLength) {
+            return new ResponseEntity<>("Invalid signature." + EOL, responseHeaders, HttpStatus.UNAUTHORIZED);
+        }
 
-        if (invalidLength || !MessageDigest.isEqual(signature.getBytes(StandardCharsets.UTF_8), hash.getBytes(StandardCharsets.UTF_8))) {
+        boolean hashOk = hmacUtils.stream().anyMatch(hmac -> {
+            var hash = String.format("sha256=%s", hmac.hmacHex(payload));
+            return MessageDigest.isEqual(signature.getBytes(StandardCharsets.UTF_8), hash.getBytes(StandardCharsets.UTF_8));
+        });
+        if (!hashOk) {
             return new ResponseEntity<>("Invalid signature." + EOL, responseHeaders, HttpStatus.UNAUTHORIZED);
         }
 
@@ -83,22 +93,22 @@ public class GithubWebhookEndpoint {
             switch (event) {
                 case "push" -> {
                     var push = objectMapper.readValue(payload, GithubPush.class);
-                    if (log.isDebugEnabled()) {
-                        log.debug("push:\n{}", push);
+                    if (log.isTraceEnabled()) {
+                        log.trace("push:\n{}", push);
                     }
                     githubEventBot.onPush(push);
                 }
                 case "ping" -> {
                     var ping = objectMapper.readValue(payload, GithubPing.class);
-                    log.info("ping:\n{}", ping);
+                    log.trace("ping:\n{}", ping);
                 }
                 case "page_build" -> {
                     var pageBuild = objectMapper.readValue(payload, GithubPageBuild.class);
-                    log.info("page_build:\n{}", pageBuild);
+                    log.trace("page_build:\n{}", pageBuild);
                 }
                 case "workflow_job" -> {
                     var workflowJob = objectMapper.readValue(payload, GithubWorkflowPayload.class);
-                    log.info("workflow_job:\n{}", workflowJob);
+                    log.trace("workflow_job:\n{}", workflowJob);
                 }
                 case "workflow_run" -> printDefault("workflow_run", payload);
                 case "check_run" -> printDefault("check_run", payload);
@@ -107,9 +117,9 @@ public class GithubWebhookEndpoint {
                 case "deployment" -> printDefault("deployment", payload);
                 case "deployment_status" -> printDefault("deployment_status", payload);
                 default -> {
-                    log.warn("unknown github event '{}'", event);
+                    log.debug("unknown github event '{}'", event);
                     var map = objectMapper.readValue(payload, Map.class);
-                    log.info("payload:\n{}", objectMapper.writerWithDefaultPrettyPrinter()
+                    log.trace("payload:\n{}", objectMapper.writerWithDefaultPrettyPrinter()
                             .writeValueAsString(map));
                 }
             }

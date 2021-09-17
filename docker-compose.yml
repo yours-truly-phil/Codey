@@ -19,7 +19,7 @@ services:
       - "8080:8080"
     environment:
       CODEY_TOKEN: change-me
-      CODEY_GITHUB-WEBHOOK-SECRET: change-me
+      CODEY_GITHUB-WEBHOOK-SECRETS_0: change-me
     volumes:
       - ./logs:/application/logs
     depends_on:
