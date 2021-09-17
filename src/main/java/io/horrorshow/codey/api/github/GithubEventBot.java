@@ -37,10 +37,10 @@ public class GithubEventBot extends ListenerAdapter {
         var embed = new EmbedBuilder()
                 .setTimestamp(Instant.ofEpochSecond(event.repository.pushed_at))
                 .setThumbnail(event.sender.avatar_url)
-                .setTitle("Push by " + event.pusher.name + "into '" + event.repository.name + "'")
+                .setTitle("Push by " + event.pusher.name + " into '" + event.repository.name + "'")
                 .setDescription("Commits:\n"
                                 + event.commits.stream()
-                                        .map(commit -> commit.message)
+                                        .map(this::formatCommit)
                                         .collect(Collectors.joining("\n")))
                 .setFooter(event.repository.html_url)
                 .build();
@@ -59,6 +59,11 @@ public class GithubEventBot extends ListenerAdapter {
             log.error("error sending github update to text channel", e);
             return null;
         });
+    }
+
+
+    private String formatCommit(GithubWebhookEndpoint.GithubCommit commit) {
+        return String.format("[%s](%s)", commit.message, commit.url);
     }
 
 }
