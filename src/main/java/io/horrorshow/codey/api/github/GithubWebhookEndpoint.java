@@ -91,16 +91,16 @@ public class GithubWebhookEndpoint {
                     var pageBuild = objectMapper.readValue(payload, GithubPageBuild.class);
                     log.info("page_build:\n{}", pageBuild);
                 }
+                case "workflow_job" -> {
+                    var workflowJob = objectMapper.readValue(payload, GithubWorkflowPayload.class);
+                    log.info("workflow_job:\n{}", workflowJob);
+                }
                 case "workflow_run" -> printDefault("workflow_run", payload);
                 case "check_run" -> printDefault("check_run", payload);
                 case "status" -> printDefault("status", payload);
                 case "check_suite" -> printDefault("check_suite", payload);
                 case "deployment" -> printDefault("deployment", payload);
                 case "deployment_status" -> printDefault("deployment_status", payload);
-                case "workflow_job" -> {
-                    var workflowJob = objectMapper.readValue(payload, GithubWorkflowPayload.class);
-                    log.info("workflow_job:\n{}", workflowJob);
-                }
                 default -> {
                     log.warn("unknown github event '{}'", event);
                     var map = objectMapper.readValue(payload, Map.class);

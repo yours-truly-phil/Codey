@@ -45,7 +45,11 @@ public class SlashCommands extends ListenerAdapter {
                 .addOptions(new OptionData(OptionType.INTEGER, "id", "Id of the reminder to stop", true))),
         CHANGE_API("change-api", new CommandData("change-api", "set compiler api")
                 .addOptions(new OptionData(OptionType.STRING, "name", "Name of the endpoint", true))),
-        SHOW_APIS("show-apis", new CommandData("show-apis", "Show available apis"));
+        SHOW_APIS("show-apis", new CommandData("show-apis", "Show available apis")),
+        SET_GITHUB_CHANNEL("set-github-channel", new CommandData("set-github-channel", "Post github updates in this channel")
+                .addOptions(new OptionData(OptionType.CHANNEL, "channel", "The channel codey posts discord updates in", true),
+                        new OptionData(OptionType.BOOLEAN, "remove", "No longer post into this channel"))),
+        SHOW_GITHUB_CHANNELS("show-github-channels", new CommandData("show-github-channels", "Shows current github channels"));
 
         @Getter
         public final String name;
