@@ -59,13 +59,13 @@ public class GithubEventBot extends ListenerAdapter {
                 .setTimestamp(Instant.ofEpochSecond(Long.parseLong(event.repository.pushed_at)))
                 .setThumbnail(event.sender.avatar_url)
                 .setTitle("Github push by " + event.pusher.name)
-                .addField("Repo", String.format("[%s](%s)", event.repository.name, event.repository.url), false)
+                .addField("Repo", String.format("[%s](%s)", event.repository.name, event.repository.url), true)
+                .addField("Pusher", event.pusher.name, true)
                 .addField("Commits", event.commits.stream()
                         .map(this::formatCommit)
                         .collect(Collectors.joining("\n")), false)
-                .addField("Pusher", event.pusher.name, false)
-                .addField("Repository language", event.repository.language, false)
-                .addField("Repository Owner", event.repository.owner.name, false)
+                .addField("Repository language", event.repository.language, true)
+                .addField("Repository Owner", event.repository.owner.name, true)
                 .setFooter(String.format("git clone %s", event.repository.clone_url))
                 .build();
 
@@ -87,7 +87,7 @@ public class GithubEventBot extends ListenerAdapter {
 
 
     private String formatCommit(GithubWebhookEndpoint.GithubCommit commit) {
-        return String.format("[%s](%s) modified files: %d", commit.message, commit.url, commit.modified.size());
+        return String.format("[%s](%s) (%d files)", commit.message, commit.url, commit.modified.size());
     }
 
 
