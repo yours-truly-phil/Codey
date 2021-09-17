@@ -1,5 +1,6 @@
 package io.horrorshow.codey.discordutil;
 
+import io.horrorshow.codey.api.github.ChannelInfo;
 import io.horrorshow.codey.time.ReminderTask;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.Guild;
@@ -18,6 +19,13 @@ public class DataStore {
 
     @Getter
     private final Map<Long, ReminderTask> timerMap = new ConcurrentHashMap<>();
+
+    @Getter
+    private final GithubEventChannels githubEventChannels = new GithubEventChannels();
+
+    public static class GithubEventChannels extends ConcurrentHashMap<String, ChannelInfo> {
+
+    }
 
     public static class CompilationCache {
 

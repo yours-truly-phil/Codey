@@ -35,12 +35,14 @@ public class GithubWebhookEndpoint {
 
     private final HmacUtils hmacUtils;
     private final ObjectMapper objectMapper;
+    private final GithubEventBot githubEventBot;
 
 
     @Autowired
-    public GithubWebhookEndpoint(CodeyConfig codeyConfig, ObjectMapper objectMapper) {
+    public GithubWebhookEndpoint(CodeyConfig codeyConfig, ObjectMapper objectMapper, GithubEventBot githubEventBot) {
         this.hmacUtils = new HmacUtils(HmacAlgorithms.HMAC_SHA_256, codeyConfig.getGithubWebhookSecret());
         this.objectMapper = objectMapper;
+        this.githubEventBot = githubEventBot;
     }
 
 
@@ -81,7 +83,10 @@ public class GithubWebhookEndpoint {
             switch (event) {
                 case "push" -> {
                     var push = objectMapper.readValue(payload, GithubPush.class);
-                    log.info("push:\n{}", push);
+                    if (log.isDebugEnabled()) {
+                        log.debug("push:\n{}", push);
+                    }
+                    githubEventBot.onPush(push);
                 }
                 case "ping" -> {
                     var ping = objectMapper.readValue(payload, GithubPing.class);
@@ -145,6 +150,7 @@ public class GithubWebhookEndpoint {
 
 
     static class GithubWorkflowJob {
+
         @JsonProperty public Long id;
         @JsonProperty public Long run_id;
         @JsonProperty public String run_url;
@@ -308,9 +314,9 @@ public class GithubWebhookEndpoint {
         @JsonProperty public String labels_url;
         @JsonProperty public String releases_url;
         @JsonProperty public String deployments_url;
-        @JsonProperty public String created_at;
+        @JsonProperty public Long created_at;
         @JsonProperty public String updated_at;
-        @JsonProperty public String pushed_at;
+        @JsonProperty public Long pushed_at;
         @JsonProperty public String git_url;
         @JsonProperty public String ssh_url;
         @JsonProperty public String clone_url;

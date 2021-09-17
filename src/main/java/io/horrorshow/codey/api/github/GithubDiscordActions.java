@@ -2,21 +2,19 @@ package io.horrorshow.codey.api.github;
 
 import io.horrorshow.codey.data.ChannelEntity;
 import io.horrorshow.codey.data.GithubChannelRepository;
+import io.horrorshow.codey.discordutil.DataStore;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.SlashCommands.COMMAND;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 
@@ -25,24 +23,22 @@ import java.util.stream.Collectors;
 public class GithubDiscordActions extends ListenerAdapter {
 
     private final DiscordUtils utils;
-    private final Map<String, ChannelInfo> postToChannels = new ConcurrentHashMap<>();
     private final GithubChannelRepository githubChannelRepository;
+    private final DataStore.GithubEventChannels githubEventChannels;
 
-    record ChannelInfo(GuildChannel channel, ChannelEntity entity) {
-
-    }
 
     @Autowired
-    public GithubDiscordActions(JDA jda, DiscordUtils utils, GithubChannelRepository githubChannelRepository) {
+    public GithubDiscordActions(JDA jda, DiscordUtils utils, GithubChannelRepository githubChannelRepository, DataStore dataStore) {
         this.utils = utils;
         this.githubChannelRepository = githubChannelRepository;
+        this.githubEventChannels = dataStore.getGithubEventChannels();
 
         try {
             jda.awaitReady();
             for (var channelEntity : githubChannelRepository.findAll()) {
                 var channel = jda.getGuildChannelById(channelEntity.getChannelId());
                 if (channel != null) {
-                    postToChannels.put(channel.getId(), new ChannelInfo(channel, channelEntity));
+                    githubEventChannels.put(channel.getId(), new ChannelInfo(channel, channelEntity));
                 }
             }
         } catch (InterruptedException e) {
@@ -67,7 +63,7 @@ public class GithubDiscordActions extends ListenerAdapter {
 
 
     private void onShowGithubChannels(@NotNull SlashCommandEvent event) {
-        event.reply("Channels:\n" + postToChannels.values().stream()
+        event.reply("Channels:\n" + githubEventChannels.values().stream()
                 .map(channelInfo -> " - Id=" + channelInfo.channel().getId() + " Name=" + channelInfo.channel().getName())
                 .collect(Collectors.joining("\n"))).complete();
     }
@@ -75,11 +71,11 @@ public class GithubDiscordActions extends ListenerAdapter {
 
     private void onSetGithubChannel(@NotNull SlashCommandEvent event) {
         var channel = Objects.requireNonNull(event.getOption("channel")).getAsGuildChannel();
-        var containsChannel = postToChannels.containsKey(channel.getId());
+        var containsChannel = githubEventChannels.containsKey(channel.getId());
         var remove = event.getOption("remove");
         if (remove != null && remove.getAsBoolean()) {
             if (containsChannel) {
-                var removedChannelInfo = postToChannels.remove(channel.getId());
+                var removedChannelInfo = githubEventChannels.remove(channel.getId());
                 githubChannelRepository.delete(removedChannelInfo.entity());
                 event.reply("Removed channel " + channel.getName() + ".").complete();
             } else {
@@ -90,7 +86,7 @@ public class GithubDiscordActions extends ListenerAdapter {
                 var githubChannel = new ChannelEntity();
                 githubChannel.setChannelId(channel.getId());
                 var entity = githubChannelRepository.save(githubChannel);
-                postToChannels.put(channel.getId(), new ChannelInfo(channel, entity));
+                githubEventChannels.put(channel.getId(), new ChannelInfo(channel, entity));
                 if (log.isDebugEnabled()) {
                     log.debug("new channel added and saved {}", githubChannel);
                 }
