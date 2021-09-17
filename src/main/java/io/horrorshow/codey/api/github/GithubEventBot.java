@@ -5,7 +5,9 @@ import io.horrorshow.codey.discordutil.DiscordUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -31,9 +33,19 @@ public class GithubEventBot extends ListenerAdapter {
         jda.addEventListener(this);
     }
 
+    @Override
+    public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
+        if (!event.getAuthor().isBot()) {
+            if ("!test-push".equals(event.getMessage().getContentDisplay())) {
+
+            }
+        }
+    }
+
 
     @Async
     public void onPush(GithubWebhookEndpoint.GithubPush event) {
+        log.info("onPush:\n{}", event);
         var embed = new EmbedBuilder()
                 .setTimestamp(Instant.ofEpochSecond(event.repository.pushed_at))
                 .setThumbnail(event.sender.avatar_url)
@@ -66,7 +78,7 @@ public class GithubEventBot extends ListenerAdapter {
 
 
     private String formatCommit(GithubWebhookEndpoint.GithubCommit commit) {
-        return String.format("[%s](%s)", commit.message, commit.url);
+        return String.format("[%s](%s) [test](https://some.url/test)", commit.message, commit.url);
     }
 
 }

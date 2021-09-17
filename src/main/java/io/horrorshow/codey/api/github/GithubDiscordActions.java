@@ -54,7 +54,6 @@ public class GithubDiscordActions extends ListenerAdapter {
         if (utils.isElevatedMember(event.getMember())) {
             if (COMMAND.SET_GITHUB_CHANNEL.getName().equals(event.getName())) {
                 CompletableFuture.runAsync(() -> onSetGithubChannel(event));
-
             } else if (COMMAND.SHOW_GITHUB_CHANNELS.getName().equals(event.getName())) {
                 CompletableFuture.runAsync(() -> onShowGithubChannels(event));
             }
