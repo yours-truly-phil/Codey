@@ -39,11 +39,15 @@ public class DiscordUtils extends ListenerAdapter {
     public static final String CODE_BLOCK_TICKS = "```\n";
 
     private final CodeyConfig config;
+    private final ElevatedUsersState elevatedUsersState;
 
 
-    public DiscordUtils(@Autowired JDA jda,
-            @Autowired CodeyConfig config) {
+    @Autowired
+    public DiscordUtils(JDA jda,
+            CodeyConfig config,
+            ApplicationState applicationState) {
         this.config = config;
+        this.elevatedUsersState = applicationState.getElevatedUsersState();
 
         jda.addEventListener(this);
     }
@@ -121,8 +125,18 @@ public class DiscordUtils extends ListenerAdapter {
 
 
     public boolean isElevatedMember(Member member) {
-        return member != null && member.getRoles().stream()
-                .anyMatch(role -> config.getRoles().contains(role.getName()));
+        return member != null
+               && (Objects.equals(member.getId(), config.getOwnerId())
+                   || elevatedUsersState.getElevatedUsers().containsKey(member.getId())
+                   || member.getRoles().stream()
+                           .anyMatch(role -> config.getRoles().contains(role.getName())));
+    }
+
+
+    public boolean hasCodeyRole(Member member) {
+        return member != null
+               && member.getRoles().stream()
+                       .anyMatch(role -> config.getRoles().contains(role.getName()));
     }
 
 

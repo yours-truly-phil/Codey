@@ -49,7 +49,11 @@ public class SlashCommands extends ListenerAdapter {
         SET_GITHUB_CHANNEL("set-github-channel", new CommandData("set-github-channel", "Post github updates in this channel")
                 .addOptions(new OptionData(OptionType.CHANNEL, "channel", "The channel codey posts discord updates in", true),
                         new OptionData(OptionType.BOOLEAN, "remove", "No longer post into this channel"))),
-        SHOW_GITHUB_CHANNELS("show-github-channels", new CommandData("show-github-channels", "Shows current github channels"));
+        SHOW_GITHUB_CHANNELS("show-github-channels", new CommandData("show-github-channels", "Shows current github channels")),
+        SET_ELEVATED_USER("set-elevated-user", new CommandData("set-elevated-user", "Gives a user elevated privileges")
+                .addOptions(new OptionData(OptionType.USER, "user", "Elevate this user", true),
+                        new OptionData(OptionType.BOOLEAN, "remove", "Remove privileges from user"))),
+        SHOW_ELEVATED_USERS("show-elevated-users", new CommandData("show-elevated-users", "Show all elevated users"));
 
         @Getter
         public final String name;

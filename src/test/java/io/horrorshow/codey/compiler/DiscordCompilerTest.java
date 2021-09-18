@@ -2,6 +2,7 @@ package io.horrorshow.codey.compiler;
 
 import io.horrorshow.codey.api.CompilerApi;
 import io.horrorshow.codey.api.wandbox.WandboxResponse;
+import io.horrorshow.codey.data.repository.ElevatedUserRepository;
 import io.horrorshow.codey.data.repository.GithubChannelRepository;
 import io.horrorshow.codey.data.repository.Repositories;
 import io.horrorshow.codey.data.repository.TimerRepository;
@@ -37,6 +38,7 @@ class DiscordCompilerTest {
     @Mock CompilerApi compilerApi;
     @Mock GithubChannelRepository githubChannelRepository;
     @Mock TimerRepository timerRepository;
+    @Mock ElevatedUserRepository elevatedUserRepository;
 
     DiscordUtils utils;
     DiscordCompiler discordCompiler;
@@ -47,10 +49,10 @@ class DiscordCompilerTest {
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
-        var repositories = new Repositories(timerRepository, githubChannelRepository);
+        var repositories = new Repositories(timerRepository, githubChannelRepository, elevatedUserRepository);
         applicationState = new ApplicationState(jda, repositories);
         codeyConfig = new CodeyConfig();
-        utils = new DiscordUtils(jda, codeyConfig);
+        utils = new DiscordUtils(jda, codeyConfig, applicationState);
         discordCompiler = new DiscordCompiler(jda, compilerApi, utils, applicationState);
     }
 

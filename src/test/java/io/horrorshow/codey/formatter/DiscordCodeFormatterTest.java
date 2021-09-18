@@ -1,5 +1,10 @@
 package io.horrorshow.codey.formatter;
 
+import io.horrorshow.codey.data.repository.ElevatedUserRepository;
+import io.horrorshow.codey.data.repository.GithubChannelRepository;
+import io.horrorshow.codey.data.repository.Repositories;
+import io.horrorshow.codey.data.repository.TimerRepository;
+import io.horrorshow.codey.discordutil.ApplicationState;
 import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
@@ -25,8 +30,10 @@ import static org.mockito.Mockito.when;
 
 class DiscordCodeFormatterTest {
 
-    @Mock
-    JDA jda;
+    @Mock JDA jda;
+    @Mock ElevatedUserRepository elevatedUserRepository;
+    @Mock GithubChannelRepository githubChannelRepository;
+    @Mock TimerRepository timerRepository;
     JavaFormatter javaFormatter;
     CodeyConfig codeyConfig;
     DiscordUtils utils;
@@ -38,7 +45,9 @@ class DiscordCodeFormatterTest {
         MockitoAnnotations.openMocks(this);
         javaFormatter = new JavaFormatter();
         codeyConfig = new CodeyConfig();
-        utils = new DiscordUtils(jda, codeyConfig);
+        var repositories = new Repositories(timerRepository, githubChannelRepository, elevatedUserRepository);
+        var applicationState = new ApplicationState(jda, repositories);
+        utils = new DiscordUtils(jda, codeyConfig, applicationState);
         formatter = new DiscordCodeFormatter(jda, javaFormatter, utils);
     }
 

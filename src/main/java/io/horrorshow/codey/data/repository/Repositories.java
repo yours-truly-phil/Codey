@@ -12,12 +12,18 @@ public class Repositories {
     private final TimerRepository timerRepository;
     @Getter
     private final GithubChannelRepository githubChannelRepository;
+    @Getter
+    private final ElevatedUserRepository elevatedUserRepository;
 
 
     @Autowired
-    public Repositories(TimerRepository timerRepository, GithubChannelRepository githubChannelRepository) {
+    public Repositories(TimerRepository timerRepository,
+            GithubChannelRepository githubChannelRepository,
+            ElevatedUserRepository elevatedUserRepository) {
+
         this.timerRepository = timerRepository;
         this.githubChannelRepository = githubChannelRepository;
+        this.elevatedUserRepository = elevatedUserRepository;
     }
 
 }

@@ -20,6 +20,7 @@ services:
     environment:
       CODEY_TOKEN: change-me
       CODEY_GITHUB-WEBHOOK-SECRETS_0: change-me
+      CODEY_OWNER-ID: change-to-your-discord-user-id
     volumes:
       - ./logs:/application/logs
     depends_on:

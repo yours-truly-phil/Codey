@@ -1,5 +1,9 @@
 package io.horrorshow.codey.discordutil;
 
+import io.horrorshow.codey.data.repository.ElevatedUserRepository;
+import io.horrorshow.codey.data.repository.GithubChannelRepository;
+import io.horrorshow.codey.data.repository.Repositories;
+import io.horrorshow.codey.data.repository.TimerRepository;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -25,8 +29,10 @@ import static org.mockito.Mockito.when;
 
 class DiscordUtilsTest {
 
-    @Mock
-    JDA jda;
+    @Mock JDA jda;
+    @Mock ElevatedUserRepository elevatedUserRepository;
+    @Mock GithubChannelRepository githubChannelRepository;
+    @Mock TimerRepository timerRepository;
     DiscordUtils discordUtils;
     CodeyConfig codeyConfig;
 
@@ -35,7 +41,9 @@ class DiscordUtilsTest {
     void init() {
         MockitoAnnotations.openMocks(this);
         codeyConfig = new CodeyConfig();
-        discordUtils = new DiscordUtils(jda, codeyConfig);
+        var repositories = new Repositories(timerRepository, githubChannelRepository, elevatedUserRepository);
+        var applicationState = new ApplicationState(jda, repositories);
+        discordUtils = new DiscordUtils(jda, codeyConfig, applicationState);
     }
 
 
@@ -92,6 +100,7 @@ class DiscordUtilsTest {
         var member = Mockito.mock(Member.class);
 
         when(member.getRoles()).thenReturn(List.of());
+        when(member.getId()).thenReturn("some id");
         assertThat(discordUtils.isElevatedMember(member)).isFalse();
 
         var role = Mockito.mock(Role.class);
