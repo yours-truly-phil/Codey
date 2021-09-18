@@ -2,7 +2,7 @@ package io.horrorshow.codey;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.horrorshow.codey.discordutil.CodeyConfig;
-import io.horrorshow.codey.discordutil.DataStore;
+import io.horrorshow.codey.discordutil.ApplicationState;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -74,11 +74,11 @@ public class CodeyApplication {
     }
 
 
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-    public DataStore messageStore() {
-        return new DataStore();
-    }
+//    @Bean
+//    @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+//    public ApplicationState messageStore() {
+//        return new ApplicationState();
+//    }
 
 
     @Bean

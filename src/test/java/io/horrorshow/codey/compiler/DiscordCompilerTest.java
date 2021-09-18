@@ -2,9 +2,12 @@ package io.horrorshow.codey.compiler;
 
 import io.horrorshow.codey.api.CompilerApi;
 import io.horrorshow.codey.api.wandbox.WandboxResponse;
+import io.horrorshow.codey.data.GithubChannelRepository;
+import io.horrorshow.codey.data.Repositories;
+import io.horrorshow.codey.data.TimerRepository;
 import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.DiscordUtils;
-import io.horrorshow.codey.discordutil.DataStore;
+import io.horrorshow.codey.discordutil.ApplicationState;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -30,24 +33,25 @@ import static org.mockito.Mockito.when;
 
 class DiscordCompilerTest {
 
-    @Mock
-    JDA jda;
-    @Mock
-    CompilerApi compilerApi;
+    @Mock JDA jda;
+    @Mock CompilerApi compilerApi;
+    @Mock GithubChannelRepository githubChannelRepository;
+    @Mock TimerRepository timerRepository;
 
     DiscordUtils utils;
     DiscordCompiler discordCompiler;
-    DataStore dataStore;
+    ApplicationState applicationState;
     CodeyConfig codeyConfig;
 
 
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
-        dataStore = new DataStore();
+        var repositories = new Repositories(timerRepository, githubChannelRepository);
+        applicationState = new ApplicationState(jda, repositories);
         codeyConfig = new CodeyConfig();
         utils = new DiscordUtils(jda, codeyConfig);
-        discordCompiler = new DiscordCompiler(jda, compilerApi, utils, dataStore);
+        discordCompiler = new DiscordCompiler(jda, compilerApi, utils, applicationState);
     }
 
 

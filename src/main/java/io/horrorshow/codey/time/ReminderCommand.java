@@ -2,7 +2,7 @@ package io.horrorshow.codey.time;
 
 import io.horrorshow.codey.data.TimerData;
 import io.horrorshow.codey.data.TimerRepository;
-import io.horrorshow.codey.discordutil.DataStore;
+import io.horrorshow.codey.discordutil.ApplicationState;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -43,7 +43,7 @@ public class ReminderCommand extends ListenerAdapter {
 
 
     @Autowired
-    public ReminderCommand(JDA jda, DiscordUtils utils, DataStore store, TimerRepository timerRepository) {
+    public ReminderCommand(JDA jda, DiscordUtils utils, ApplicationState store, TimerRepository timerRepository) {
         this.utils = utils;
         this.timerMap = store.getTimerMap();
         this.timerRepository = timerRepository;

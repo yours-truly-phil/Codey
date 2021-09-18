@@ -20,4 +20,5 @@ public class CodeyConfig {
     private List<String> githubWebhookSecrets;
     private String embedColor;
     private List<String> roles = new ArrayList<>();
+    private boolean devMode = false;
 }

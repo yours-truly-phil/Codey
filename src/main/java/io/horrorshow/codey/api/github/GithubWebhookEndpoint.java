@@ -7,6 +7,7 @@ import io.horrorshow.codey.discordutil.CodeyConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.http.HttpHeaders;
@@ -37,6 +38,7 @@ public class GithubWebhookEndpoint {
     private final List<HmacUtils> hmacUtils = new ArrayList<>();
     private final ObjectMapper objectMapper;
     private final GithubEventBot githubEventBot;
+    private final boolean devMode;
 
 
     @Autowired
@@ -47,6 +49,7 @@ public class GithubWebhookEndpoint {
         log.debug("loaded " + hmacUtils.size() + " secrets");
         this.objectMapper = objectMapper;
         this.githubEventBot = githubEventBot;
+        this.devMode = codeyConfig.isDevMode();
     }
 
 
@@ -69,26 +72,11 @@ public class GithubWebhookEndpoint {
             }
         }
         var responseHeaders = new HttpHeaders();
-
-        var signature = header.get("x-hub-signature-256");
-        if (signature == null) {
-            log.warn("no signature, headers={}", header);
-            return new ResponseEntity<>("No signature given." + EOL, responseHeaders, HttpStatus.BAD_REQUEST);
-        }
-
-        boolean invalidLength = signature.length() != SIGNATURE_LENGTH;
-        if (invalidLength) {
-            log.warn("invalid signature length, signature={}", signature);
-            return new ResponseEntity<>("Invalid signature." + EOL, responseHeaders, HttpStatus.UNAUTHORIZED);
-        }
-
-        boolean hashOk = hmacUtils.stream().anyMatch(hmac -> {
-            var hash = String.format("sha256=%s", hmac.hmacHex(payload));
-            return MessageDigest.isEqual(signature.getBytes(StandardCharsets.UTF_8), hash.getBytes(StandardCharsets.UTF_8));
-        });
-        if (!hashOk) {
-            log.warn("wrong secret signature={}", signature);
-            return new ResponseEntity<>("Invalid signature." + EOL, responseHeaders, HttpStatus.UNAUTHORIZED);
+        if (!devMode) {
+            ResponseEntity<String> err = validateSignature(header, payload, responseHeaders);
+            if (err != null) {
+                return err;
+            }
         }
 
         try {
@@ -131,6 +119,33 @@ public class GithubWebhookEndpoint {
         int bytes = payload.getBytes(StandardCharsets.UTF_8).length;
         String message = "Signature OK." + EOL + String.format("Received %d bytes.", bytes) + EOL;
         return new ResponseEntity<>(message, responseHeaders, HttpStatus.OK);
+    }
+
+
+    @Nullable
+    private ResponseEntity<String> validateSignature(Map<String, String> header, String payload, HttpHeaders responseHeaders) {
+
+        var signature = header.get("x-hub-signature-256");
+        if (signature == null) {
+            log.warn("no signature, headers={}", header);
+            return new ResponseEntity<>("No signature given." + EOL, responseHeaders, HttpStatus.BAD_REQUEST);
+        }
+
+        boolean invalidLength = signature.length() != SIGNATURE_LENGTH;
+        if (invalidLength) {
+            log.warn("invalid signature length, signature={}", signature);
+            return new ResponseEntity<>("Invalid signature." + EOL, responseHeaders, HttpStatus.UNAUTHORIZED);
+        }
+
+        boolean hashOk = hmacUtils.stream().anyMatch(hmac -> {
+            var hash = String.format("sha256=%s", hmac.hmacHex(payload));
+            return MessageDigest.isEqual(signature.getBytes(StandardCharsets.UTF_8), hash.getBytes(StandardCharsets.UTF_8));
+        });
+        if (!hashOk) {
+            log.warn("wrong secret signature={}", signature);
+            return new ResponseEntity<>("Invalid signature." + EOL, responseHeaders, HttpStatus.UNAUTHORIZED);
+        }
+        return null;
     }
 
 

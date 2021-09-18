@@ -1,18 +1,25 @@
 package io.horrorshow.codey.discordutil;
 
-import io.horrorshow.codey.api.github.ChannelInfo;
+import io.horrorshow.codey.api.github.GithubEventState;
+import io.horrorshow.codey.data.Repositories;
 import io.horrorshow.codey.time.ReminderTask;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public class DataStore {
+@Service
+@Slf4j
+public class ApplicationState {
 
     @Getter
     private final CompilationCache compilationCache = new CompilationCache();
@@ -21,11 +28,15 @@ public class DataStore {
     private final Map<Long, ReminderTask> timerMap = new ConcurrentHashMap<>();
 
     @Getter
-    private final GithubEventChannels githubEventChannels = new GithubEventChannels();
+    private final GithubEventState githubEventState;
 
-    public static class GithubEventChannels extends ConcurrentHashMap<String, ChannelInfo> {
 
+    @Autowired
+    public ApplicationState(JDA jda, Repositories repositories) {
+
+        this.githubEventState = new GithubEventState(jda, repositories.getGithubChannelRepository());
     }
+
 
     public static class CompilationCache {
 

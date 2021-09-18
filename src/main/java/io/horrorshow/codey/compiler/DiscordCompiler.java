@@ -1,7 +1,7 @@
 package io.horrorshow.codey.compiler;
 
 import io.horrorshow.codey.api.CompilerApi;
-import io.horrorshow.codey.discordutil.DataStore;
+import io.horrorshow.codey.discordutil.ApplicationState;
 import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
@@ -32,16 +32,16 @@ public class DiscordCompiler extends ListenerAdapter {
     public static final String PLAY = "▶️";
 
     private final CompilerApi compiler;
-    private final DataStore.CompilationCache compilationCache;
+    private final ApplicationState.CompilationCache compilationCache;
     private final DiscordUtils utils;
 
 
     public DiscordCompiler(@Autowired JDA jda,
             @Autowired @Qualifier("piston") CompilerApi compiler,
             @Autowired DiscordUtils utils,
-            @Autowired DataStore dataStore) {
+            @Autowired ApplicationState applicationState) {
         this.utils = utils;
-        this.compilationCache = dataStore.getCompilationCache();
+        this.compilationCache = applicationState.getCompilationCache();
         this.compiler = compiler;
 
         jda.addEventListener(this);

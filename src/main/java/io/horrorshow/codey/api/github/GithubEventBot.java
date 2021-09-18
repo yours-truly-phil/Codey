@@ -2,7 +2,7 @@ package io.horrorshow.codey.api.github;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.horrorshow.codey.discordutil.DataStore;
+import io.horrorshow.codey.discordutil.ApplicationState;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -24,13 +24,13 @@ import java.util.stream.Collectors;
 public class GithubEventBot extends ListenerAdapter {
 
     private final DiscordUtils discordUtils;
-    private final DataStore.GithubEventChannels githubEventChannels;
+    private final GithubEventState githubEventState;
 
 
     @Autowired
-    public GithubEventBot(JDA jda, DiscordUtils discordUtils, DataStore dataStore) {
+    public GithubEventBot(JDA jda, DiscordUtils discordUtils, ApplicationState applicationState) {
         this.discordUtils = discordUtils;
-        this.githubEventChannels = dataStore.getGithubEventChannels();
+        this.githubEventState = applicationState.getGithubEventState();
 
         jda.addEventListener(this);
     }
@@ -70,7 +70,7 @@ public class GithubEventBot extends ListenerAdapter {
                 .build();
 
         CompletableFuture.allOf(
-                githubEventChannels.values().stream()
+                githubEventState.getAll().stream()
                         .map(channelInfo -> {
                             var channel = channelInfo.channel();
                             var textChannel = channel.getJDA().getTextChannelById(channel.getId());

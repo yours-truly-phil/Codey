@@ -6,6 +6,7 @@ codey:
     - CodeyRole
     - CodeyBoss
   embedColor: "#f1c40f"
+  dev-mode: true
 logging:
   level:
     io.horrorshow.codey: debug
