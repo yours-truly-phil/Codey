@@ -1,5 +1,6 @@
 package io.horrorshow.codey.api.github;
 
+import io.horrorshow.codey.api.github.model.GithubApiTypes;
 import io.horrorshow.codey.discordutil.ApplicationState;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,7 @@ public class GithubEventBot {
 
 
     @Async
-    public void onPush(GithubWebhookEndpoint.GithubPush event) {
+    public void onPush(GithubApiTypes.Push event) {
         log.info("onPush:\n{}", event);
         var embed = new EmbedBuilder()
                 .setTimestamp(Instant.ofEpochSecond(Long.parseLong(event.repository.pushed_at)))
@@ -62,7 +63,7 @@ public class GithubEventBot {
     }
 
 
-    private String formatCommit(GithubWebhookEndpoint.GithubCommit commit) {
+    private String formatCommit(GithubApiTypes.Commit commit) {
         return String.format("[%s](%s) (%d files)", commit.message, commit.url, commit.modified.size());
     }
 
