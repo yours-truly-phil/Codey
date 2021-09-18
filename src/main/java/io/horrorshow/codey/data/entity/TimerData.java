@@ -1,5 +1,6 @@
-package io.horrorshow.codey.data;
+package io.horrorshow.codey.data.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -11,8 +12,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.Table;
 
 import java.util.Objects;
 
@@ -22,15 +21,19 @@ import java.util.Objects;
 @Setter
 @ToString
 @RequiredArgsConstructor
-@Table(name = "github_channel",
-        indexes = {@Index(name = "channel_id_index", columnList = "channel_id")})
-public class ChannelEntity {
+@AllArgsConstructor
+public class TimerData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id", nullable = false)
     private Long id;
-    @Column(name = "channel_id", nullable = false)
     private String channelId;
+    private String message;
+    private String userId;
+    private Long start;
+    private Long done;
+    private Boolean isPingUser;
 
 
     @Override
@@ -41,13 +44,13 @@ public class ChannelEntity {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        ChannelEntity that = (ChannelEntity) o;
-        return Objects.equals(id, that.id);
+        TimerData timerData = (TimerData) o;
+        return Objects.equals(id, timerData.id);
     }
 
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return Objects.hash(id);
     }
 }

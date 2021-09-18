@@ -2,9 +2,9 @@ package io.horrorshow.codey.compiler;
 
 import io.horrorshow.codey.api.CompilerApi;
 import io.horrorshow.codey.api.wandbox.WandboxResponse;
-import io.horrorshow.codey.data.GithubChannelRepository;
-import io.horrorshow.codey.data.Repositories;
-import io.horrorshow.codey.data.TimerRepository;
+import io.horrorshow.codey.data.repository.GithubChannelRepository;
+import io.horrorshow.codey.data.repository.Repositories;
+import io.horrorshow.codey.data.repository.TimerRepository;
 import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.ApplicationState;

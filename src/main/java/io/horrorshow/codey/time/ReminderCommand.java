@@ -1,7 +1,7 @@
 package io.horrorshow.codey.time;
 
-import io.horrorshow.codey.data.TimerData;
-import io.horrorshow.codey.data.TimerRepository;
+import io.horrorshow.codey.data.entity.TimerData;
+import io.horrorshow.codey.data.repository.TimerRepository;
 import io.horrorshow.codey.discordutil.ApplicationState;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import lombok.extern.slf4j.Slf4j;

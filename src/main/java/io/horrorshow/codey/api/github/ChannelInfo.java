@@ -1,6 +1,6 @@
 package io.horrorshow.codey.api.github;
 
-import io.horrorshow.codey.data.ChannelEntity;
+import io.horrorshow.codey.data.entity.ChannelEntity;
 import net.dv8tion.jda.api.entities.GuildChannel;
 
 

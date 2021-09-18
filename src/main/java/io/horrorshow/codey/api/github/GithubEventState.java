@@ -1,7 +1,7 @@
 package io.horrorshow.codey.api.github;
 
-import io.horrorshow.codey.data.ChannelEntity;
-import io.horrorshow.codey.data.GithubChannelRepository;
+import io.horrorshow.codey.data.entity.ChannelEntity;
+import io.horrorshow.codey.data.repository.GithubChannelRepository;
 import javassist.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;

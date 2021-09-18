@@ -1,4 +1,4 @@
-package io.horrorshow.codey.data;
+package io.horrorshow.codey.data.repository;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;

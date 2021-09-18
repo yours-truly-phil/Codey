@@ -1,7 +1,7 @@
 package io.horrorshow.codey.discordutil;
 
 import io.horrorshow.codey.api.github.GithubEventState;
-import io.horrorshow.codey.data.Repositories;
+import io.horrorshow.codey.data.repository.Repositories;
 import io.horrorshow.codey.time.ReminderTask;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
