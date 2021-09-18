@@ -41,4 +41,9 @@ class GithubApiTypesTest {
     void deserialize_workflow_run_payload() throws JsonProcessingException {
         deserialize("workflow_run.json", GithubApiTypes.WorkflowRunPayload.class);
     }
+
+    @Test
+    void deserialize_check_suite_payload() throws JsonProcessingException {
+        deserialize("check_suite.json", GithubApiTypes.CheckSuitePayload.class);
+    }
 }

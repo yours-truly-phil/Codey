@@ -47,6 +47,14 @@ public class GithubApiTypes {
     }
 
 
+    public static class CheckSuitePayload {
+        @JsonProperty public String action;
+        @JsonProperty public CheckSuite check_suite;
+        @JsonProperty public Repository repository;
+        @JsonProperty public UserInfo sender;
+    }
+
+
     public static class Deployment {
         @JsonProperty public String url;
         @JsonProperty public Long id;
@@ -76,6 +84,9 @@ public class GithubApiTypes {
         @JsonProperty public App app;
         @JsonProperty public String created_at;
         @JsonProperty public String updated_at;
+        @JsonProperty public Integer latest_check_runs_count;
+        @JsonProperty public String check_runs_url;
+        @JsonProperty public Commit head_commit;
     }
 
 
