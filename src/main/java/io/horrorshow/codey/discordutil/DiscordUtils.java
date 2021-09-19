@@ -126,10 +126,8 @@ public class DiscordUtils extends ListenerAdapter {
 
     public boolean isElevatedMember(Member member) {
         return member != null
-               && (Objects.equals(member.getId(), config.getOwnerId())
-                   || elevatedUsersState.getElevatedUsers().containsKey(member.getId())
-                   || member.getRoles().stream()
-                           .anyMatch(role -> config.getRoles().contains(role.getName())));
+               && ((config.getOwnerId() != null && config.getOwnerId().equals(member.getId()))
+                   || elevatedUsersState.getElevatedUsers().containsKey(member.getId()));
     }
 
 

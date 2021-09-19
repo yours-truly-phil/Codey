@@ -1,5 +1,6 @@
 package io.horrorshow.codey.discordutil;
 
+import io.horrorshow.codey.data.entity.ElevatedUser;
 import io.horrorshow.codey.data.repository.ElevatedUserRepository;
 import io.horrorshow.codey.data.repository.GithubChannelRepository;
 import io.horrorshow.codey.data.repository.Repositories;
@@ -11,12 +12,14 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import static io.horrorshow.codey.discordutil.DiscordUtils.BASKET;
@@ -29,10 +32,12 @@ import static org.mockito.Mockito.when;
 
 class DiscordUtilsTest {
 
-    @Mock JDA jda;
-    @Mock ElevatedUserRepository elevatedUserRepository;
-    @Mock GithubChannelRepository githubChannelRepository;
-    @Mock TimerRepository timerRepository;
+    @Mock JDA jdaMock;
+    @Mock TimerRepository timerRepositoryMock;
+    @Mock GithubChannelRepository githubChannelRepositoryMock;
+    @Mock ElevatedUserRepository elevatedUserRepositoryMock;
+    Repositories repositories;
+    ApplicationState applicationState;
     DiscordUtils discordUtils;
     CodeyConfig codeyConfig;
 
@@ -40,10 +45,11 @@ class DiscordUtilsTest {
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
+
         codeyConfig = new CodeyConfig();
-        var repositories = new Repositories(timerRepository, githubChannelRepository, elevatedUserRepository);
-        var applicationState = new ApplicationState(jda, repositories);
-        discordUtils = new DiscordUtils(jda, codeyConfig, applicationState);
+        repositories = new Repositories(timerRepositoryMock, githubChannelRepositoryMock, elevatedUserRepositoryMock);
+        applicationState = new ApplicationState(jdaMock, repositories);
+        discordUtils = new DiscordUtils(jdaMock, codeyConfig, applicationState);
     }
 
 
@@ -95,17 +101,55 @@ class DiscordUtilsTest {
 
 
     @Test
-    void isElevatedMember() {
+    void hasCodeyRole() {
         codeyConfig.getRoles().add("CodeyRole");
         var member = Mockito.mock(Member.class);
 
         when(member.getRoles()).thenReturn(List.of());
-        when(member.getId()).thenReturn("some id");
-        assertThat(discordUtils.isElevatedMember(member)).isFalse();
+        assertThat(discordUtils.hasCodeyRole(member)).isFalse();
 
         var role = Mockito.mock(Role.class);
         when(role.getName()).thenReturn("CodeyRole");
         when(member.getRoles()).thenReturn(List.of(role));
-        assertThat(discordUtils.isElevatedMember(member)).isTrue();
+        assertThat(discordUtils.hasCodeyRole(member)).isTrue();
+    }
+
+    @Nested
+    class ElevatedMemberTest {
+
+        @BeforeEach
+        void init() {
+            MockitoAnnotations.openMocks(this);
+            var elevatedUsers = Set.of(
+                    new ElevatedUser("userId", "user name"),
+                    new ElevatedUser("otherUserId", "other user name")
+            );
+            when(elevatedUserRepositoryMock.findAll()).thenReturn(elevatedUsers);
+
+            codeyConfig = new CodeyConfig();
+            repositories = new Repositories(timerRepositoryMock, githubChannelRepositoryMock, elevatedUserRepositoryMock);
+            applicationState = new ApplicationState(jdaMock, repositories);
+            discordUtils = new DiscordUtils(jdaMock, codeyConfig, applicationState);
+        }
+
+        @Test
+        void is_not_elevated_member_if_user_id_not_in_elevatedUsersState() {
+            var member = Mockito.mock(Member.class);
+            when(member.getId()).thenReturn("not elevated");
+
+            assertThat(discordUtils.isElevatedMember(member)).isFalse();
+        }
+
+
+        @Test
+        void is_elevated_member_if_user_id_in_elevated_users_state() {
+            var elevatedMember = Mockito.mock(Member.class);
+            when(elevatedMember.getId()).thenReturn("userId");
+            assertThat(discordUtils.isElevatedMember(elevatedMember)).isTrue();
+
+            var normalUser = Mockito.mock(Member.class);
+            when(normalUser.getId()).thenReturn("bob");
+            assertThat(discordUtils.isElevatedMember(normalUser)).isFalse();
+        }
     }
 }
