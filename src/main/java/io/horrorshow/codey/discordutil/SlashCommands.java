@@ -134,7 +134,7 @@ public class SlashCommands extends ListenerAdapter {
             event.reply(res).queue();
         } catch (JsonProcessingException e) {
             event.reply("Error: %s".formatted(e.getMessage())).queue();
-            log.debug("Error in get slash command: {}", e.getMessage());
+            log.warn("Error in get slash command: {}", e.getMessage());
         }
     }
 

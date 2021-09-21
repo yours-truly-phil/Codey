@@ -38,7 +38,7 @@ public class CommonJDAListener extends ListenerAdapter {
                 try {
                     message.delete().complete();
                 } catch (ErrorResponseException e) {
-                    log.debug("Unable to remove message");
+                    log.warn("Unable to remove message");
                 }
             }
         }

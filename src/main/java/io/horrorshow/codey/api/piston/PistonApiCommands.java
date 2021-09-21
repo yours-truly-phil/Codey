@@ -57,11 +57,9 @@ public class PistonApiCommands extends ListenerAdapter {
         if (authService.isElevatedMember(event.getMember())) {
             var name = Objects.requireNonNull(event.getOption("name")).getAsString();
             if (config.getApis().containsKey(name)) {
-                log.debug("using api " + name);
                 config.setCurrentApi(name);
                 pistonApi.updateCompilerInfo(name);
                 event.reply("Changed api to %s".formatted(name)).complete();
-                log.debug("updated compiler map");
             } else {
                 event.reply("api %s not available".formatted(name)).queue();
             }

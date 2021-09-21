@@ -23,7 +23,9 @@ public class ElevatedUsersState {
         this.elevatedUserRepository = elevatedUserRepository;
         this.elevatedUsers = elevatedUserRepository.findAll()
                 .stream().collect(Collectors.toConcurrentMap(ElevatedUser::getUserId, elevatedUser -> elevatedUser));
-        log.debug("loaded {} elevated users", elevatedUsers.size());
+        if (log.isDebugEnabled()) {
+            log.debug("loaded {} elevated users", elevatedUsers.size());
+        }
     }
 
 

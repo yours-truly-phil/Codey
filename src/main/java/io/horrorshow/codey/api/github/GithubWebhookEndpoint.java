@@ -46,7 +46,9 @@ public class GithubWebhookEndpoint {
         for (var secret : codeyConfig.getGithubWebhookSecrets()) {
             hmacUtils.add(new HmacUtils(HmacAlgorithms.HMAC_SHA_256, secret));
         }
-        log.debug("loaded " + hmacUtils.size() + " secrets");
+        if (log.isDebugEnabled()) {
+            log.debug("loaded " + hmacUtils.size() + " secrets");
+        }
         this.objectMapper = objectMapper;
         this.githubEventBot = githubEventBot;
         this.devMode = codeyConfig.isDevMode();
@@ -84,20 +86,28 @@ public class GithubWebhookEndpoint {
             switch (event) {
                 case "push" -> {
                     var push = objectMapper.readValue(payload, GithubApiTypes.Push.class);
-                    log.debug("push event");
+                    if (log.isDebugEnabled()) {
+                        log.debug("push event");
+                    }
                     githubEventBot.onPush(push);
                 }
                 case "ping" -> {
                     var ping = objectMapper.readValue(payload, GithubApiTypes.Ping.class);
-                    log.trace("ping:\n{}", ping);
+                    if (log.isTraceEnabled()) {
+                        log.trace("ping:\n{}", ping);
+                    }
                 }
                 case "page_build" -> {
                     var pageBuild = objectMapper.readValue(payload, GithubApiTypes.PageBuild.class);
-                    log.trace("page_build:\n{}", pageBuild);
+                    if (log.isTraceEnabled()) {
+                        log.trace("page_build:\n{}", pageBuild);
+                    }
                 }
                 case "workflow_job" -> {
                     var workflowJob = objectMapper.readValue(payload, GithubApiTypes.WorkflowPayload.class);
-                    log.trace("workflow_job:\n{}", workflowJob);
+                    if (log.isTraceEnabled()) {
+                        log.trace("workflow_job:\n{}", workflowJob);
+                    }
                 }
                 case "workflow_run" -> printDefault("workflow_run", payload);
                 case "check_run" -> printDefault("check_run", payload);
@@ -106,10 +116,12 @@ public class GithubWebhookEndpoint {
                 case "deployment" -> printDefault("deployment", payload);
                 case "deployment_status" -> printDefault("deployment_status", payload);
                 default -> {
-                    log.debug("unknown github event '{}'", event);
+                    log.warn("unknown github event '{}'", event);
                     var map = objectMapper.readValue(payload, Map.class);
-                    log.trace("payload:\n{}", objectMapper.writerWithDefaultPrettyPrinter()
-                            .writeValueAsString(map));
+                    if (log.isTraceEnabled()) {
+                        log.trace("payload:\n{}", objectMapper.writerWithDefaultPrettyPrinter()
+                                .writeValueAsString(map));
+                    }
                 }
             }
         } catch (JsonProcessingException e) {
