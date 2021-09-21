@@ -1,7 +1,7 @@
 package io.horrorshow.codey.api.github;
 
 import io.horrorshow.codey.discordutil.ApplicationState;
-import io.horrorshow.codey.discordutil.DiscordUtils;
+import io.horrorshow.codey.discordutil.AuthService;
 import io.horrorshow.codey.discordutil.SlashCommands.COMMAND;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
@@ -20,14 +20,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GithubDiscordActions extends ListenerAdapter {
 
-    private final DiscordUtils utils;
     private final GithubEventState githubEventState;
+    private final AuthService authService;
 
 
     @Autowired
-    public GithubDiscordActions(JDA jda, DiscordUtils utils, ApplicationState applicationState) {
-        this.utils = utils;
+    public GithubDiscordActions(JDA jda, ApplicationState applicationState, AuthService authService) {
         this.githubEventState = applicationState.getGithubEventState();
+        this.authService = authService;
 
         jda.addEventListener(this);
     }
@@ -35,7 +35,7 @@ public class GithubDiscordActions extends ListenerAdapter {
 
     @Override
     public void onSlashCommand(@NotNull SlashCommandEvent event) {
-        if (utils.isElevatedMember(event.getMember())) {
+        if (authService.isElevatedMember(event.getMember())) {
             if (COMMAND.SET_GITHUB_CHANNEL.getName().equals(event.getName())) {
                 CompletableFuture.runAsync(() -> onSetGithubChannel(event));
             } else if (COMMAND.SHOW_GITHUB_CHANNELS.getName().equals(event.getName())) {

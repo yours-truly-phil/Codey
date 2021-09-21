@@ -8,7 +8,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
+
 public class DiscordMessage {
+
     private static final Pattern matchCodeblocks = Pattern.compile("```[\\s\\S]*?(```)");
     private static final int MAX_LENGTH_LANG;
     @SuppressWarnings("SpellCheckingInspection")
@@ -43,9 +45,11 @@ public class DiscordMessage {
     @Getter
     private final List<MessagePart> parts = new ArrayList<>();
 
+
     private DiscordMessage(List<MessagePart> parts) {
         this.parts.addAll(parts);
     }
+
 
     public static DiscordMessage of(String raw) {
         List<MessagePart> parts = new ArrayList<>();
@@ -70,6 +74,7 @@ public class DiscordMessage {
         return new DiscordMessage(parts);
     }
 
+
     public static int startsWithAnyOf(String testString, String[] arr) {
         var s = (testString.length() > MAX_LENGTH_LANG)
                 ? testString.substring(0, MAX_LENGTH_LANG)
@@ -92,12 +97,14 @@ public class DiscordMessage {
         return -1;
     }
 
+
     private static int checkIfLongerMatchAvailable(String s, String[] arr, int mid) {
         while (mid + 1 < arr.length && s.startsWith(arr[mid + 1])) {
             mid++;
         }
         return mid;
     }
+
 
     @NotNull
     private static MessagePart getMessagePart(String rawCodeBlock) {

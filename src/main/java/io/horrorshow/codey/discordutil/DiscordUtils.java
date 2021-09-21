@@ -2,55 +2,29 @@ package io.horrorshow.codey.discordutil;
 
 import io.horrorshow.codey.compiler.Output;
 import lombok.extern.slf4j.Slf4j;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.react.GenericGuildMessageReactionEvent;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
-import net.dv8tion.jda.api.exceptions.ErrorResponseException;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static io.horrorshow.codey.discordutil.CommonJDAListener.BASKET;
 
-@Service
+
 @Slf4j
-public class DiscordUtils extends ListenerAdapter {
-
-    public static final String BASKET = "\uD83D\uDDD1️";
+public class DiscordUtils {
 
     public static final int CHAR_LIMIT = 2000;
     public static final String CODE_BLOCK_TICKS = "```\n";
-
-    private final CodeyConfig config;
-    private final ElevatedUsersState elevatedUsersState;
-
-
-    @Autowired
-    public DiscordUtils(JDA jda,
-            CodeyConfig config,
-            ApplicationState applicationState) {
-        this.config = config;
-        this.elevatedUsersState = applicationState.getElevatedUsersState();
-
-        jda.addEventListener(this);
-    }
 
 
     public static byte[] imgAsBytes(BufferedImage image) throws IOException {
@@ -61,85 +35,40 @@ public class DiscordUtils extends ListenerAdapter {
     }
 
 
-    @Override
-    public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
-        if (!event.getUser().isBot()) {
-            onReactionAdd(event);
-        }
-    }
-
-
-    @Async
-    public void onReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
-        var message = event.getChannel().retrieveMessageById(event.getMessageId()).complete();
-        if (hasEmoji(BASKET, event)) {
-            if (event.getJDA().getSelfUser().getId().equals(message.getAuthor().getId())) {
-                try {
-                    message.delete().complete();
-                } catch (ErrorResponseException e) {
-                    log.debug("Unable to remove message");
-                }
-            }
-        }
-    }
-
-
-    @Async
-    public CompletableFuture<Message> sendRemovableMessageAsync(String text, TextChannel channel) {
+    public static CompletableFuture<Message> sendRemovableMessageAsync(String text, TextChannel channel) {
         var message = channel.sendMessage(text).complete();
         message.addReaction(BASKET).queue();
         return CompletableFuture.completedFuture(message);
     }
 
 
-    @Async
-    public CompletableFuture<Message> sendRemovableEmbed(MessageEmbed embed, TextChannel channel) {
+    public static CompletableFuture<Message> sendRemovableEmbed(MessageEmbed embed, TextChannel channel) {
         var message = channel.sendMessage(embed).complete();
         message.addReaction(BASKET).complete();
         return CompletableFuture.completedFuture(message);
     }
 
 
-    @Async
-    public CompletableFuture<Message> sendTextFile(String filename, String text, TextChannel channel) {
+    public static CompletableFuture<Message> sendTextFile(String filename, String text, TextChannel channel) {
         var message = channel.sendFile(text.getBytes(StandardCharsets.UTF_8), filename).complete();
         message.addReaction(BASKET).queue();
         return CompletableFuture.completedFuture(message);
     }
 
 
-    public void sendRemovableMessage(String text, TextChannel channel) {
+    public static void sendRemovableMessage(String text, TextChannel channel) {
         var message = channel.sendMessage(text).complete();
         message.addReaction(BASKET).complete();
     }
 
 
-    public void drawRemovableImage(BufferedImage image, String title, TextChannel channel) {
+    public static void drawRemovableImage(BufferedImage image, String title, TextChannel channel) {
         try {
             channel.sendFile(imgAsBytes(image), title)
                     .queue(message -> message.addReaction(BASKET).queue());
         } catch (IOException e) {
             log.error("Problem drawing removable image", e);
         }
-    }
-
-
-    public boolean isElevatedMember(Member member) {
-        return member != null
-               && ((config.getOwnerId() != null && config.getOwnerId().equals(member.getId()))
-                   || elevatedUsersState.getElevatedUsers().containsKey(member.getId()));
-    }
-
-
-    public boolean hasCodeyRole(Member member) {
-        return member != null
-               && member.getRoles().stream()
-                       .anyMatch(role -> config.getRoles().contains(role.getName()));
-    }
-
-
-    public static boolean hasEmoji(String emoji, GenericGuildMessageReactionEvent event) {
-        return event.getReactionEmote().isEmoji() && Objects.equals(emoji, event.getReactionEmote().getEmoji());
     }
 
 
@@ -173,13 +102,12 @@ public class DiscordUtils extends ListenerAdapter {
     }
 
 
-    public Color getColor() {
-        return Color.decode(config.getEmbedColor());
+    public static boolean hasEmoji(String emoji, GenericGuildMessageReactionEvent event) {
+        return event.getReactionEmote().isEmoji() && emoji.equals(event.getReactionEmote().getEmoji());
     }
 
 
-    @Async
-    public CompletableFuture<Message> sendRemovableMessageReply(Message origin, MessageEmbed content) {
+    public static CompletableFuture<Message> sendRemovableMessageReply(Message origin, MessageEmbed content) {
         var message = origin.reply(content).complete();
         message.addReaction(BASKET).queue();
         return CompletableFuture.completedFuture(message);

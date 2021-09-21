@@ -3,6 +3,7 @@ package io.horrorshow.codey.time;
 import io.horrorshow.codey.data.entity.TimerData;
 import io.horrorshow.codey.data.repository.TimerRepository;
 import io.horrorshow.codey.discordutil.ApplicationState;
+import io.horrorshow.codey.discordutil.AuthService;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -37,21 +38,21 @@ public class ReminderCommand extends ListenerAdapter {
     private static final String ALARM = "⏰";
     private static final long MAX_DURATION_MINS = 60 * 24 * 365 * 20;
 
-    private final DiscordUtils utils;
+    private final AuthService authService;
     private final Map<Long, ReminderTask> timerMap;
     private final TimerRepository timerRepository;
 
 
     @Autowired
-    public ReminderCommand(JDA jda, DiscordUtils utils, ApplicationState store, TimerRepository timerRepository) {
-        this.utils = utils;
+    public ReminderCommand(JDA jda, AuthService authService, ApplicationState store, TimerRepository timerRepository) {
+        this.authService = authService;
         this.timerMap = store.getTimerMap();
         this.timerRepository = timerRepository;
 
         try {
             jda.awaitReady();
             for (var timerData : timerRepository.findAll()) {
-                scheduleTimer(jda, utils, timerRepository, timerData);
+                scheduleTimer(jda, timerRepository, timerData);
             }
         } catch (InterruptedException e) {
             log.error("unable to wait for jda to startup", e);
@@ -74,7 +75,7 @@ public class ReminderCommand extends ListenerAdapter {
 
     public void onShowReminders(SlashCommandEvent event) {
         var allOption = event.getOption("all");
-        if (allOption != null && allOption.getAsBoolean() && utils.isElevatedMember(event.getMember())) {
+        if (allOption != null && allOption.getAsBoolean() && authService.isElevatedMember(event.getMember())) {
             event.reply("***All currently running timers***\n" + timerMap.entrySet().stream()
                     .map(entry -> formatReminder(entry.getKey().toString(), entry.getValue()))
                     .collect(Collectors.joining("\n"))).complete();
@@ -105,7 +106,7 @@ public class ReminderCommand extends ListenerAdapter {
         var id = Objects.requireNonNull(event.getOption("id")).getAsLong();
         var reminder = timerMap.get(id);
         if (reminder != null
-            && (event.getUser().getId().equals(reminder.user().getId()) || utils.isElevatedMember(event.getMember()))) {
+            && (event.getUser().getId().equals(reminder.user().getId()) || authService.isElevatedMember(event.getMember()))) {
 
             reminder.task().cancel();
             timerMap.remove(id);
@@ -144,15 +145,15 @@ public class ReminderCommand extends ListenerAdapter {
                 requestPing);
         var timerData = timerRepository.save(newTimerData);
 
-        scheduleTimer(event.getJDA(), utils, timerRepository, timerData);
+        scheduleTimer(event.getJDA(), timerRepository, timerData);
 
         event.reply("reminder set %dmin from now".formatted(inMinutes)).complete();
     }
 
 
-    private void scheduleTimer(JDA jda, DiscordUtils utils, TimerRepository timerRepository, TimerData timerData) {
+    private void scheduleTimer(JDA jda, TimerRepository timerRepository, TimerData timerData) {
         var reminderTask = createTimer(timerData, jda,
-                (embed, channel) -> runTimer(timerData, embed, channel, utils, timerRepository));
+                (embed, channel) -> runTimer(timerData, embed, channel, timerRepository));
 
         if (Instant.now().isAfter(Instant.from(reminderTask.done()))) {
             timerRepository.deleteById(reminderTask.id());
@@ -164,13 +165,12 @@ public class ReminderCommand extends ListenerAdapter {
     }
 
 
-    private void runTimer(TimerData timerData, MessageEmbed embed, TextChannel channel, DiscordUtils utils,
-            TimerRepository timerRepository) {
+    private void runTimer(TimerData timerData, MessageEmbed embed, TextChannel channel, TimerRepository timerRepository) {
 
         if (timerData.getIsPingUser()) {
-            utils.sendRemovableMessageAsync("%s <@%s>".formatted(ALARM, timerData.getUserId()), channel);
+            DiscordUtils.sendRemovableMessageAsync("%s <@%s>".formatted(ALARM, timerData.getUserId()), channel);
         }
-        utils.sendRemovableEmbed(embed, channel);
+        DiscordUtils.sendRemovableEmbed(embed, channel);
         timerMap.remove(timerData.getId());
         timerRepository.deleteById(timerData.getId());
     }

@@ -1,6 +1,6 @@
 package io.horrorshow.codey.api.piston;
 
-import io.horrorshow.codey.discordutil.DiscordUtils;
+import io.horrorshow.codey.discordutil.AuthService;
 import io.horrorshow.codey.discordutil.SlashCommands;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
@@ -20,14 +20,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PistonApiCommands extends ListenerAdapter {
 
-    private final DiscordUtils discordUtils;
+    private final AuthService authService;
     private final PistonConfiguration config;
     private final PistonApi pistonApi;
 
 
     @Autowired
-    public PistonApiCommands(JDA jda, DiscordUtils discordUtils, PistonConfiguration config, PistonApi pistonApi) {
-        this.discordUtils = discordUtils;
+    public PistonApiCommands(JDA jda, AuthService authService, PistonConfiguration config, PistonApi pistonApi) {
+        this.authService = authService;
         this.config = config;
         this.pistonApi = pistonApi;
 
@@ -41,7 +41,7 @@ public class PistonApiCommands extends ListenerAdapter {
         if (SlashCommands.COMMAND.CHANGE_API.getName().equals(name)) {
             CompletableFuture.runAsync(() -> changeApi(event));
         } else if (SlashCommands.COMMAND.SHOW_APIS.getName().equals(name)) {
-            if (discordUtils.isElevatedMember(event.getMember())) {
+            if (authService.isElevatedMember(event.getMember())) {
                 event.reply("Apis:\n"
                             + config.getApis().keySet().stream()
                                     .map(key -> " - " + key + (key.equals(config.getCurrentApi()) ? " (*)" : ""))
@@ -54,7 +54,7 @@ public class PistonApiCommands extends ListenerAdapter {
 
 
     private void changeApi(SlashCommandEvent event) {
-        if (discordUtils.isElevatedMember(event.getMember())) {
+        if (authService.isElevatedMember(event.getMember())) {
             var name = Objects.requireNonNull(event.getOption("name")).getAsString();
             if (config.getApis().containsKey(name)) {
                 log.debug("using api " + name);

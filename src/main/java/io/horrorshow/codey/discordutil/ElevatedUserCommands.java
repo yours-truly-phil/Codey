@@ -20,12 +20,12 @@ import static io.horrorshow.codey.discordutil.SlashCommands.COMMAND;
 public class ElevatedUserCommands extends ListenerAdapter {
 
     private final ElevatedUsersState elevatedUsersState;
-    private final DiscordUtils utils;
+    private final AuthService authService;
 
 
-    public ElevatedUserCommands(JDA jda, ApplicationState applicationState, DiscordUtils utils) {
+    public ElevatedUserCommands(JDA jda, ApplicationState applicationState, AuthService authService) {
         this.elevatedUsersState = applicationState.getElevatedUsersState();
-        this.utils = utils;
+        this.authService = authService;
 
         jda.addEventListener(this);
     }
@@ -33,7 +33,7 @@ public class ElevatedUserCommands extends ListenerAdapter {
 
     @Override
     public void onSlashCommand(@NotNull SlashCommandEvent event) {
-        if (utils.isElevatedMember(event.getMember())) {
+        if (authService.isElevatedMember(event.getMember())) {
             if (COMMAND.SET_ELEVATED_USER.getName().equals(event.getName())) {
                 var userOption = event.getOption("user");
                 if (userOption == null) {

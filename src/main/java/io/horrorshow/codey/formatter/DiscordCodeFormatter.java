@@ -25,14 +25,11 @@ public class DiscordCodeFormatter extends ListenerAdapter {
     public static final String STARS = "✨";
 
     private final JavaFormatter javaFormatter;
-    private final DiscordUtils utils;
 
 
-    public DiscordCodeFormatter(@Autowired JDA jda,
-                                @Autowired JavaFormatter javaFormatter,
-                                @Autowired DiscordUtils utils) {
+    @Autowired
+    public DiscordCodeFormatter(JDA jda, JavaFormatter javaFormatter) {
         this.javaFormatter = javaFormatter;
-        this.utils = utils;
 
         jda.addEventListener(this);
     }
@@ -78,7 +75,7 @@ public class DiscordCodeFormatter extends ListenerAdapter {
 
         var dm = DiscordMessage.of(message.getContentRaw());
         formatted(dm).ifPresentOrElse(
-                s -> utils.sendRemovableMessage(s, message.getTextChannel()),
+                s -> DiscordUtils.sendRemovableMessage(s, message.getTextChannel()),
                 () -> message.removeReaction(STARS).complete());
     }
 
@@ -121,7 +118,7 @@ public class DiscordCodeFormatter extends ListenerAdapter {
 
     private String codeBlockOf(String code, String lang) {
         return "```" + lang + "\n" +
-                code +
-                "```";
+               code +
+               "```";
     }
 }

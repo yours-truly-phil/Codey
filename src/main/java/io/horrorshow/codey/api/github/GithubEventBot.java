@@ -18,13 +18,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GithubEventBot {
 
-    private final DiscordUtils discordUtils;
     private final GithubEventState githubEventState;
 
 
     @Autowired
-    public GithubEventBot(DiscordUtils discordUtils, ApplicationState applicationState) {
-        this.discordUtils = discordUtils;
+    public GithubEventBot(ApplicationState applicationState) {
         this.githubEventState = applicationState.getGithubEventState();
     }
 
@@ -52,7 +50,7 @@ public class GithubEventBot {
                             var channel = channelInfo.channel();
                             var textChannel = channel.getJDA().getTextChannelById(channel.getId());
                             if (textChannel != null) {
-                                return discordUtils.sendRemovableEmbed(embed, textChannel);
+                                return DiscordUtils.sendRemovableEmbed(embed, textChannel);
                             }
                             return null;
                         }).toArray(CompletableFuture[]::new)

@@ -69,16 +69,17 @@ public class SlashCommands extends ListenerAdapter {
 
     private final Api api;
     private final ApplicationState applicationState;
-    private final DiscordUtils discordUtils;
+    private final AuthService authService;
 
 
-    public SlashCommands(@Autowired JDA jda,
-            @Autowired Api api,
-            @Autowired ApplicationState applicationState,
-            @Autowired DiscordUtils discordUtils) {
+    @Autowired
+    public SlashCommands(JDA jda,
+            Api api,
+            ApplicationState applicationState,
+            AuthService authService) {
         this.api = api;
         this.applicationState = applicationState;
-        this.discordUtils = discordUtils;
+        this.authService = authService;
 
         jda.updateCommands().addCommands(Arrays.stream(COMMAND.values()).map(COMMAND::getData).toList()).queue();
 
@@ -103,7 +104,7 @@ public class SlashCommands extends ListenerAdapter {
             event.getOptions().forEach(option -> {
                 if ("clear".equals(option.getName())
                     && option.getAsBoolean()
-                    && discordUtils.isElevatedMember(event.getMember())) {
+                    && authService.isElevatedMember(event.getMember())) {
 
                     applicationState.getCompilationCache().clearByGuild(guild);
 
@@ -139,7 +140,7 @@ public class SlashCommands extends ListenerAdapter {
 
 
     private void say(SlashCommandEvent event) {
-        if (discordUtils.isElevatedMember(event.getMember())) {
+        if (authService.isElevatedMember(event.getMember())) {
             event.reply(Objects.requireNonNull(event.getOption("content")).getAsString())
                     .queue();
         }

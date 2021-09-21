@@ -33,14 +33,11 @@ public class DiscordCompiler extends ListenerAdapter {
 
     private final CompilerApi compiler;
     private final ApplicationState.CompilationCache compilationCache;
-    private final DiscordUtils utils;
 
 
     public DiscordCompiler(@Autowired JDA jda,
             @Autowired @Qualifier("piston") CompilerApi compiler,
-            @Autowired DiscordUtils utils,
             @Autowired ApplicationState applicationState) {
-        this.utils = utils;
         this.compilationCache = applicationState.getCompilationCache();
         this.compiler = compiler;
 
@@ -87,18 +84,18 @@ public class DiscordCompiler extends ListenerAdapter {
                     .get(message).stream()
                     .map(msg -> {
                         if (msg.length() > CHAR_LIMIT) {
-                            return utils.sendTextFile("codey-compiler-output.txt", msg, message.getTextChannel());
+                            return DiscordUtils.sendTextFile("codey-compiler-output.txt", msg, message.getTextChannel());
                         } else {
-                            return utils.sendRemovableMessageAsync(toCodeBlock(msg, true), message.getTextChannel());
+                            return DiscordUtils.sendRemovableMessageAsync(toCodeBlock(msg, true), message.getTextChannel());
                         }
                     })
                     .toList();
             CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
         } else {
             onMessage(message);
-            utils.sendRemovableMessageAsync("Compilation result unavailable! "
-                                            + "Codey will try to compile it again, "
-                                            + "try again in a few seconds.", message.getTextChannel());
+            DiscordUtils.sendRemovableMessageAsync("Compilation result unavailable! "
+                                                   + "Codey will try to compile it again, "
+                                                   + "try again in a few seconds.", message.getTextChannel());
         }
     }
 

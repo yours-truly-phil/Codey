@@ -1,5 +1,6 @@
 package io.horrorshow.codey.time;
 
+import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.parser.TimeParser;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -11,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
 import java.text.DateFormatSymbols;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -24,11 +26,12 @@ import java.util.stream.Collectors;
 public class DiscordTimezone extends ListenerAdapter {
 
     private static final Pattern timeMatcher = Pattern.compile(createTimeMatchPattern(), Pattern.CASE_INSENSITIVE);
-    private final DiscordUtils utils;
+    private final CodeyConfig codeyConfig;
 
 
-    public DiscordTimezone(@Autowired JDA jda, @Autowired DiscordUtils utils) {
-        this.utils = utils;
+    @Autowired
+    public DiscordTimezone(JDA jda, CodeyConfig codeyConfig) {
+        this.codeyConfig = codeyConfig;
 
         jda.addEventListener(this);
     }
@@ -50,8 +53,8 @@ public class DiscordTimezone extends ListenerAdapter {
             var reply = new EmbedBuilder()
                     .setFooter("Time in your timezone: ")
                     .setTimestamp(timestamp)
-                    .setColor(utils.getColor()).build();
-            utils.sendRemovableMessageReply(message, reply);
+                    .setColor(Color.decode(codeyConfig.getEmbedColor())).build();
+            DiscordUtils.sendRemovableMessageReply(message, reply);
         }
     }
 

@@ -1,10 +1,8 @@
 package io.horrorshow.codey.discordutil;
 
 import io.horrorshow.codey.api.github.GithubEventState;
-import io.horrorshow.codey.data.entity.ElevatedUser;
 import io.horrorshow.codey.data.repository.Repositories;
 import io.horrorshow.codey.time.ReminderTask;
-import javassist.NotFoundException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
@@ -16,9 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 
 @Service

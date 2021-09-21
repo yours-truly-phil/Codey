@@ -6,9 +6,8 @@ import io.horrorshow.codey.data.repository.ElevatedUserRepository;
 import io.horrorshow.codey.data.repository.GithubChannelRepository;
 import io.horrorshow.codey.data.repository.Repositories;
 import io.horrorshow.codey.data.repository.TimerRepository;
-import io.horrorshow.codey.discordutil.CodeyConfig;
-import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.ApplicationState;
+import io.horrorshow.codey.discordutil.CodeyConfig;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -40,7 +39,6 @@ class DiscordCompilerTest {
     @Mock TimerRepository timerRepository;
     @Mock ElevatedUserRepository elevatedUserRepository;
 
-    DiscordUtils utils;
     DiscordCompiler discordCompiler;
     ApplicationState applicationState;
     CodeyConfig codeyConfig;
@@ -52,8 +50,7 @@ class DiscordCompilerTest {
         var repositories = new Repositories(timerRepository, githubChannelRepository, elevatedUserRepository);
         applicationState = new ApplicationState(jda, repositories);
         codeyConfig = new CodeyConfig();
-        utils = new DiscordUtils(jda, codeyConfig, applicationState);
-        discordCompiler = new DiscordCompiler(jda, compilerApi, utils, applicationState);
+        discordCompiler = new DiscordCompiler(jda, compilerApi, applicationState);
     }
 
 
