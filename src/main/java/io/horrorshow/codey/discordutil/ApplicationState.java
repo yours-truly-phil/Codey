@@ -12,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,14 +42,14 @@ public class ApplicationState {
      *
      * The fact that the hashmap is empty on restart does not matter too much.
      */
-    private final Map<String,Boolean> deleteableMessageIds;
+    private final ConcurrentHashMap<String,Boolean> deleteableMessageIds;
 
 
     @Autowired
     public ApplicationState(JDA jda, Repositories repositories) {
         this.githubEventState = new GithubEventState(jda, repositories.getGithubChannelRepository());
         this.elevatedUsersState = new ElevatedUsersState(repositories.getElevatedUserRepository());
-        this.deleteableMessageIds = new HashMap<>();
+        this.deleteableMessageIds = new ConcurrentHashMap<>();
     }
 
 
