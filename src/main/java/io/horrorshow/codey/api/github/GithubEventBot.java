@@ -49,8 +49,8 @@ public class GithubEventBot {
                         .map(channelInfo -> {
                             var channel = channelInfo.channel();
                             var textChannel = channel.getJDA().getTextChannelById(channel.getId());
-                            if (textChannel != null) {
-                                return DiscordUtils.sendRemovableEmbed(embed, textChannel);
+                            if(textChannel!= null){
+                                return CompletableFuture.completedFuture(textChannel.sendMessage(embed).complete());
                             }
                             return null;
                         }).toArray(CompletableFuture[]::new)
