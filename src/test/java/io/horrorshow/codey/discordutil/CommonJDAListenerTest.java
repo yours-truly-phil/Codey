@@ -1,5 +1,9 @@
 package io.horrorshow.codey.discordutil;
 
+import io.horrorshow.codey.data.repository.ElevatedUserRepository;
+import io.horrorshow.codey.data.repository.GithubChannelRepository;
+import io.horrorshow.codey.data.repository.Repositories;
+import io.horrorshow.codey.data.repository.TimerRepository;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
@@ -16,14 +20,22 @@ import static org.mockito.Mockito.when;
 
 
 public class CommonJDAListenerTest {
+
     @Mock JDA jda;
+    @Mock TimerRepository timerRepository;
+    @Mock GithubChannelRepository githubChannelRepository;
+    @Mock ElevatedUserRepository elevatedUserRepository;
     CommonJDAListener commonJDAListener;
+
 
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
-        commonJDAListener = new CommonJDAListener(jda);
+        var repositories = new Repositories(timerRepository, githubChannelRepository, elevatedUserRepository);
+        var applicationState = new ApplicationState(jda, repositories);
+        commonJDAListener = new CommonJDAListener(jda, applicationState);
     }
+
 
     @Test
     void basket_reaction_removes_message() {
@@ -36,6 +48,7 @@ public class CommonJDAListenerTest {
         var message = mock(Message.class, RETURNS_DEEP_STUBS);
         when(message.getAuthor().getId()).thenReturn("botUserId");
         when(event.getJDA().getSelfUser().getId()).thenReturn("botUserId");
+        when(message.getChannel().getId()).thenReturn("channelId");
         when(event.getChannel().retrieveMessageById("messageId").complete()).thenReturn(message);
 
         commonJDAListener.onReactionAdd(event);

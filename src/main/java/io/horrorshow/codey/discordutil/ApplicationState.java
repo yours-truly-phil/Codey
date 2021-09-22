@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,11 +34,23 @@ public class ApplicationState {
     @Getter
     private final ElevatedUsersState elevatedUsersState;
 
+    @Getter
+    /***
+     * A hashmap that is not persisted in any way that is used to look up if the message should be deletable.
+     *
+     * It should not be a big issue, if a user reacts, and the message is not deleted.
+     * However, vice-versa is not true. If a malicious user reacts, and the message is deleted - that is an issue.
+     *
+     * The fact that the hashmap is empty on restart does not matter too much.
+     */
+    private final Map<String,Boolean> deleteableMessageIds;
+
 
     @Autowired
     public ApplicationState(JDA jda, Repositories repositories) {
         this.githubEventState = new GithubEventState(jda, repositories.getGithubChannelRepository());
         this.elevatedUsersState = new ElevatedUsersState(repositories.getElevatedUserRepository());
+        this.deleteableMessageIds = new HashMap<>();
     }
 
 
