@@ -37,6 +37,7 @@ public class DiscordUtils {
 
     public static CompletableFuture<Message> sendRemovableMessageAsync(String text, TextChannel channel) {
         var message = channel.sendMessage(text).complete();
+        CommonJDAListener.deletableMessageMap.put(message.getId(), true);
         message.addReaction(BASKET).queue();
         return CompletableFuture.completedFuture(message);
     }
@@ -44,6 +45,7 @@ public class DiscordUtils {
 
     public static CompletableFuture<Message> sendRemovableEmbed(MessageEmbed embed, TextChannel channel) {
         var message = channel.sendMessage(embed).complete();
+        CommonJDAListener.deletableMessageMap.put(message.getId(), true);
         message.addReaction(BASKET).complete();
         return CompletableFuture.completedFuture(message);
     }
@@ -58,6 +60,7 @@ public class DiscordUtils {
 
     public static void sendRemovableMessage(String text, TextChannel channel) {
         var message = channel.sendMessage(text).complete();
+        CommonJDAListener.deletableMessageMap.put(message.getId(), true);
         message.addReaction(BASKET).complete();
     }
 
@@ -109,6 +112,7 @@ public class DiscordUtils {
 
     public static CompletableFuture<Message> sendRemovableMessageReply(Message origin, MessageEmbed content) {
         var message = origin.reply(content).complete();
+        CommonJDAListener.deletableMessageMap.put(message.getId(), true);
         message.addReaction(BASKET).queue();
         return CompletableFuture.completedFuture(message);
     }
