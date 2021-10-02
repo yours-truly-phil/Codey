@@ -88,9 +88,6 @@ public class GithubWebhookEndpoint {
             switch (event) {
                 case "push" -> {
                     var push = objectMapper.readValue(payload, GithubApiTypes.Push.class);
-                    if (log.isDebugEnabled()) {
-                        log.debug("push event");
-                    }
                     CodeyTask.runAsync(() -> githubEventBot.onPush(push), TaskInfo.empty());
                 }
                 case "ping" -> {
