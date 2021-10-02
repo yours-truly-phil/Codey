@@ -50,6 +50,7 @@ public class CommonJDAListenerTest {
         when(event.getJDA().getSelfUser().getId()).thenReturn("botUserId");
         when(message.getChannel().getId()).thenReturn("channelId");
         when(event.getChannel().retrieveMessageById("messageId").complete()).thenReturn(message);
+        when(message.getContentRaw()).thenReturn("message content");
 
         commonJDAListener.onReactionAdd(event);
 

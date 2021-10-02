@@ -3,6 +3,8 @@ package io.horrorshow.codey.formatter;
 import com.google.common.annotations.VisibleForTesting;
 import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
+import io.horrorshow.codey.util.DecoratedRunnable;
+import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
@@ -15,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 
 @Service
@@ -38,7 +39,7 @@ public class DiscordCodeFormatter extends ListenerAdapter {
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
-            CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
+            DecoratedRunnable.runAsync(() -> onMessage(event.getMessage()), new TaskInfo(event));
         }
     }
 
@@ -46,7 +47,7 @@ public class DiscordCodeFormatter extends ListenerAdapter {
     @Override
     public void onGuildMessageUpdate(@NotNull GuildMessageUpdateEvent event) {
         if (!event.getAuthor().isBot()) {
-            CompletableFuture.runAsync(() -> onMessage(event.getMessage()));
+            DecoratedRunnable.runAsync(() -> onMessage(event.getMessage()), new TaskInfo(event));
         }
     }
 
@@ -54,7 +55,7 @@ public class DiscordCodeFormatter extends ListenerAdapter {
     @Override
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
         if (!event.getUser().isBot()) {
-            CompletableFuture.runAsync(() -> onReaction(event));
+            DecoratedRunnable.runAsync(() -> onReaction(event), new TaskInfo(event));
         }
     }
 

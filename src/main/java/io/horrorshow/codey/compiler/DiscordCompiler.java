@@ -6,6 +6,8 @@ import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
 import io.horrorshow.codey.parser.SourceProcessing;
+import io.horrorshow.codey.util.DecoratedRunnable;
+import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
@@ -16,13 +18,13 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
 
 import static io.horrorshow.codey.discordutil.DiscordUtils.CHAR_LIMIT;
 import static io.horrorshow.codey.discordutil.DiscordUtils.toCodeBlock;
+import static io.horrorshow.codey.discordutil.DiscordUtils.truncateMessage;
 
 
 @Service
@@ -48,7 +50,7 @@ public class DiscordCompiler extends ListenerAdapter {
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
-            onMessage(event.getMessage());
+            DecoratedRunnable.runAsync(() -> onMessage(event.getMessage()), new TaskInfo(event));
         }
     }
 
@@ -56,7 +58,7 @@ public class DiscordCompiler extends ListenerAdapter {
     @Override
     public void onGuildMessageUpdate(@NotNull GuildMessageUpdateEvent event) {
         if (!event.getAuthor().isBot()) {
-            onMessage(event.getMessage());
+            DecoratedRunnable.runAsync(() -> onMessage(event.getMessage()), new TaskInfo(event));
         }
     }
 
@@ -64,12 +66,11 @@ public class DiscordCompiler extends ListenerAdapter {
     @Override
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
         if (!event.getUser().isBot()) {
-            onReactionAdd(event);
+            DecoratedRunnable.runAsync(() -> onReactionAdd(event), new TaskInfo(event));
         }
     }
 
 
-    @Async
     public void onReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
         if (DiscordUtils.hasEmoji(PLAY, event)) {
             var message = event.getChannel().retrieveMessageById(event.getMessageId()).complete();
@@ -91,16 +92,19 @@ public class DiscordCompiler extends ListenerAdapter {
                     })
                     .toList();
             CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
+            log.info("send compilation results of msg={} content={}", message.getId(),
+                    truncateMessage(message.getContentRaw(), 100));
         } else {
             onMessage(message);
             DiscordUtils.sendRemovableMessageAsync("Compilation result unavailable! "
                                                    + "Codey will try to compile it again, "
                                                    + "try again in a few seconds.", message.getTextChannel());
+            log.info("compilation results not available, msg={} content={}", message.getId(),
+                    truncateMessage(message.getContentRaw(), 100));
         }
     }
 
 
-    @Async
     public void onMessage(Message message) {
         var contentRaw = message.getContentRaw();
         var dm = DiscordMessage.of(contentRaw);
@@ -115,12 +119,11 @@ public class DiscordCompiler extends ListenerAdapter {
                 .ifPresent(part -> {
                     var processed = SourceProcessing.processSource(part.text(), part.lang());
                     if (processed.isOk()) {
-                        if (log.isTraceEnabled()) {
-                            log.trace("compiling {}", processed);
-                        }
+                        log.info("compiling\n{}", processed);
                         compiler.compile(processed.source(), part.lang(), null, null)
                                 .thenAccept(output -> cacheAndAddPlayReaction(message, output));
                     } else {
+                        log.info("source process failed\n{}", processed);
                         var errorOut = new Output(null, 1, null, processed.error());
                         cacheAndAddPlayReaction(message, errorOut);
                     }

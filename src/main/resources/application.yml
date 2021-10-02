@@ -8,6 +8,8 @@ codey:
   embedColor: "#f1c40f"
   dev-mode: true
 logging:
+  pattern:
+    console: "%codey%nopex"
   level:
     io.horrorshow.codey: debug
   file:

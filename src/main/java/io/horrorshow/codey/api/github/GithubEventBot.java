@@ -27,7 +27,6 @@ public class GithubEventBot {
     }
 
 
-    @Async
     public void onPush(GithubApiTypes.Push event) {
         log.info("onPush:\n{}", event);
         var embed = new EmbedBuilder()

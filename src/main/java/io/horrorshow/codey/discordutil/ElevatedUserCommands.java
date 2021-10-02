@@ -1,6 +1,8 @@
 package io.horrorshow.codey.discordutil;
 
 import io.horrorshow.codey.data.entity.ElevatedUser;
+import io.horrorshow.codey.util.DecoratedRunnable;
+import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
@@ -9,7 +11,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static io.horrorshow.codey.discordutil.SlashCommands.COMMAND;
@@ -35,6 +36,7 @@ public class ElevatedUserCommands extends ListenerAdapter {
     public void onSlashCommand(@NotNull SlashCommandEvent event) {
         if (authService.isElevatedMember(event.getMember())) {
             if (COMMAND.SET_ELEVATED_USER.getName().equals(event.getName())) {
+                var taskInfo = new TaskInfo(event.getUser(), event.getChannel(), event.getGuild());
                 var userOption = event.getOption("user");
                 if (userOption == null) {
                     event.reply("Missing user option").complete();
@@ -43,9 +45,9 @@ public class ElevatedUserCommands extends ListenerAdapter {
                 var user = userOption.getAsUser();
                 var removeOption = event.getOption("remove");
                 if (removeOption == null || !removeOption.getAsBoolean()) {
-                    CompletableFuture.runAsync(() -> onSetElevatedUser(event, user));
+                    DecoratedRunnable.runAsync(() -> onSetElevatedUser(event, user), taskInfo);
                 } else {
-                    CompletableFuture.runAsync(() -> onRemoveElevatedUser(event, user));
+                    DecoratedRunnable.runAsync(() -> onRemoveElevatedUser(event, user), taskInfo);
                 }
             } else if (COMMAND.SHOW_ELEVATED_USERS.getName().equals(event.getName())) {
                 event.reply("**Elevated users**\n"
@@ -58,24 +60,32 @@ public class ElevatedUserCommands extends ListenerAdapter {
 
 
     private void onSetElevatedUser(@NotNull SlashCommandEvent event, @NotNull User user) {
+        log.info("try to set to elevated user {}", user.getName());
         elevatedUsersState.addElevatedUser(user.getId(), user.getName())
                 .whenComplete((elevatedUser, e) -> {
                     if (e != null) {
+                        log.info(e.getMessage());
                         event.reply(e.getMessage()).complete();
                     } else {
-                        event.reply("Added " + elevatedUser.getName() + " to elevated users").complete();
+                        final var msg = "Added " + elevatedUser.getName() + " to elevated users";
+                        log.info(msg);
+                        event.reply(msg).complete();
                     }
                 });
     }
 
 
     private void onRemoveElevatedUser(@NotNull SlashCommandEvent event, @NotNull User user) {
+        log.info("try to remove from elevated users {}", user.getName());
         elevatedUsersState.removeElevatedUser(user.getId())
                 .whenComplete((removedUser, e) -> {
                     if (e != null) {
+                        log.info(e.getMessage());
                         event.reply(e.getMessage()).complete();
                     } else {
-                        event.reply("Removed " + removedUser.getName() + " from elevated users").complete();
+                        final var msg = "Removed " + removedUser.getName() + " from elevated users";
+                        log.info(msg);
+                        event.reply(msg).complete();
                     }
                 });
     }

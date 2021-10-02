@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.horrorshow.codey.api.github.model.GithubApiTypes;
 import io.horrorshow.codey.discordutil.CodeyConfig;
+import io.horrorshow.codey.util.DecoratedRunnable;
+import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
@@ -89,7 +91,7 @@ public class GithubWebhookEndpoint {
                     if (log.isDebugEnabled()) {
                         log.debug("push event");
                     }
-                    githubEventBot.onPush(push);
+                    DecoratedRunnable.runAsync(() -> githubEventBot.onPush(push), TaskInfo.empty());
                 }
                 case "ping" -> {
                     var ping = objectMapper.readValue(payload, GithubApiTypes.Ping.class);

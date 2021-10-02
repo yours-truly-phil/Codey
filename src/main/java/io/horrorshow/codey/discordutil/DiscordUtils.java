@@ -108,8 +108,13 @@ public class DiscordUtils {
 
 
     public static CompletableFuture<Message> sendRemovableMessageReply(Message origin, MessageEmbed content) {
+        log.info("send removable reply embed");
         var message = origin.reply(content).complete();
         message.addReaction(BASKET).queue();
         return CompletableFuture.completedFuture(message);
+    }
+
+    public static String truncateMessage(String msg, int maxLength) {
+        return msg.substring(0, Math.min(maxLength, msg.length()));
     }
 }

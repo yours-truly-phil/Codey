@@ -1,5 +1,7 @@
 package io.horrorshow.codey.discordutil;
 
+import io.horrorshow.codey.util.DecoratedRunnable;
+import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
@@ -10,7 +12,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 
@@ -33,7 +34,7 @@ public class CommonJDAListener extends ListenerAdapter {
     @Override
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
         if (!event.getUser().isBot()) {
-            CompletableFuture.runAsync(() -> onReactionAdd(event));
+            DecoratedRunnable.runAsync(() -> onReactionAdd(event), new TaskInfo(event));
         }
     }
 
@@ -44,18 +45,28 @@ public class CommonJDAListener extends ListenerAdapter {
             if (canDeleteMessage(event.getJDA().getSelfUser(), message)) {
                 try {
                     message.delete().complete();
+                    logMessageDelete(message);
                 } catch (ErrorResponseException e) {
                     log.warn("Unable to remove message");
                 }
+            } else {
+                log.info("not allowed to remove message");
             }
         }
+    }
+
+
+    private void logMessageDelete(Message message) {
+        var content = message.getContentRaw();
+        var truncated = content.substring(0, Math.min(content.length(), 100));
+        log.info("deleted message={}", truncated);
     }
 
 
     private boolean canDeleteMessage(@NotNull User user, Message message) {
         try {
             return user.getId().equals(message.getAuthor().getId())
-                    && !applicationState.getGithubEventState().contains(message.getChannel().getId()).get();
+                   && !applicationState.getGithubEventState().contains(message.getChannel().getId()).get();
         } catch (InterruptedException | ExecutionException e) {
             return false;
         }

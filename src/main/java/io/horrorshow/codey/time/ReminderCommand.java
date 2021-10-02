@@ -5,6 +5,8 @@ import io.horrorshow.codey.data.repository.TimerRepository;
 import io.horrorshow.codey.discordutil.ApplicationState;
 import io.horrorshow.codey.discordutil.AuthService;
 import io.horrorshow.codey.discordutil.DiscordUtils;
+import io.horrorshow.codey.util.DecoratedRunnable;
+import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -25,7 +27,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -66,14 +67,15 @@ public class ReminderCommand extends ListenerAdapter {
     public void onSlashCommand(SlashCommandEvent event) {
         final var cmd = event.getName();
         switch (cmd) {
-            case "remind-me" -> CompletableFuture.runAsync(() -> onRemindCommand(event));
-            case "show-reminders" -> CompletableFuture.runAsync(() -> onShowReminders(event));
-            case "stop-reminder" -> CompletableFuture.runAsync(() -> onStopReminder(event));
+            case "remind-me" -> DecoratedRunnable.runAsync(() -> onRemindCommand(event), new TaskInfo(event));
+            case "show-reminders" -> DecoratedRunnable.runAsync(() -> onShowReminders(event), new TaskInfo(event));
+            case "stop-reminder" -> DecoratedRunnable.runAsync(() -> onStopReminder(event), new TaskInfo(event));
         }
     }
 
 
     public void onShowReminders(SlashCommandEvent event) {
+        log.info("show reminders");
         var allOption = event.getOption("all");
         if (allOption != null && allOption.getAsBoolean() && authService.isElevatedMember(event.getMember())) {
             event.reply("***All currently running timers***\n" + timerMap.entrySet().stream()
@@ -103,6 +105,7 @@ public class ReminderCommand extends ListenerAdapter {
 
 
     public void onStopReminder(SlashCommandEvent event) {
+        log.info("stop reminder");
         var id = Objects.requireNonNull(event.getOption("id")).getAsLong();
         var reminder = timerMap.get(id);
         if (reminder != null
@@ -110,7 +113,9 @@ public class ReminderCommand extends ListenerAdapter {
 
             reminder.task().cancel();
             timerMap.remove(id);
-            event.reply("Timer %s cancelled".formatted(id)).complete();
+            final var msg = "Timer %s cancelled".formatted(id);
+            log.info(msg);
+            event.reply(msg).complete();
         } else {
             event.reply("Timer %s might not exist or you don't have the necessary permissions".formatted(id)).complete();
         }
@@ -118,6 +123,7 @@ public class ReminderCommand extends ListenerAdapter {
 
 
     public void onRemindCommand(SlashCommandEvent event) {
+        log.info("remind me");
         var options = event.getOptions().stream()
                 .collect(Collectors.toMap(OptionMapping::getName, Function.identity()));
 
@@ -147,7 +153,9 @@ public class ReminderCommand extends ListenerAdapter {
 
         scheduleTimer(event.getJDA(), timerRepository, timerData);
 
-        event.reply("reminder set %dmin from now".formatted(inMinutes)).complete();
+        final var msg = "reminder set %dmin from now".formatted(inMinutes);
+        log.info(msg);
+        event.reply(msg).complete();
     }
 
 
