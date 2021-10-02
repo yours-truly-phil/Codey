@@ -1,24 +1,29 @@
 package io.horrorshow.codey.api.github.model;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 
 public class GithubApiTypes {
 
-    public static class Ping {
+    public static class Ping extends HasAnySetter {
 
         @JsonProperty public String zen;
         @JsonProperty public String hook_id;
         @JsonProperty public Map<String, Object> hook;
         @JsonProperty public Repository repository;
         @JsonProperty public UserInfo sender;
+
     }
 
+    public static class CheckRunPayload extends HasAnySetter {
 
-    public static class CheckRunPayload {
         @JsonProperty public String action;
         @JsonProperty public CheckRun check_run;
         @JsonProperty public Repository repository;
@@ -26,7 +31,8 @@ public class GithubApiTypes {
     }
 
 
-    public static class CheckRun {
+    public static class CheckRun extends HasAnySetter {
+
         @JsonProperty public Long id;
         @JsonProperty public String node_id;
         @JsonProperty public String head_sha;
@@ -47,7 +53,8 @@ public class GithubApiTypes {
     }
 
 
-    public static class CheckSuitePayload {
+    public static class CheckSuitePayload extends HasAnySetter {
+
         @JsonProperty public String action;
         @JsonProperty public CheckSuite check_suite;
         @JsonProperty public Repository repository;
@@ -55,7 +62,8 @@ public class GithubApiTypes {
     }
 
 
-    public static class Deployment {
+    public static class Deployment extends HasAnySetter {
+
         @JsonProperty public String url;
         @JsonProperty public Long id;
         @JsonProperty public String node_id;
@@ -70,7 +78,8 @@ public class GithubApiTypes {
     }
 
 
-    public static class CheckSuite {
+    public static class CheckSuite extends HasAnySetter {
+
         @JsonProperty public Long id;
         @JsonProperty public String node_id;
         @JsonProperty public String head_branch;
@@ -90,7 +99,8 @@ public class GithubApiTypes {
     }
 
 
-    static class App {
+    static class App extends HasAnySetter {
+
         @JsonProperty public Long id;
         @JsonProperty public String node_id;
         @JsonProperty public UserInfo owner;
@@ -105,7 +115,8 @@ public class GithubApiTypes {
     }
 
 
-    static class Permissions {
+    static class Permissions extends HasAnySetter {
+
         @JsonProperty public String administration;
         @JsonProperty public String checks;
         @JsonProperty public String contents;
@@ -128,7 +139,8 @@ public class GithubApiTypes {
     }
 
 
-    static class PullRequest {
+    static class PullRequest extends HasAnySetter {
+
         @JsonProperty public String url;
         @JsonProperty public Long id;
         @JsonProperty public Integer number;
@@ -137,20 +149,23 @@ public class GithubApiTypes {
     }
 
 
-    static class BranchRef {
+    static class BranchRef extends HasAnySetter {
+
         @JsonProperty public String ref;
         @JsonProperty public String sha;
         @JsonProperty public RepoInfo repo;
     }
 
-    static class RepoInfo {
+    static class RepoInfo extends HasAnySetter {
+
         @JsonProperty public Long id;
         @JsonProperty public String url;
         @JsonProperty public String name;
     }
 
 
-    public static class Output {
+    public static class Output extends HasAnySetter {
+
         @JsonProperty public String title;
         @JsonProperty public String summary;
         @JsonProperty public String text;
@@ -159,7 +174,8 @@ public class GithubApiTypes {
     }
 
 
-    public static class WorkflowRunPayload {
+    public static class WorkflowRunPayload extends HasAnySetter {
+
         @JsonProperty public String action;
         @JsonProperty public Organization organization;
         @JsonProperty public Repository repository;
@@ -167,7 +183,8 @@ public class GithubApiTypes {
     }
 
 
-    public static class Organization {
+    public static class Organization extends HasAnySetter {
+
         @JsonProperty public String avatar_url;
         @JsonProperty public String description;
         @JsonProperty public String events_url;
@@ -183,7 +200,7 @@ public class GithubApiTypes {
     }
 
 
-    public static class WorkflowPayload {
+    public static class WorkflowPayload extends HasAnySetter {
 
         @JsonProperty public String action;
         @JsonProperty public WorkflowJob workflow_job;
@@ -192,7 +209,7 @@ public class GithubApiTypes {
     }
 
 
-    public static class WorkflowJob {
+    public static class WorkflowJob extends HasAnySetter {
 
         @JsonProperty public Long id;
         @JsonProperty public Long run_id;
@@ -216,7 +233,7 @@ public class GithubApiTypes {
     }
 
 
-    public static class PageBuild {
+    public static class PageBuild extends HasAnySetter {
 
         @JsonProperty public String id;
         @JsonProperty public Build build;
@@ -225,7 +242,7 @@ public class GithubApiTypes {
     }
 
 
-    public static class Build {
+    public static class Build extends HasAnySetter {
 
         @JsonProperty public String url;
         @JsonProperty public String status;
@@ -238,7 +255,7 @@ public class GithubApiTypes {
     }
 
 
-    public static class Commit {
+    public static class Commit extends HasAnySetter {
 
         @JsonProperty public String id;
         @JsonProperty public String tree_id;
@@ -254,7 +271,7 @@ public class GithubApiTypes {
 
     }
 
-    public static class User {
+    public static class User extends HasAnySetter {
 
         @JsonProperty public String name;
         @JsonProperty public String email;
@@ -262,7 +279,7 @@ public class GithubApiTypes {
     }
 
 
-    public static class Push {
+    public static class Push extends HasAnySetter {
 
         @JsonProperty public String ref;
         @JsonProperty public String before;
@@ -279,7 +296,7 @@ public class GithubApiTypes {
         @JsonProperty public Commit head_commit;
     }
 
-    public static class UserInfo {
+    public static class UserInfo extends HasAnySetter {
 
         @JsonProperty public String name;
         @JsonProperty public String email;
@@ -303,7 +320,7 @@ public class GithubApiTypes {
         @JsonProperty public boolean site_admin;
     }
 
-    public static class Repository {
+    public static class Repository extends HasAnySetter {
 
         @JsonProperty public Long id;
         @JsonProperty public String node_id;
@@ -375,11 +392,29 @@ public class GithubApiTypes {
         @JsonProperty public Integer open_issues_count;
         @JsonProperty public Map<String, String> license;
         @JsonProperty public boolean allow_forking;
+        @JsonProperty public String visibility;
         @JsonProperty public Integer forks;
         @JsonProperty public Integer open_issues;
         @JsonProperty public Integer watchers;
         @JsonProperty public String default_branch;
         @JsonProperty public Integer stargazers;
         @JsonProperty public String master_branch;
+    }
+
+    public abstract static class HasAnySetter {
+
+        private final Map<String, Object> otherProperties = new HashMap<>();
+
+
+        @JsonAnySetter
+        public void addOtherProperty(String key, Object value) {
+            otherProperties.put(key, value);
+        }
+
+
+        @JsonAnyGetter
+        public Map<String, Object> getOtherProperties() {
+            return otherProperties;
+        }
     }
 }

@@ -33,6 +33,12 @@ class GithubApiTypesTest {
 
 
     @Test
+    void deserialize_new_sample_push_payload_format() throws IOException {
+        deserialize("push_v2.json", GithubApiTypes.Push.class);
+    }
+
+
+    @Test
     void deserialize_sample_check_run_payload() throws IOException {
         deserialize("check_run.json", GithubApiTypes.CheckRunPayload.class);
     }
