@@ -28,7 +28,7 @@ public class GithubEventBot {
 
 
     public void onPush(GithubApiTypes.Push event) {
-        log.info("onPush:\n{}", event);
+        log.info("onPush pusher={} repository={}", event.pusher, event.repository.git_url);
         var embed = new EmbedBuilder()
                 .setTimestamp(Instant.ofEpochSecond(Long.parseLong(event.repository.pushed_at)))
                 .setThumbnail(event.sender.avatar_url)
