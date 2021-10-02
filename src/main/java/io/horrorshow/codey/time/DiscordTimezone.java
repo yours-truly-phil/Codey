@@ -3,7 +3,7 @@ package io.horrorshow.codey.time;
 import io.horrorshow.codey.discordutil.CodeyConfig;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.parser.TimeParser;
-import io.horrorshow.codey.util.DecoratedRunnable;
+import io.horrorshow.codey.util.CodeyTask;
 import io.horrorshow.codey.util.TaskInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -41,7 +41,7 @@ public class DiscordTimezone extends ListenerAdapter {
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
-            DecoratedRunnable.runAsync(() -> onMessage(event.getMessage()), new TaskInfo(event));
+            CodeyTask.runAsync(() -> onMessage(event.getMessage()), new TaskInfo(event));
         }
     }
 

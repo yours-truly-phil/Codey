@@ -6,7 +6,7 @@ import io.horrorshow.codey.discordutil.DiscordMessage;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
 import io.horrorshow.codey.parser.SourceProcessing;
-import io.horrorshow.codey.util.DecoratedRunnable;
+import io.horrorshow.codey.util.CodeyTask;
 import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
@@ -50,7 +50,7 @@ public class DiscordCompiler extends ListenerAdapter {
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
-            DecoratedRunnable.runAsync(() -> onMessage(event.getMessage()), new TaskInfo(event));
+            CodeyTask.runAsync(() -> onMessage(event.getMessage()), new TaskInfo(event));
         }
     }
 
@@ -58,7 +58,7 @@ public class DiscordCompiler extends ListenerAdapter {
     @Override
     public void onGuildMessageUpdate(@NotNull GuildMessageUpdateEvent event) {
         if (!event.getAuthor().isBot()) {
-            DecoratedRunnable.runAsync(() -> onMessage(event.getMessage()), new TaskInfo(event));
+            CodeyTask.runAsync(() -> onMessage(event.getMessage()), new TaskInfo(event));
         }
     }
 
@@ -66,7 +66,7 @@ public class DiscordCompiler extends ListenerAdapter {
     @Override
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
         if (!event.getUser().isBot()) {
-            DecoratedRunnable.runAsync(() -> onReactionAdd(event), new TaskInfo(event));
+            CodeyTask.runAsync(() -> onReactionAdd(event), new TaskInfo(event));
         }
     }
 

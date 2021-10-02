@@ -5,7 +5,7 @@ import io.horrorshow.codey.data.repository.TimerRepository;
 import io.horrorshow.codey.discordutil.ApplicationState;
 import io.horrorshow.codey.discordutil.AuthService;
 import io.horrorshow.codey.discordutil.DiscordUtils;
-import io.horrorshow.codey.util.DecoratedRunnable;
+import io.horrorshow.codey.util.CodeyTask;
 import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -67,9 +67,9 @@ public class ReminderCommand extends ListenerAdapter {
     public void onSlashCommand(SlashCommandEvent event) {
         final var cmd = event.getName();
         switch (cmd) {
-            case "remind-me" -> DecoratedRunnable.runAsync(() -> onRemindCommand(event), new TaskInfo(event));
-            case "show-reminders" -> DecoratedRunnable.runAsync(() -> onShowReminders(event), new TaskInfo(event));
-            case "stop-reminder" -> DecoratedRunnable.runAsync(() -> onStopReminder(event), new TaskInfo(event));
+            case "remind-me" -> CodeyTask.runAsync(() -> onRemindCommand(event), new TaskInfo(event));
+            case "show-reminders" -> CodeyTask.runAsync(() -> onShowReminders(event), new TaskInfo(event));
+            case "stop-reminder" -> CodeyTask.runAsync(() -> onStopReminder(event), new TaskInfo(event));
         }
     }
 

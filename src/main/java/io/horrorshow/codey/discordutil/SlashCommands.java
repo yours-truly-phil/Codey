@@ -2,7 +2,7 @@ package io.horrorshow.codey.discordutil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.horrorshow.codey.api.Api;
-import io.horrorshow.codey.util.DecoratedRunnable;
+import io.horrorshow.codey.util.CodeyTask;
 import io.horrorshow.codey.util.TaskInfo;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +92,7 @@ public class SlashCommands extends ListenerAdapter {
     public void onSlashCommand(SlashCommandEvent event) {
         switch (event.getName()) {
             case "say" -> say(event);
-            case "get" -> DecoratedRunnable.runAsync(() -> get(event), new TaskInfo(event.getUser(), event.getChannel(), event.getGuild()));
+            case "get" -> CodeyTask.runAsync(() -> get(event), new TaskInfo(event.getUser(), event.getChannel(), event.getGuild()));
             case "cache" -> cache(event);
         }
     }

@@ -1,7 +1,7 @@
 package io.horrorshow.codey.discordutil;
 
 import io.horrorshow.codey.data.entity.ElevatedUser;
-import io.horrorshow.codey.util.DecoratedRunnable;
+import io.horrorshow.codey.util.CodeyTask;
 import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
@@ -45,9 +45,9 @@ public class ElevatedUserCommands extends ListenerAdapter {
                 var user = userOption.getAsUser();
                 var removeOption = event.getOption("remove");
                 if (removeOption == null || !removeOption.getAsBoolean()) {
-                    DecoratedRunnable.runAsync(() -> onSetElevatedUser(event, user), taskInfo);
+                    CodeyTask.runAsync(() -> onSetElevatedUser(event, user), taskInfo);
                 } else {
-                    DecoratedRunnable.runAsync(() -> onRemoveElevatedUser(event, user), taskInfo);
+                    CodeyTask.runAsync(() -> onRemoveElevatedUser(event, user), taskInfo);
                 }
             } else if (COMMAND.SHOW_ELEVATED_USERS.getName().equals(event.getName())) {
                 event.reply("**Elevated users**\n"

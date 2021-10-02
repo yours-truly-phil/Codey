@@ -1,6 +1,6 @@
 package io.horrorshow.codey.discordutil;
 
-import io.horrorshow.codey.util.DecoratedRunnable;
+import io.horrorshow.codey.util.CodeyTask;
 import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
@@ -34,7 +34,7 @@ public class CommonJDAListener extends ListenerAdapter {
     @Override
     public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
         if (!event.getUser().isBot()) {
-            DecoratedRunnable.runAsync(() -> onReactionAdd(event), new TaskInfo(event));
+            CodeyTask.runAsync(() -> onReactionAdd(event), new TaskInfo(event));
         }
     }
 

@@ -5,16 +5,7 @@ import org.slf4j.MDC;
 import java.util.concurrent.CompletableFuture;
 
 
-public class DecoratedRunnable implements Runnable {
-
-    private final Runnable delegate;
-    private final TaskInfo taskInfo;
-
-
-    public DecoratedRunnable(Runnable delegate, TaskInfo taskInfo) {
-        this.delegate = delegate;
-        this.taskInfo = taskInfo;
-    }
+public record CodeyTask(Runnable delegate, TaskInfo taskInfo) implements Runnable {
 
 
     @Override
@@ -32,6 +23,6 @@ public class DecoratedRunnable implements Runnable {
 
 
     public static CompletableFuture<Void> runAsync(Runnable runnable, TaskInfo taskInfo) {
-        return CompletableFuture.runAsync(new DecoratedRunnable(runnable, taskInfo));
+        return CompletableFuture.runAsync(new CodeyTask(runnable, taskInfo));
     }
 }
