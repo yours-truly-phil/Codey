@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 import java.util.Base64;
@@ -43,7 +44,7 @@ public class TaskInfo {
     }
 
 
-    public TaskInfo(User user, AbstractChannel channel, Guild guild) {
+    public TaskInfo(@Nullable User user, @Nullable AbstractChannel channel, @Nullable Guild guild) {
         this.id = BASE64_URL_ENCODER.encodeToString(uuidToBytes(UUID.randomUUID()));
         this.user = user;
         this.channel = channel;
