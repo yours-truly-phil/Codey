@@ -45,7 +45,7 @@ public class CommonJDAListener extends ListenerAdapter {
             if (canDeleteMessage(event.getJDA().getSelfUser(), message)) {
                 try {
                     message.delete().complete();
-                    logMessageDelete(message);
+                    log.info("deleted message {}", DiscordUtils.truncateMessage(message.getContentRaw(), 100));
                 } catch (ErrorResponseException e) {
                     log.warn("Unable to remove message");
                 }
@@ -53,13 +53,6 @@ public class CommonJDAListener extends ListenerAdapter {
                 log.info("not allowed to remove message");
             }
         }
-    }
-
-
-    private void logMessageDelete(Message message) {
-        var content = message.getContentRaw();
-        var truncated = content.substring(0, Math.min(content.length(), 100));
-        log.info("deleted message={}", truncated);
     }
 
 
