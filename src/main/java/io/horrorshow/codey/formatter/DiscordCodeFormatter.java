@@ -61,8 +61,7 @@ public class DiscordCodeFormatter extends ListenerAdapter {
 
 
     public void onReaction(@NotNull GuildMessageReactionAddEvent event) {
-        final String emoji = event.getReactionEmote().getEmoji();
-        if (STARS.equals(emoji)) {
+        if (DiscordUtils.hasEmoji(STARS, event)) {
             var message = event.getChannel().retrieveMessageById(event.getMessageId()).complete();
             starsReaction(message);
         }
