@@ -54,6 +54,14 @@ public class JavaSourceProcessorTest {
 
 
     @Test
+    void process_source_with_null_uses_default_processor() {
+        var statementSrc = "System.out.println(\"foo\");";
+        var source = processSource(statementSrc, null);
+        assertThat(source).isEqualTo(new ProcessResult("System.out.println(\"foo\");", true, null));
+    }
+
+
+    @Test
     void process_expression() {
         var expressionSrc = "for (int i = 0; i < 100; i++) { System.out.println(\"test\"); }";
         var source = processSource(expressionSrc, "java");
