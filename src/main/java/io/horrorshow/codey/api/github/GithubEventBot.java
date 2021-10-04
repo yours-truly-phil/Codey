@@ -5,13 +5,15 @@ import io.horrorshow.codey.discordutil.ApplicationState;
 import io.horrorshow.codey.discordutil.DiscordUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+
+import static io.horrorshow.codey.discordutil.DiscordUtils.truncateList;
 
 
 @Service
@@ -35,9 +37,7 @@ public class GithubEventBot {
                 .setTitle("Github push by " + event.pusher.name)
                 .addField("Repo", String.format("[%s](%s)", event.repository.name, event.repository.url), true)
                 .addField("Pusher", event.pusher.name, true)
-                .addField("Commits", event.commits.stream()
-                        .map(this::formatCommit)
-                        .collect(Collectors.joining("\n")), false)
+                .addField("Commits", formatCommits(event), false)
                 .addField("Repository language", event.repository.language, true)
                 .addField("Repository Owner", event.repository.owner.name, true)
                 .setFooter(String.format("git clone %s", event.repository.clone_url))
@@ -57,6 +57,15 @@ public class GithubEventBot {
             log.error("error sending github update to text channel", e);
             return null;
         });
+    }
+
+
+    @NotNull
+    private String formatCommits(GithubApiTypes.Push event) {
+        return event.commits.stream()
+                .map(this::formatCommit)
+                .filter(truncateList(1000))
+                .collect(Collectors.joining("\n"));
     }
 
 

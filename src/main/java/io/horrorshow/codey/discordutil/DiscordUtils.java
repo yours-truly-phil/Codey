@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 
 import static io.horrorshow.codey.discordutil.CommonJDAListener.BASKET;
 
@@ -114,7 +115,17 @@ public class DiscordUtils {
         return CompletableFuture.completedFuture(message);
     }
 
+
     public static String truncateMessage(String msg, int maxLength) {
         return msg.substring(0, Math.min(maxLength, msg.length()));
+    }
+
+
+    public static Predicate<? super String> truncateList(int maxLength) {
+        final int[] length = {0};
+        return commit -> {
+            length[0] += commit.length();
+            return length[0] <= maxLength;
+        };
     }
 }
