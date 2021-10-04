@@ -117,7 +117,16 @@ public class DiscordUtils {
 
 
     public static String truncateMessage(String msg, int maxLength) {
-        return msg.substring(0, Math.min(maxLength, msg.length()));
+        return truncateMessage(msg, maxLength, "");
+    }
+
+
+    public static String truncateMessage(String msg, int maxLength, String placeholder) {
+        if (msg.length() > maxLength) {
+            return msg.substring(0, maxLength - placeholder.length()) + placeholder;
+        } else {
+            return msg;
+        }
     }
 
 

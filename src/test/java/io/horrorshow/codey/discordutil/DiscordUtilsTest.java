@@ -4,10 +4,13 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static io.horrorshow.codey.discordutil.CommonJDAListener.BASKET;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static io.horrorshow.codey.discordutil.DiscordUtils.truncateList;
+import static io.horrorshow.codey.discordutil.DiscordUtils.truncateMessage;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -42,5 +45,24 @@ public class DiscordUtilsTest {
 
         assertThat(result).isEqualTo(message);
         verify(message.addReaction(BASKET)).queue();
+    }
+
+
+    @Test
+    void truncateStringsTest() {
+        var in = List.of("foo", "bar", "what's", "up?");
+        var res = in.stream().filter(truncateList(6)).toList();
+        assertThat(res).containsExactly("foo", "bar");
+        var res2 = in.stream().filter(truncateList(7)).toList();
+        assertThat(res2).containsExactly("foo", "bar");
+        var res3 = in.stream().filter(truncateList(12)).toList();
+        assertThat(res3).containsExactly("foo", "bar", "what's");
+    }
+
+
+    @Test
+    void truncate_message_add_placeholder() {
+        var result = truncateMessage("Please truncate me ololol", 10, "[...]");
+        assertThat(result).isEqualTo("Pleas[...]");
     }
 }

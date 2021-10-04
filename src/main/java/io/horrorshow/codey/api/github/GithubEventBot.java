@@ -14,6 +14,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static io.horrorshow.codey.discordutil.DiscordUtils.truncateList;
+import static io.horrorshow.codey.discordutil.DiscordUtils.truncateMessage;
 
 
 @Service
@@ -64,6 +65,7 @@ public class GithubEventBot {
     private String formatCommits(GithubApiTypes.Push event) {
         return event.commits.stream()
                 .map(this::formatCommit)
+                .map(commit -> truncateMessage(commit, 50, "[...]"))
                 .filter(truncateList(1000))
                 .collect(Collectors.joining("\n"));
     }
