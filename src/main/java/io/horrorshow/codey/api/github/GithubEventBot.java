@@ -65,14 +65,14 @@ public class GithubEventBot {
     private String formatCommits(GithubApiTypes.Push event) {
         return event.commits.stream()
                 .map(this::formatCommit)
-                .map(commit -> truncateMessage(commit, 50, "[...]"))
                 .filter(truncateList(1000))
                 .collect(Collectors.joining("\n"));
     }
 
 
     private String formatCommit(GithubApiTypes.Commit commit) {
-        return String.format("[%s](%s) (%d files)", commit.message, commit.url, commit.modified.size());
+        return String.format("[%s](%s) (%d files)",
+                truncateMessage(commit.message, 50, "[...]"), commit.url, commit.modified.size());
     }
 
 }
