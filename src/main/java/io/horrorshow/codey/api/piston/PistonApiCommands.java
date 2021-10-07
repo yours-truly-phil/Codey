@@ -2,6 +2,8 @@ package io.horrorshow.codey.api.piston;
 
 import io.horrorshow.codey.discordutil.AuthService;
 import io.horrorshow.codey.discordutil.SlashCommands;
+import io.horrorshow.codey.util.CodeyTask;
+import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -12,7 +14,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Nonnull;
 
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 
@@ -39,7 +40,7 @@ public class PistonApiCommands extends ListenerAdapter {
     public void onSlashCommand(@Nonnull SlashCommandEvent event) {
         var name = event.getName();
         if (SlashCommands.COMMAND.CHANGE_API.getName().equals(name)) {
-            CompletableFuture.runAsync(() -> changeApi(event));
+            CodeyTask.runAsync(() -> changeApi(event), new TaskInfo(event));
         } else if (SlashCommands.COMMAND.SHOW_APIS.getName().equals(name)) {
             if (authService.isElevatedMember(event.getMember())) {
                 event.reply("Apis:\n"

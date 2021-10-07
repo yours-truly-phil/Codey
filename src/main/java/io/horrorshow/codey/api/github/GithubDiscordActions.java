@@ -3,6 +3,8 @@ package io.horrorshow.codey.api.github;
 import io.horrorshow.codey.discordutil.ApplicationState;
 import io.horrorshow.codey.discordutil.AuthService;
 import io.horrorshow.codey.discordutil.SlashCommands.COMMAND;
+import io.horrorshow.codey.util.CodeyTask;
+import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -12,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 
@@ -37,9 +38,9 @@ public class GithubDiscordActions extends ListenerAdapter {
     public void onSlashCommand(@NotNull SlashCommandEvent event) {
         if (authService.isElevatedMember(event.getMember())) {
             if (COMMAND.SET_GITHUB_CHANNEL.getName().equals(event.getName())) {
-                CompletableFuture.runAsync(() -> onSetGithubChannel(event));
+                CodeyTask.runAsync(() -> onSetGithubChannel(event), new TaskInfo(event));
             } else if (COMMAND.SHOW_GITHUB_CHANNELS.getName().equals(event.getName())) {
-                CompletableFuture.runAsync(() -> onShowGithubChannels(event));
+                CodeyTask.runAsync(() -> onShowGithubChannels(event), new TaskInfo(event));
             }
         }
     }
