@@ -19,6 +19,4 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
-        run: mvn -B package --file pom.xml
-      - name: Build spring-boot image
-        run: mvn spring-boot:build-image -Pproduction
+        run: mvn package

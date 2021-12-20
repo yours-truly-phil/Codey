@@ -8,7 +8,7 @@ import io.horrorshow.codey.util.TaskInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ public class DiscordTimezone extends ListenerAdapter {
 
 
     @Override
-    public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
+    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
             CodeyTask.runAsync(() -> onMessage(event.getMessage()), new TaskInfo(event));
         }
@@ -62,9 +62,10 @@ public class DiscordTimezone extends ListenerAdapter {
 
     private static String createTimeMatchPattern() {
         return Arrays.stream(new DateFormatSymbols().getWeekdays()).collect(Collectors.joining("|", "(", ")?"))
-               + "( )?([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9] "
-               + ZoneId.getAvailableZoneIds().stream()
-                       .map(zone -> zone.replaceAll("\\+", "\\\\+"))
-                       .collect(Collectors.joining("|", "(", ")"));
+                + "( )?([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9] "
+                + ZoneId.getAvailableZoneIds().stream()
+                .map(zone -> zone.replaceAll("\\+", "\\\\+"))
+                .collect(Collectors.joining("|", "(", ")"));
     }
+
 }

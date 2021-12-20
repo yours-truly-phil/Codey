@@ -7,13 +7,14 @@ import io.horrorshow.codey.discordutil.DiscordUtils;
 import io.horrorshow.codey.discordutil.MessagePart;
 import io.horrorshow.codey.parser.SourceProcessing;
 import io.horrorshow.codey.util.CodeyTask;
+import io.horrorshow.codey.util.DoOr;
 import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class DiscordCompiler extends ListenerAdapter {
 
 
     @Override
-    public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
+    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if (!event.getAuthor().isBot()) {
             CodeyTask.runAsync(() -> onMessage(event.getMessage()), new TaskInfo(event));
         }
@@ -56,7 +57,7 @@ public class DiscordCompiler extends ListenerAdapter {
 
 
     @Override
-    public void onGuildMessageUpdate(@NotNull GuildMessageUpdateEvent event) {
+    public void onMessageUpdate(@NotNull MessageUpdateEvent event) {
         if (!event.getAuthor().isBot()) {
             CodeyTask.runAsync(() -> onMessage(event.getMessage()), new TaskInfo(event));
         }
@@ -64,14 +65,14 @@ public class DiscordCompiler extends ListenerAdapter {
 
 
     @Override
-    public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
-        if (!event.getUser().isBot()) {
+    public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
+        if (!DoOr.getOrThrow(event::getUser, "Missing user in event").isBot()) {
             CodeyTask.runAsync(() -> onReactionAdd(event), new TaskInfo(event));
         }
     }
 
 
-    public void onReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
+    public void onReactionAdd(@NotNull MessageReactionAddEvent event) {
         if (DiscordUtils.hasEmoji(PLAY, event)) {
             var message = event.getChannel().retrieveMessageById(event.getMessageId()).complete();
             sendCompilationResults(message);

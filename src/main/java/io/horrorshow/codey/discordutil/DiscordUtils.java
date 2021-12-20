@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.message.guild.react.GenericGuildMessageReactionEvent;
+import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
 
 import javax.imageio.ImageIO;
 
@@ -44,7 +44,7 @@ public class DiscordUtils {
 
 
     public static CompletableFuture<Message> sendRemovableEmbed(MessageEmbed embed, TextChannel channel) {
-        var message = channel.sendMessage(embed).complete();
+        var message = channel.sendMessageEmbeds(embed).complete();
         message.addReaction(BASKET).complete();
         return CompletableFuture.completedFuture(message);
     }
@@ -103,14 +103,14 @@ public class DiscordUtils {
     }
 
 
-    public static boolean hasEmoji(String emoji, GenericGuildMessageReactionEvent event) {
+    public static boolean hasEmoji(String emoji, GenericMessageReactionEvent event) {
         return event.getReactionEmote().isEmoji() && emoji.equals(event.getReactionEmote().getEmoji());
     }
 
 
     public static CompletableFuture<Message> sendRemovableMessageReply(Message origin, MessageEmbed content) {
         log.info("send removable reply embed");
-        var message = origin.reply(content).complete();
+        var message = origin.replyEmbeds(content).complete();
         message.addReaction(BASKET).queue();
         return CompletableFuture.completedFuture(message);
     }

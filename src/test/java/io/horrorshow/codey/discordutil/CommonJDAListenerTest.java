@@ -6,11 +6,13 @@ import io.horrorshow.codey.data.repository.Repositories;
 import io.horrorshow.codey.data.repository.TimerRepository;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.Objects;
 
 import static io.horrorshow.codey.discordutil.CommonJDAListener.BASKET;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -39,8 +41,8 @@ public class CommonJDAListenerTest {
 
     @Test
     void basket_reaction_removes_message() {
-        var event = mock(GuildMessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
-        when(event.getUser().isBot()).thenReturn(false);
+        var event = mock(MessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
+        when(Objects.requireNonNull(event.getUser()).isBot()).thenReturn(false);
         when(event.getReactionEmote().getEmoji()).thenReturn(BASKET);
         when(event.getReactionEmote().isEmoji()).thenReturn(true);
         when(event.getMessageId()).thenReturn("messageId");
@@ -56,4 +58,5 @@ public class CommonJDAListenerTest {
 
         verify(message.delete()).complete();
     }
+
 }

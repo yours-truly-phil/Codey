@@ -18,17 +18,17 @@
 
     <properties>
         <java.version>16</java.version>
-        <jda.version>4.3.0_277</jda.version>
-        <google-java-format.version>1.10.0</google-java-format.version>
-        <assertj.version>3.18.1</assertj.version>
-        <javaparser.version>3.23.0</javaparser.version>
+        <jda.version>5.0.0-alpha.2</jda.version>
+        <google-java-format.version>1.13.0</google-java-format.version>
+        <assertj.version>3.21.0</assertj.version>
+        <javaparser.version>3.23.1</javaparser.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
         <spring-retry.version>1.3.1</spring-retry.version>
-        <spring-aspects.version>5.3.9</spring-aspects.version>
+        <spring-aspects.version>5.3.14</spring-aspects.version>
         <sqlite.version>3.36.0.3</sqlite.version>
         <commons-codec.version>1.15</commons-codec.version>
-        <mockito-inline.version>3.12.4</mockito-inline.version>
+        <mockito-inline.version>4.2.0</mockito-inline.version>
     </properties>
 
     <repositories>

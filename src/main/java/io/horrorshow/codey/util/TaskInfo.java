@@ -1,12 +1,12 @@
 package io.horrorshow.codey.util;
 
-import net.dv8tion.jda.api.entities.AbstractChannel;
+import net.dv8tion.jda.api.entities.Channel;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
@@ -20,7 +20,7 @@ public class TaskInfo {
 
     public final String id;
     public final User user;
-    public final AbstractChannel channel;
+    public final Channel channel;
     public final Guild guild;
 
 
@@ -29,22 +29,22 @@ public class TaskInfo {
     }
 
 
-    public TaskInfo(GuildMessageReactionAddEvent event) {
+    public TaskInfo(MessageReactionAddEvent event) {
         this(event.getUser(), event.getChannel(), event.getGuild());
     }
 
 
-    public TaskInfo(GuildMessageUpdateEvent event) {
+    public TaskInfo(MessageUpdateEvent event) {
         this(event.getAuthor(), event.getChannel(), event.getGuild());
     }
 
 
-    public TaskInfo(GuildMessageReceivedEvent event) {
+    public TaskInfo(MessageReceivedEvent event) {
         this(event.getAuthor(), event.getChannel(), event.getGuild());
     }
 
 
-    public TaskInfo(@Nullable User user, @Nullable AbstractChannel channel, @Nullable Guild guild) {
+    public TaskInfo(@Nullable User user, @Nullable Channel channel, @Nullable Guild guild) {
         this.id = BASE64_URL_ENCODER.encodeToString(uuidToBytes(UUID.randomUUID()));
         this.user = user;
         this.channel = channel;
@@ -63,4 +63,5 @@ public class TaskInfo {
         bb.putLong(uuid.getLeastSignificantBits());
         return bb.array();
     }
+
 }

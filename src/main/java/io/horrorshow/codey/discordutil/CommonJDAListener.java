@@ -1,12 +1,13 @@
 package io.horrorshow.codey.discordutil;
 
 import io.horrorshow.codey.util.CodeyTask;
+import io.horrorshow.codey.util.DoOr;
 import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -32,14 +33,14 @@ public class CommonJDAListener extends ListenerAdapter {
 
 
     @Override
-    public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
-        if (!event.getUser().isBot()) {
+    public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
+        if (!DoOr.getOrThrow(event::getUser, "Missing user in event").isBot()) {
             CodeyTask.runAsync(() -> onReactionAdd(event), new TaskInfo(event));
         }
     }
 
 
-    public void onReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
+    public void onReactionAdd(@NotNull MessageReactionAddEvent event) {
         var message = event.getChannel().retrieveMessageById(event.getMessageId()).complete();
         if (DiscordUtils.hasEmoji(BASKET, event)) {
             if (canDeleteMessage(event.getJDA().getSelfUser(), message)) {
@@ -59,9 +60,10 @@ public class CommonJDAListener extends ListenerAdapter {
     private boolean canDeleteMessage(@NotNull User user, Message message) {
         try {
             return user.getId().equals(message.getAuthor().getId())
-                   && !applicationState.getGithubEventState().contains(message.getChannel().getId()).get();
+                    && !applicationState.getGithubEventState().contains(message.getChannel().getId()).get();
         } catch (InterruptedException | ExecutionException e) {
             return false;
         }
     }
+
 }

@@ -4,13 +4,15 @@ import io.horrorshow.codey.discordutil.DiscordMessage;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.Objects;
 
 import static io.horrorshow.codey.formatter.DiscordCodeFormatter.STARS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,27 +73,27 @@ class DiscordCodeFormatterTest {
 
     @Test
     void dont_react_to_added_messages_by_bots() {
-        var event = mock(GuildMessageReceivedEvent.class, RETURNS_DEEP_STUBS);
+        var event = mock(MessageReceivedEvent.class, RETURNS_DEEP_STUBS);
         when(event.getAuthor().isBot()).thenReturn(true);
-        formatter.onGuildMessageReceived(event);
+        formatter.onMessageReceived(event);
         verify(event, never()).getMessage();
     }
 
 
     @Test
     void dont_react_to_updated_messages_by_bots() {
-        var event = mock(GuildMessageUpdateEvent.class, RETURNS_DEEP_STUBS);
+        var event = mock(MessageUpdateEvent.class, RETURNS_DEEP_STUBS);
         when(event.getAuthor().isBot()).thenReturn(true);
-        formatter.onGuildMessageUpdate(event);
+        formatter.onMessageUpdate(event);
         verify(event, never()).getMessage();
     }
 
 
     @Test
     void dont_react_to_reactions_by_bots() {
-        var event = mock(GuildMessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
-        when(event.getUser().isBot()).thenReturn(true);
-        formatter.onGuildMessageReactionAdd(event);
+        var event = mock(MessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
+        when(Objects.requireNonNull(event.getUser()).isBot()).thenReturn(true);
+        formatter.onMessageReactionAdd(event);
         verify(event, never()).getReactionEmote();
     }
 
@@ -110,8 +112,8 @@ class DiscordCodeFormatterTest {
                   }
                 }
                 ```""";
-        var event = mock(GuildMessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
-        when(event.getUser().isBot()).thenReturn(false);
+        var event = mock(MessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
+        when(Objects.requireNonNull(event.getUser()).isBot()).thenReturn(false);
         when(event.getReactionEmote().getEmoji()).thenReturn(STARS);
         when(event.getMessageId()).thenReturn("messageId");
 
@@ -170,4 +172,5 @@ class DiscordCodeFormatterTest {
 
         verify(message.removeReaction(STARS)).complete();
     }
+
 }

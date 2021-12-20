@@ -11,14 +11,15 @@ import io.horrorshow.codey.discordutil.CodeyConfig;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static io.horrorshow.codey.compiler.DiscordCompiler.PLAY;
@@ -57,9 +58,9 @@ class DiscordCompilerTest {
     @Test
     void doesnt_react_to_bot_messages() {
         var event =
-                mock(GuildMessageReceivedEvent.class, RETURNS_DEEP_STUBS);
+                mock(MessageReceivedEvent.class, RETURNS_DEEP_STUBS);
         when(event.getAuthor().isBot()).thenReturn(true);
-        discordCompiler.onGuildMessageReceived(event);
+        discordCompiler.onMessageReceived(event);
         verify(event, never()).getMessage();
     }
 
@@ -67,9 +68,9 @@ class DiscordCompilerTest {
     @Test
     void doesnt_react_to_bot_message_updates() {
         var event =
-                mock(GuildMessageUpdateEvent.class, RETURNS_DEEP_STUBS);
+                mock(MessageUpdateEvent.class, RETURNS_DEEP_STUBS);
         when(event.getAuthor().isBot()).thenReturn(true);
-        discordCompiler.onGuildMessageUpdate(event);
+        discordCompiler.onMessageUpdate(event);
         verify(event, never()).getMessage();
     }
 
@@ -77,9 +78,9 @@ class DiscordCompilerTest {
     @Test
     void doesnt_react_to_bot_reactions() {
         var event =
-                mock(GuildMessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
-        when(event.getUser().isBot()).thenReturn(true);
-        discordCompiler.onGuildMessageReactionAdd(event);
+                mock(MessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
+        when(Objects.requireNonNull(event.getUser()).isBot()).thenReturn(true);
+        discordCompiler.onMessageReactionAdd(event);
         verify(event, never()).getReactionEmote();
     }
 
@@ -169,8 +170,8 @@ class DiscordCompilerTest {
         discordCompiler.onMessage(message);
 
         var event =
-                mock(GuildMessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
-        when(event.getUser().isBot()).thenReturn(false);
+                mock(MessageReactionAddEvent.class, RETURNS_DEEP_STUBS);
+        when(Objects.requireNonNull(event.getUser()).isBot()).thenReturn(false);
         when(event.getReactionEmote().getEmoji()).thenReturn(PLAY);
         when(event.getReactionEmote().isEmoji()).thenReturn(true);
         when(event.getMessageId()).thenReturn("messageId");
@@ -183,4 +184,5 @@ class DiscordCompilerTest {
                 sysOut```
                 """);
     }
+
 }
