@@ -2,12 +2,12 @@ package io.horrorshow.codey.api.github;
 
 import io.horrorshow.codey.discordutil.ApplicationState;
 import io.horrorshow.codey.discordutil.AuthService;
-import io.horrorshow.codey.discordutil.SlashCommands.COMMAND;
+import io.horrorshow.codey.discordutil.SlashCommands;
 import io.horrorshow.codey.util.CodeyTask;
 import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,18 +35,18 @@ public class GithubDiscordActions extends ListenerAdapter {
 
 
     @Override
-    public void onSlashCommand(@NotNull SlashCommandEvent event) {
+    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         if (authService.isElevatedMember(event.getMember())) {
-            if (COMMAND.SET_GITHUB_CHANNEL.getName().equals(event.getName())) {
+            if (SlashCommands.COMMAND.SET_GITHUB_CHANNEL.getName().equals(event.getName())) {
                 CodeyTask.runAsync(() -> onSetGithubChannel(event), new TaskInfo(event));
-            } else if (COMMAND.SHOW_GITHUB_CHANNELS.getName().equals(event.getName())) {
+            } else if (SlashCommands.COMMAND.SHOW_GITHUB_CHANNELS.getName().equals(event.getName())) {
                 CodeyTask.runAsync(() -> onShowGithubChannels(event), new TaskInfo(event));
             }
         }
     }
 
 
-    private void onShowGithubChannels(@NotNull SlashCommandEvent event) {
+    private void onShowGithubChannels(@NotNull SlashCommandInteractionEvent event) {
         var channelInfos = githubEventState.getAll();
         event.reply("Channels:\n" + channelInfos.stream()
                 .map(channelInfo -> " - Id=" + channelInfo.channel().getId() + " Name=" + channelInfo.channel().getName())
@@ -54,7 +54,7 @@ public class GithubDiscordActions extends ListenerAdapter {
     }
 
 
-    private void onSetGithubChannel(@NotNull SlashCommandEvent event) {
+    private void onSetGithubChannel(@NotNull SlashCommandInteractionEvent event) {
         var channel = Objects.requireNonNull(event.getOption("channel")).getAsGuildChannel();
 
         githubEventState.contains(channel.getId())

@@ -6,7 +6,7 @@ import io.horrorshow.codey.util.CodeyTask;
 import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,16 +37,16 @@ public class PistonApiCommands extends ListenerAdapter {
 
 
     @Override
-    public void onSlashCommand(@Nonnull SlashCommandEvent event) {
+    public void onSlashCommandInteraction(@Nonnull SlashCommandInteractionEvent event) {
         var name = event.getName();
         if (SlashCommands.COMMAND.CHANGE_API.getName().equals(name)) {
             CodeyTask.runAsync(() -> changeApi(event), new TaskInfo(event));
         } else if (SlashCommands.COMMAND.SHOW_APIS.getName().equals(name)) {
             if (authService.isElevatedMember(event.getMember())) {
-                event.reply("Apis:\n"
+                event.reply("Apis:" + System.lineSeparator()
                             + config.getApis().keySet().stream()
                                     .map(key -> " - " + key + (key.equals(config.getCurrentApi()) ? " (*)" : ""))
-                                    .collect(Collectors.joining("\n"))).queue();
+                                    .collect(Collectors.joining(System.lineSeparator()))).queue();
             } else {
                 event.reply("you don't have the permissions to do that").queue();
             }
@@ -54,7 +54,7 @@ public class PistonApiCommands extends ListenerAdapter {
     }
 
 
-    private void changeApi(SlashCommandEvent event) {
+    private void changeApi(SlashCommandInteractionEvent event) {
         if (authService.isElevatedMember(event.getMember())) {
             var name = Objects.requireNonNull(event.getOption("name")).getAsString();
             if (config.getApis().containsKey(name)) {

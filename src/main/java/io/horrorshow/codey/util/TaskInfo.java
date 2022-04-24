@@ -3,7 +3,7 @@ package io.horrorshow.codey.util;
 import net.dv8tion.jda.api.entities.Channel;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -24,7 +24,7 @@ public class TaskInfo {
     public final Guild guild;
 
 
-    public TaskInfo(SlashCommandEvent event) {
+    public TaskInfo(SlashCommandInteractionEvent event) {
         this(event.getUser(), event.getChannel(), event.getGuild());
     }
 
@@ -45,7 +45,7 @@ public class TaskInfo {
 
 
     public TaskInfo(@Nullable User user, @Nullable Channel channel, @Nullable Guild guild) {
-        this.id = BASE64_URL_ENCODER.encodeToString(uuidToBytes(UUID.randomUUID()));
+        id = BASE64_URL_ENCODER.encodeToString(uuidToBytes(UUID.randomUUID()));
         this.user = user;
         this.channel = channel;
         this.guild = guild;

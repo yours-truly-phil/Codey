@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,8 +64,8 @@ public class ReminderCommand extends ListenerAdapter {
 
 
     @Override
-    public void onSlashCommand(SlashCommandEvent event) {
-        final var cmd = event.getName();
+    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+        var cmd = event.getName();
         switch (cmd) {
             case "remind-me" -> CodeyTask.runAsync(() -> onRemindCommand(event), new TaskInfo(event));
             case "show-reminders" -> CodeyTask.runAsync(() -> onShowReminders(event), new TaskInfo(event));
@@ -74,7 +74,7 @@ public class ReminderCommand extends ListenerAdapter {
     }
 
 
-    public void onShowReminders(SlashCommandEvent event) {
+    public void onShowReminders(SlashCommandInteractionEvent event) {
         log.info("show reminders");
         var allOption = event.getOption("all");
         if (allOption != null && allOption.getAsBoolean() && authService.isElevatedMember(event.getMember())) {
@@ -90,7 +90,7 @@ public class ReminderCommand extends ListenerAdapter {
     }
 
 
-    private String formatReminder(String id, ReminderTask reminder) {
+    private static String formatReminder(String id, ReminderTask reminder) {
         return "%s by %s (%ds remaining) -> %s".formatted(
                 id,
                 reminder.user().getName(),
@@ -99,21 +99,21 @@ public class ReminderCommand extends ListenerAdapter {
     }
 
 
-    private long getSecondsUntil(ReminderTask reminder) {
+    private static long getSecondsUntil(ReminderTask reminder) {
         return Instant.now().until(reminder.done(), ChronoUnit.SECONDS);
     }
 
 
-    public void onStopReminder(SlashCommandEvent event) {
+    public void onStopReminder(SlashCommandInteractionEvent event) {
         log.info("stop reminder");
         var id = Objects.requireNonNull(event.getOption("id")).getAsLong();
         var reminder = timerMap.get(id);
         if (reminder != null
-            && (event.getUser().getId().equals(reminder.user().getId()) || authService.isElevatedMember(event.getMember()))) {
+                && (event.getUser().getId().equals(reminder.user().getId()) || authService.isElevatedMember(event.getMember()))) {
 
             reminder.task().cancel();
             timerMap.remove(id);
-            final var msg = "Timer %s cancelled".formatted(id);
+            var msg = "Timer %s cancelled".formatted(id);
             log.info(msg);
             event.reply(msg).complete();
         } else {
@@ -122,7 +122,7 @@ public class ReminderCommand extends ListenerAdapter {
     }
 
 
-    public void onRemindCommand(SlashCommandEvent event) {
+    public void onRemindCommand(SlashCommandInteractionEvent event) {
         log.info("remind me");
         var options = event.getOptions().stream()
                 .collect(Collectors.toMap(OptionMapping::getName, Function.identity()));
@@ -133,9 +133,9 @@ public class ReminderCommand extends ListenerAdapter {
             return;
         } else if (inMinutes > MAX_DURATION_MINS) {
             event.reply("can't remind you on "
-                        + LocalDateTime.ofInstant(Instant.now()
+                    + LocalDateTime.ofInstant(Instant.now()
                     .plus(MAX_DURATION_MINS, ChronoUnit.MINUTES), ZoneId.systemDefault())
-                        + ". Too far in the future.").complete();
+                    + ". Too far in the future.").complete();
             return;
         }
 
@@ -153,7 +153,7 @@ public class ReminderCommand extends ListenerAdapter {
 
         scheduleTimer(event.getJDA(), timerRepository, timerData);
 
-        final var msg = "reminder set %dmin from now".formatted(inMinutes);
+        var msg = "reminder set %dmin from now".formatted(inMinutes);
         log.info(msg);
         event.reply(msg).complete();
     }
@@ -214,4 +214,5 @@ public class ReminderCommand extends ListenerAdapter {
 
         return new ReminderTask(timerData.getId(), user, timerData.getMessage(), Instant.ofEpochMilli(timerData.getDone()), task);
     }
+
 }

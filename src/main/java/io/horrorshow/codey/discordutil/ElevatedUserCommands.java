@@ -6,14 +6,13 @@ import io.horrorshow.codey.util.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
-
-import static io.horrorshow.codey.discordutil.SlashCommands.COMMAND;
 
 
 @Service
@@ -25,7 +24,7 @@ public class ElevatedUserCommands extends ListenerAdapter {
 
 
     public ElevatedUserCommands(JDA jda, ApplicationState applicationState, AuthService authService) {
-        this.elevatedUsersState = applicationState.getElevatedUsersState();
+        elevatedUsersState = applicationState.getElevatedUsersState();
         this.authService = authService;
 
         jda.addEventListener(this);
@@ -33,9 +32,9 @@ public class ElevatedUserCommands extends ListenerAdapter {
 
 
     @Override
-    public void onSlashCommand(@NotNull SlashCommandEvent event) {
+    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         if (authService.isElevatedMember(event.getMember())) {
-            if (COMMAND.SET_ELEVATED_USER.getName().equals(event.getName())) {
+            if (SlashCommands.COMMAND.SET_ELEVATED_USER.getName().equals(event.getName())) {
                 var taskInfo = new TaskInfo(event.getUser(), event.getChannel(), event.getGuild());
                 var userOption = event.getOption("user");
                 if (userOption == null) {
@@ -49,17 +48,17 @@ public class ElevatedUserCommands extends ListenerAdapter {
                 } else {
                     CodeyTask.runAsync(() -> onRemoveElevatedUser(event, user), taskInfo);
                 }
-            } else if (COMMAND.SHOW_ELEVATED_USERS.getName().equals(event.getName())) {
-                event.reply("**Elevated users**\n"
-                            + elevatedUsersState.getElevatedUsers().values().stream()
-                                    .map(ElevatedUser::getName)
-                                    .collect(Collectors.joining("\n"))).queue();
+            } else if (SlashCommands.COMMAND.SHOW_ELEVATED_USERS.getName().equals(event.getName())) {
+                event.reply("**Elevated users**" + System.lineSeparator()
+                        + elevatedUsersState.getElevatedUsers().values().stream()
+                        .map(ElevatedUser::getName)
+                        .collect(Collectors.joining(System.lineSeparator()))).queue();
             }
         }
     }
 
 
-    private void onSetElevatedUser(@NotNull SlashCommandEvent event, @NotNull User user) {
+    private void onSetElevatedUser(@NotNull IReplyCallback event, @NotNull User user) {
         log.info("try to set to elevated user {}", user.getName());
         elevatedUsersState.addElevatedUser(user.getId(), user.getName())
                 .whenComplete((elevatedUser, e) -> {
@@ -67,7 +66,7 @@ public class ElevatedUserCommands extends ListenerAdapter {
                         log.info(e.getMessage());
                         event.reply(e.getMessage()).complete();
                     } else {
-                        final var msg = "Added " + elevatedUser.getName() + " to elevated users";
+                        var msg = "Added " + elevatedUser.getName() + " to elevated users";
                         log.info(msg);
                         event.reply(msg).complete();
                     }
@@ -75,7 +74,7 @@ public class ElevatedUserCommands extends ListenerAdapter {
     }
 
 
-    private void onRemoveElevatedUser(@NotNull SlashCommandEvent event, @NotNull User user) {
+    private void onRemoveElevatedUser(@NotNull IReplyCallback event, @NotNull User user) {
         log.info("try to remove from elevated users {}", user.getName());
         elevatedUsersState.removeElevatedUser(user.getId())
                 .whenComplete((removedUser, e) -> {
@@ -83,7 +82,7 @@ public class ElevatedUserCommands extends ListenerAdapter {
                         log.info(e.getMessage());
                         event.reply(e.getMessage()).complete();
                     } else {
-                        final var msg = "Removed " + removedUser.getName() + " from elevated users";
+                        var msg = "Removed " + removedUser.getName() + " from elevated users";
                         log.info(msg);
                         event.reply(msg).complete();
                     }

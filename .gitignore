@@ -36,3 +36,4 @@ build/
 /DEV/
 /logs/
 /data/
+.DS_Store
